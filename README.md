@@ -9,6 +9,13 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/mahesh-diwan/flexfetch/releases/latest"><img src="https://img.shields.io/github/v/release/mahesh-diwan/flexfetch?style=flat&label=release" alt="release"></a>
+  <a href="https://github.com/mahesh-diwan/flexfetch/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/mahesh-diwan/flexfetch/release.yml?style=flat&label=build" alt="build"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/mahesh-diwan/flexfetch?style=flat&color=blue" alt="license"></a>
+  <a href="https://github.com/mahesh-diwan/flexfetch"><img src="https://img.shields.io/github/repo-size/mahesh-diwan/flexfetch?style=flat&label=size" alt="size"></a>
+</p>
+
+<p align="center">
   <a href="#features"><kbd>Features</kbd></a>
   <a href="#installation"><kbd>Install</kbd></a>
   <a href="#usage"><kbd>Usage</kbd></a>
