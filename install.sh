@@ -52,14 +52,15 @@ fi
 
 URL="https://github.com/$REPO/releases/download/$TAG/flexfetch-linux-${ARCH_ALIAS}.tar.gz"
 
-# Download
+echo "Downloading $URL ..."
+
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
 if command -v curl >/dev/null 2>&1; then
-	curl -sL "$URL" -o "$TMPDIR/$BIN.tar.gz"
+	curl -#L "$URL" -o "$TMPDIR/$BIN.tar.gz"
 else
-	wget -q "$URL" -O "$TMPDIR/$BIN.tar.gz"
+	wget "$URL" -O "$TMPDIR/$BIN.tar.gz"
 fi
 
 # Extract
