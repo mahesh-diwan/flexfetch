@@ -17,6 +17,9 @@ struct Cli {
     format: String,
 
     #[arg(long)]
+    theme: Option<String>,
+
+    #[arg(long)]
     debug: bool,
 
     #[arg(long)]
@@ -47,10 +50,14 @@ fn main() {
     let ctx = Context::new(config_dir.clone(), cache_dir, cli.debug);
 
     let config_path = cli.config.as_ref().map(|s| std::path::Path::new(s));
-    let config = Config::load(config_path).unwrap_or_else(|e| {
+    let mut config = Config::load(config_path).unwrap_or_else(|e| {
         eprintln!("warning: config error: {e}, using defaults");
         Config::default_for_testing()
     });
+
+    if let Some(theme) = cli.theme {
+        config.display.theme = Some(theme);
+    }
 
     let modules: Vec<String> = if let Some(m) = cli.modules {
         m.split(':').map(|s| s.to_string()).collect()
