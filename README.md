@@ -37,14 +37,14 @@ Uptime: 5h 49m
 ```bash
 git clone https://github.com/mahesh-diwan/flexfetch.git
 cd flexfetch
-cargo build --release -p sysfetch-cli
-sudo cp target/release/sysfetch-cli /usr/local/bin/flexfetch
+cargo build --release
+sudo cp target/release/flexfetch /usr/local/bin/flexfetch
 ```
 
 Or run directly:
 
 ```bash
-cargo run --release -p sysfetch-cli
+cargo run --release
 ```
 
 ### Cargo install (once published)
@@ -178,7 +178,7 @@ return {
 | `run_command` | `(cmd: string) -> string`  | Execute shell command    |
 | `get_env`     | `(key: string) -> string`  | Get environment variable |
 
-Built with `mlua` 0.10, Lua 5.4 runtime. Disable with `--no-default-features` on sysfetch-core.
+Built with `mlua` 0.10, Lua 5.4 runtime. Disable with `--no-default-features` on flexfetch-core.
 
 ## Templates
 
@@ -204,7 +204,7 @@ Custom templates: place `.tera` files in `~/.config/flexfetch/templates/` (confi
 ```
 flexfetch/
 ├── Cargo.toml              # Workspace manifest
-├── sysfetch-core/          # Detection library
+├── flexfetch-core/          # Detection library
 │   └── src/
 │       ├── lib.rs          # Crate root + re-exports
 │       ├── module.rs       # Module trait, InfoValue, SystemInfo
@@ -215,9 +215,9 @@ flexfetch/
 │       ├── cache.rs        # File-backed JSON cache with TTL
 │       ├── error.rs        # Error types
 │       └── modules/        # Individual detection modules
-├── sysfetch-cli/           # CLI binary
+├── flexfetch-cli/           # CLI binary
 │   └── src/main.rs
-├── sysfetch-lua/           # Lua plugin host (optional)
+├── flexfetch-lua/           # Lua plugin host (optional)
 │   └── src/lib.rs
 └── templates/
     └── default.tera        # Default output template

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["sysfetch-core", "sysfetch-cli", "sysfetch-lua"]
+members = ["flexfetch-core", "flexfetch-cli", "flexfetch-lua"]
 
 [workspace.package]
 version = "0.1.0"

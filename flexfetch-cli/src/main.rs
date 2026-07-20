@@ -1,5 +1,5 @@
 use clap::Parser;
-use sysfetch_core::{Config, Context, ModuleRegistry, TeraEngine};
+use flexfetch_core::{Config, Context, ModuleRegistry, TeraEngine};
 
 #[derive(Parser)]
 #[command(name = "flexfetch", version, about = "Fast, flexible system info tool")]

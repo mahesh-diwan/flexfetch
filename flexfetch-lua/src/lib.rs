@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
+use flexfetch_core::{Context, Error, InfoValue, Module, Result};
 use mlua::{Function, Lua, Value};
-use sysfetch_core::{Context, Error, InfoValue, Module, Result};
 
 pub struct LuaModule {
     name: &'static str,

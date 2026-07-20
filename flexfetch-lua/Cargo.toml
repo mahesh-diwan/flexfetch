@@ -1,8 +1,8 @@
 [package]
-name = "sysfetch-lua"
+name = "flexfetch-lua"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-sysfetch-core = { path = "../sysfetch-core" }
+flexfetch-core = { path = "../flexfetch-core" }
 mlua = { version = "0.10", features = ["lua54"] }
