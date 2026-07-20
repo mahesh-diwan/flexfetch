@@ -46,7 +46,29 @@
 
 ## Installation
 
-### From source (Rust)
+### One-liner (pre-built binary, no Rust needed)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh
+```
+
+Needs `curl` or `wget` + `sudo`. Detects arch, fetches latest release from GitHub, installs to `/usr/local/bin`.
+
+### Manual download
+
+```bash
+# find latest release
+TAG=$(curl -s https://api.github.com/repos/mahesh-diwan/flexfetch/releases/latest \
+  | grep tag_name | cut -d'"' -f4)
+# download + install
+wget "https://github.com/mahesh-diwan/flexfetch/releases/download/$TAG/flexfetch-linux-amd64.tar.gz"
+tar xzf flexfetch-linux-amd64.tar.gz
+sudo mv flexfetch /usr/local/bin/
+```
+
+CI builds on every `v*` tag (`.github/workflows/release.yml`). Uploads `flexfetch-linux-amd64.tar.gz` to release assets.
+
+### From source (Rust, includes Lua plugin support)
 
 ```bash
 git clone https://github.com/mahesh-diwan/flexfetch.git
@@ -60,28 +82,6 @@ sudo cp target/release/flexfetch /usr/local/bin/
 ```bash
 cargo install --git https://github.com/mahesh-diwan/flexfetch
 ```
-
-### GitHub Releases (pre-built binary)
-
-One-liner (curl | sh, needs sudo):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh
-```
-
-Or manually:
-
-```bash
-# find latest release tag
-TAG=$(curl -s https://api.github.com/repos/mahesh-diwan/flexfetch/releases/latest \
-  | grep tag_name | cut -d'"' -f4)
-# download + install
-wget "https://github.com/mahesh-diwan/flexfetch/releases/download/$TAG/flexfetch-linux-amd64.tar.gz"
-tar xzf flexfetch-linux-amd64.tar.gz
-sudo mv flexfetch /usr/local/bin/
-```
-
-CI builds tagged releases via GitHub Actions (`v*` tags trigger `.github/workflows/release.yml`). Uploads `flexfetch-linux-amd64.tar.gz` to release assets.
 
 ### Requirements
 
