@@ -20,6 +20,7 @@ impl ModuleRegistry {
         builders.push(("kernel", || Box::new(crate::modules::kernel::KernelModule)));
         builders.push(("uptime", || Box::new(crate::modules::uptime::UptimeModule)));
         builders.push(("locale", || Box::new(crate::modules::locale::LocaleModule)));
+        builders.push(("colors", || Box::new(crate::modules::colors::ColorsModule)));
 
         ModuleRegistry { builders }
     }
