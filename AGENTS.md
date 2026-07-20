@@ -1,3 +1,3 @@
 Branch: main.
 Convention: terse, modular, test-first.
-All commits to main branch.
+Parallel: dispatch independent tasks simultaneously. No sequential when parallel possible.

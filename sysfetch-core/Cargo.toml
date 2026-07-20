@@ -12,6 +12,7 @@ rayon = "1"
 mlua = { version = "0.10", optional = true, features = ["lua54"] }
 chrono = "0.4"
 walkdir = "2"
+libc = "0.2"
 
 [features]
 default = []
