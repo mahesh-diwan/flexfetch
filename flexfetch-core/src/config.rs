@@ -119,10 +119,9 @@ impl Config {
             "disk".into(),
             "network".into(),
             "battery".into(),
-            "processes".into(),
             "locale".into(),
-                        "resolution".into(),
-                        "colors".into(),
+            "resolution".into(),
+            "colors".into(),
         ]
     }
 
