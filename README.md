@@ -59,16 +59,17 @@ flexfetch
 flexfetch [OPTIONS]
 ```
 
-| Option                  | What it does                       |
-| ----------------------- | ---------------------------------- |
-| `-f, --format <FMT>`    | Output: `text` (default) or `json` |
-| `-m, --modules <LIST>`  | Colon-separated module list        |
-| `-c, --config <FILE>`   | Custom config path                 |
-| `-t, --template <NAME>` | Template name (reserved)           |
-| `--debug`               | Show per-module errors             |
-| `--gen-config`          | Generate default `config.toml`     |
-| `--list-modules`        | List available built-in modules    |
-| `--list-plugins`        | List discovered Lua plugins        |
+| Option                  | What it does                                                            |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `-f, --format <FMT>`    | Output: `text` (default) or `json`                                      |
+| `-m, --modules <LIST>`  | Colon-separated module list                                             |
+| `-c, --config <FILE>`   | Custom config path                                                      |
+| `-t, --template <NAME>` | Template name (reserved)                                                |
+| `--theme <NAME>`        | Color preset: `catppuccin`, `dracula`, `nord`, `gruvbox`, `tokyo-night` |
+| `--debug`               | Show per-module errors                                                  |
+| `--gen-config`          | Generate default `config.toml`                                          |
+| `--list-modules`        | List available built-in modules                                         |
+| `--list-plugins`        | List discovered Lua plugins                                             |
 
 ### Examples
 
@@ -87,6 +88,12 @@ flexfetch -c ~/.config/flexfetch/config.toml
 
 # debug mode to diagnose module errors
 flexfetch --debug
+
+# colored output with a theme preset
+flexfetch --theme catppuccin
+
+# override config theme from CLI
+flexfetch --theme tokyo-night
 
 # pipe JSON into jq
 flexfetch -f json | jq '.os'
@@ -128,8 +135,9 @@ modules = ["os", "host", "kernel", "uptime", "colors"]
 [display]
 separator = ": "
 key_width = 8
-color_keys = "blue"
-color_values = "green"
+theme = "catppuccin"
+# per-field overrides take precedence over theme preset
+# color_keys = "\u001b[94m"
 
 [cache]
 ttl = 60
@@ -142,12 +150,15 @@ Generate default config: `flexfetch --gen-config`
 
 ### Display
 
-| Field          | Default | Description           |
-| -------------- | ------- | --------------------- |
-| `separator`    | `": "`  | between key and value |
-| `key_width`    | `8`     | right-aligns keys     |
-| `color_keys`   | —       | ANSI color for keys   |
-| `color_values` | —       | ANSI color for values |
+| Field          | Default | Description                                                             |
+| -------------- | ------- | ----------------------------------------------------------------------- |
+| `separator`    | `": "`  | between key and value                                                   |
+| `key_width`    | `8`     | right-aligns keys                                                       |
+| `theme`        | —       | Preset name (`catppuccin`, `dracula`, `nord`, `gruvbox`, `tokyo-night`) |
+| `color_keys`   | —       | Per-field override for keys ANSI color                                  |
+| `color_values` | —       | Per-field override for values ANSI color                                |
+| `color_title`  | —       | Per-field override for title ANSI color                                 |
+| `color_sep`    | —       | Per-field override for separator ANSI color                             |
 
 ### Custom Modules
 
