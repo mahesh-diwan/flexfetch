@@ -156,7 +156,11 @@ flexfetch detects distro from `/etc/os-release` and renders ASCII art next to sy
 
 ## Themes
 
-5 presets, switchable at runtime via `--theme` or config `display.theme`.
+5 presets, switchable at runtime via `--theme` or config `display.theme`. Same output, dramatically different look.
+
+<p align="center">
+  <img src="assets/themes.svg" width="700" alt="flexfetch theme comparison">
+</p>
 
 | Theme         | Title       | Keys   | Values | Separator |
 | ------------- | ----------- | ------ | ------ | --------- |
@@ -270,7 +274,8 @@ flexfetch/
 │   └── src/lib.rs
 ├── templates/default.tera
 ├── assets/default.svg
-└── assets/json.svg
+├── assets/json.svg
+└── assets/themes.svg
 ```
 
 ## Building
