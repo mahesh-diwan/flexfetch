@@ -18,6 +18,8 @@ jobs:
             ~/.cargo/git
             target
           key: cargo-release-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install Lua 5.4 (mlua dependency)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lua5.4-dev
       - name: Build release binary
         run: cargo build --release -p flexfetch-cli
       - name: Set arch
