@@ -7,7 +7,10 @@ pub enum Error {
     Config(String),
     Template(String),
     Lua(String),
-    Module { name: &'static str, source: Box<Error> },
+    Module {
+        name: &'static str,
+        source: Box<Error>,
+    },
 }
 
 impl fmt::Display for Error {
@@ -26,7 +29,9 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 impl From<std::io::Error> for Error {
-    fn from(e: std::io::Error) -> Self { Error::Io(e) }
+    fn from(e: std::io::Error) -> Self {
+        Error::Io(e)
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

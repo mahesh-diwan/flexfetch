@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use serde::Serialize;
 use crate::Context;
+use serde::Serialize;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(untagged)]
@@ -37,7 +37,9 @@ pub struct SystemInfo {
 
 impl SystemInfo {
     pub fn new() -> Self {
-        SystemInfo { entries: Vec::new() }
+        SystemInfo {
+            entries: Vec::new(),
+        }
     }
 
     pub fn add(&mut self, name: &'static str, value: InfoValue) {
@@ -47,7 +49,10 @@ impl SystemInfo {
     pub fn to_json(&self) -> serde_json::Value {
         let mut map = serde_json::Map::new();
         for (name, value) in &self.entries {
-            map.insert(name.to_string(), serde_json::to_value(value).unwrap_or_default());
+            map.insert(
+                name.to_string(),
+                serde_json::to_value(value).unwrap_or_default(),
+            );
         }
         serde_json::Value::Object(map)
     }

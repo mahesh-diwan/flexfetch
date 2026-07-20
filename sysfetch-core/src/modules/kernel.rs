@@ -1,9 +1,11 @@
-use crate::{Module, InfoValue, Context, Result};
+use crate::{Context, InfoValue, Module, Result};
 
 pub struct KernelModule;
 
 impl Module for KernelModule {
-    fn name(&self) -> &'static str { "kernel" }
+    fn name(&self) -> &'static str {
+        "kernel"
+    }
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let uname = std::process::Command::new("uname")
@@ -12,7 +14,11 @@ impl Module for KernelModule {
             .ok()
             .and_then(|o| {
                 let s = String::from_utf8_lossy(&o.stdout).trim().to_string();
-                if s.is_empty() { None } else { Some(s) }
+                if s.is_empty() {
+                    None
+                } else {
+                    Some(s)
+                }
             })
             .unwrap_or_else(|| "unknown".to_string());
 

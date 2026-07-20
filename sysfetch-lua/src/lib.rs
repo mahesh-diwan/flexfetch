@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::path::Path;
 
 use mlua::{Function, Lua, Value};
 use sysfetch_core::{Context, Error, InfoValue, Module, Result};
@@ -30,21 +29,22 @@ impl Module for LuaModule {
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let lua = Lua::new();
-        let result = lua.context(|lua_ctx| -> mlua::Result<InfoValue> {
+
+        let result = (|| -> mlua::Result<InfoValue> {
             let code = std::fs::read_to_string(&self.script_path)
                 .map_err(|e| mlua::Error::RuntimeError(format!("read plugin: {e}")))?;
 
-            let api_table = lua_ctx.create_table()?;
+            let api_table = lua.create_table()?;
             api_table.set(
                 "read_file",
-                lua_ctx.create_function(|_, path: String| {
+                lua.create_function(|_, path: String| {
                     std::fs::read_to_string(&path)
                         .map_err(|e| mlua::Error::RuntimeError(format!("read_file: {e}")))
                 })?,
             )?;
             api_table.set(
                 "run_command",
-                lua_ctx.create_function(|_, cmd: String| {
+                lua.create_function(|_, cmd: String| {
                     let output = std::process::Command::new("sh")
                         .arg("-c")
                         .arg(&cmd)
@@ -55,25 +55,23 @@ impl Module for LuaModule {
             )?;
             api_table.set(
                 "get_env",
-                lua_ctx.create_function(|_, key: String| {
-                    Ok(std::env::var(&key).unwrap_or_default())
-                })?,
+                lua.create_function(|_, key: String| Ok(std::env::var(&key).unwrap_or_default()))?,
             )?;
-            lua_ctx.globals().set("ctx", api_table)?;
+            lua.globals().set("ctx", api_table)?;
 
-            let chunk = lua_ctx.load(&code);
+            let chunk = lua.load(&code);
             let result: Value = chunk.eval()?;
 
             if let Value::Table(t) = result {
-                if let Ok(func) = t.get::<_, Function>("collect") {
-                    let res: Value =
-                        func.call::<_, Value>(lua_ctx.globals().get::<_, mlua::Table>("ctx")?)?;
+                if let Ok(func) = t.get::<Function>("collect") {
+                    let ctx_table = lua.globals().get::<mlua::Table>("ctx")?;
+                    let res: Value = func.call::<Value>(ctx_table)?;
                     return Ok(lua_value_to_info(res));
                 }
             }
 
             Ok(InfoValue::Scalar("no collect function".into()))
-        });
+        })();
 
         result.map_err(|e| Error::Lua(e.to_string()))
     }
@@ -83,7 +81,7 @@ fn lua_value_to_info(val: Value) -> InfoValue {
     match val {
         Value::String(s) => InfoValue::Scalar(s.to_string_lossy().to_string()),
         Value::Table(t) => {
-            if let Ok(val_str) = t.get::<_, String>("value") {
+            if let Ok(val_str) = t.get::<String>("value") {
                 return InfoValue::Scalar(val_str);
             }
             let mut map = HashMap::new();

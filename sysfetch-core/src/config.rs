@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
@@ -54,8 +54,12 @@ pub struct CustomModule {
 }
 
 impl DisplayConfig {
-    pub fn default_separator() -> String { ": ".to_string() }
-    pub fn default_key_width() -> usize { 8 }
+    pub fn default_separator() -> String {
+        ": ".to_string()
+    }
+    pub fn default_key_width() -> usize {
+        8
+    }
 }
 
 impl Default for DisplayConfig {
@@ -70,23 +74,35 @@ impl Default for DisplayConfig {
 }
 
 impl CacheConfig {
-    pub fn default_ttl() -> u64 { 60 }
+    pub fn default_ttl() -> u64 {
+        60
+    }
 }
 
 impl Default for CacheConfig {
     fn default() -> Self {
-        CacheConfig { ttl: Self::default_ttl() }
+        CacheConfig {
+            ttl: Self::default_ttl(),
+        }
     }
 }
 
 impl Config {
     pub fn default_modules() -> Vec<String> {
         vec![
-            "title".into(), "separator".into(),
-            "os".into(), "host".into(), "kernel".into(),
-            "uptime".into(), "packages".into(),
-            "shell".into(), "terminal".into(), "de".into(),
-            "cpu".into(), "memory".into(), "disk".into(),
+            "title".into(),
+            "separator".into(),
+            "os".into(),
+            "host".into(),
+            "kernel".into(),
+            "uptime".into(),
+            "packages".into(),
+            "shell".into(),
+            "terminal".into(),
+            "de".into(),
+            "cpu".into(),
+            "memory".into(),
+            "disk".into(),
             "colors".into(),
         ]
     }
@@ -96,15 +112,15 @@ impl Config {
     }
 
     pub fn load(path: Option<&std::path::Path>) -> crate::Result<Self> {
-        let config_path = path.map(|p| p.to_path_buf())
+        let config_path = path
+            .map(|p| p.to_path_buf())
             .or_else(find_config)
             .ok_or_else(|| crate::Error::Config("no config file found".into()))?;
 
         let content = std::fs::read_to_string(&config_path)
             .map_err(|e| crate::Error::Config(format!("cannot read {:?}: {e}", config_path)))?;
 
-        toml::from_str(&content)
-            .map_err(|e| crate::Error::Config(format!("parse error: {e}")))
+        toml::from_str(&content).map_err(|e| crate::Error::Config(format!("parse error: {e}")))
     }
 
     pub fn default_for_testing() -> Self {
@@ -128,5 +144,9 @@ fn find_config() -> Option<PathBuf> {
         });
 
     let p = xdg.join("flexfetch").join("config.toml");
-    if p.exists() { Some(p) } else { None }
+    if p.exists() {
+        Some(p)
+    } else {
+        None
+    }
 }

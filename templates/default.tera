@@ -1,0 +1,74 @@
+{%- if os -%}
+OS: {{ os.pretty_name | default(value=os.name) }}
+{%- endif -%}
+{%- if kernel -%}
+Kernel: {{ kernel.value }}
+{%- endif -%}
+{%- if host -%}
+Host: {{ host.value }}
+{%- endif -%}
+{%- if uptime -%}
+Uptime: {{ uptime.value }}
+{%- endif -%}
+{%- if packages -%}
+{%- for name, count in packages -%}
+Packages: {{ count }} ({{ name }})
+{%- endfor -%}
+{%- endif -%}
+{%- if shell -%}
+Shell: {{ shell.name }}{% if shell.version %} {{ shell.version }}{% endif %}
+{%- endif -%}
+{%- if terminal -%}
+{%- if terminal.name -%}
+Terminal: {{ terminal.name }}{% if terminal.version %} {{ terminal.version }}{% endif %}
+{%- else -%}
+Terminal: {{ terminal.value }}
+{%- endif -%}
+{%- endif -%}
+{%- if de -%}
+DE: {{ de.value }}
+{%- endif -%}
+{%- if wm -%}
+WM: {{ wm.value }}
+{%- endif -%}
+{%- if locale -%}
+{%- if locale.lang -%}
+Locale: {{ locale.lang }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}
+{%- else -%}
+Locale: {{ locale.value }}
+{%- endif -%}
+{%- endif -%}
+{%- if cpu -%}
+CPU: {{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}
+{%- endif -%}
+{%- if memory -%}
+Memory: {{ memory.used }} / {{ memory.total }} ({{ memory.percent }})
+{%- endif -%}
+{%- if gpu -%}
+{%- for device in gpu -%}
+GPU: {{ device }}
+{%- endfor -%}
+{%- endif -%}
+{%- if disk -%}
+{%- for mount in disk -%}
+Disk: {{ mount }}
+{%- endfor -%}
+{%- endif -%}
+{%- if network -%}
+{%- for iface in network -%}
+Network: {{ iface }}
+{%- endfor -%}
+{%- endif -%}
+{%- if battery -%}
+{%- if battery.percent -%}
+Battery: {{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}
+{%- else -%}
+Battery: {{ battery.value }}
+{%- endif -%}
+{%- endif -%}
+{%- if processes -%}
+Processes: {{ processes.value }}
+{%- endif -%}
+{%- if colors -%}
+Colors: {{ colors | join(sep=" ") }}
+{%- endif -%}
