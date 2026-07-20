@@ -29,6 +29,14 @@ impl TeraEngine {
         }
         ctx.insert("display_separator", &config.display.separator);
         ctx.insert("display_key_width", &config.display.key_width);
+
+        let theme = crate::theme::resolve(config);
+        ctx.insert("theme_title", &theme.title);
+        ctx.insert("theme_keys", &theme.keys);
+        ctx.insert("theme_values", &theme.values);
+        ctx.insert("theme_sep", &theme.sep);
+        ctx.insert("theme_reset", &theme.reset);
+
         self.tera
             .render(&self.template_name, &ctx)
             .map_err(|e| crate::Error::Template(e.to_string()))

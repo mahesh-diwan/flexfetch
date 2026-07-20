@@ -32,10 +32,19 @@ pub struct DisplayConfig {
     pub key_width: usize,
 
     #[serde(default)]
+    pub theme: Option<String>,
+
+    #[serde(default)]
+    pub color_title: Option<String>,
+
+    #[serde(default)]
     pub color_keys: Option<String>,
 
     #[serde(default)]
     pub color_values: Option<String>,
+
+    #[serde(default)]
+    pub color_sep: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -67,8 +76,11 @@ impl Default for DisplayConfig {
         DisplayConfig {
             separator: Self::default_separator(),
             key_width: Self::default_key_width(),
+            theme: None,
+            color_title: None,
             color_keys: None,
             color_values: None,
+            color_sep: None,
         }
     }
 }

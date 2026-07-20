@@ -1,74 +1,62 @@
 {%- if os -%}
-OS: {{ os.pretty_name | default(value=os.name) }}
+{{ theme_keys }}OS{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ os.pretty_name | default(value=os.name) }}{{ theme_reset }}
 {% endif -%}
 {%- if kernel -%}
-Kernel: {{ kernel }}
+{{ theme_keys }}Kernel{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ kernel }}{{ theme_reset }}
 {% endif -%}
 {%- if host -%}
-Host: {{ host }}
+{{ theme_keys }}Host{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ host }}{{ theme_reset }}
 {% endif -%}
 {%- if uptime -%}
-Uptime: {{ uptime }}
+{{ theme_keys }}Uptime{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ uptime }}{{ theme_reset }}
 {% endif -%}
 {%- if packages -%}
 {%- for name, count in packages -%}
-Packages: {{ count }} ({{ name }})
+{{ theme_keys }}Packages{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ count }} ({{ name }}){{ theme_reset }}
 {%- endfor %}
 {% endif -%}
 {%- if shell -%}
-Shell: {{ shell.name }}{% if shell.version %} {{ shell.version }}{% endif %}
+{{ theme_keys }}Shell{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ shell.name }}{% if shell.version %} {{ shell.version }}{% endif %}{{ theme_reset }}
 {% endif -%}
 {%- if terminal -%}
-{%- if terminal.name -%}
-Terminal: {{ terminal.name }}{% if terminal.version %} {{ terminal.version }}{% endif %}
-{%- else -%}
-Terminal: {{ terminal.value }}
-{%- endif %}
+{{ theme_keys }}Terminal{{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if terminal.name %}{{ terminal.name }}{% if terminal.version %} {{ terminal.version }}{% endif %}{% else %}{{ terminal.value }}{% endif %}{{ theme_reset }}
 {% endif -%}
 {%- if de -%}
-DE: {{ de.value }}
+{{ theme_keys }}DE{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ de.value }}{{ theme_reset }}
 {% endif -%}
 {%- if wm -%}
-WM: {{ wm.value }}
+{{ theme_keys }}WM{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ wm.value }}{{ theme_reset }}
 {% endif -%}
 {%- if locale -%}
-{%- if locale.lang -%}
-Locale: {{ locale.lang }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}
-{%- else -%}
-Locale: {{ locale.value }}
-{%- endif %}
+{{ theme_keys }}Locale{{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if locale.lang %}{{ locale.lang }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}{% else %}{{ locale.value }}{% endif %}{{ theme_reset }}
 {% endif -%}
 {%- if cpu -%}
-CPU: {{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}
+{{ theme_keys }}CPU{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}{{ theme_reset }}
 {% endif -%}
 {%- if memory -%}
-Memory: {{ memory.used }} / {{ memory.total }} ({{ memory.percent }})
+{{ theme_keys }}Memory{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.used }} / {{ memory.total }} ({{ memory.percent }}){{ theme_reset }}
 {% endif -%}
 {%- if gpu -%}
 {%- for device in gpu -%}
-GPU: {{ device }}
+{{ theme_keys }}GPU{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ device }}{{ theme_reset }}
 {%- endfor %}
 {% endif -%}
 {%- if disk -%}
 {%- for mount in disk -%}
-Disk: {{ mount }}
+{{ theme_keys }}Disk{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ mount }}{{ theme_reset }}
 {%- endfor %}
 {% endif -%}
 {%- if network -%}
 {%- for iface in network -%}
-Network: {{ iface }}
+{{ theme_keys }}Network{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ iface }}{{ theme_reset }}
 {%- endfor %}
 {% endif -%}
 {%- if battery -%}
-{%- if battery.percent -%}
-Battery: {{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}
-{%- else -%}
-Battery: {{ battery.value }}
-{%- endif %}
+{{ theme_keys }}Battery{{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if battery.percent %}{{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}{% else %}{{ battery.value }}{% endif %}{{ theme_reset }}
 {% endif -%}
 {%- if processes -%}
-Processes: {{ processes.value }}
+{{ theme_keys }}Processes{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ processes.value }}{{ theme_reset }}
 {% endif -%}
 {%- if colors -%}
-Colors: {{ colors | join(sep=" ") }}
+{{ theme_keys }}Colors{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ colors | join(sep=" ") }}{{ theme_reset }}
 {% endif -%}

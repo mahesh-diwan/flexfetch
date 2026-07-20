@@ -5,6 +5,7 @@ pub mod error;
 pub mod module;
 pub mod module_registry;
 pub mod template;
+pub mod theme;
 
 pub mod modules;
 
@@ -14,6 +15,7 @@ pub use error::{Error, Result};
 pub use module::{InfoValue, Module, SystemInfo};
 pub use module_registry::ModuleRegistry;
 pub use template::TeraEngine;
+pub use theme::ThemeStrings;
 
 #[cfg(test)]
 mod tests {
