@@ -237,14 +237,15 @@ flexfetch -f json | jq '.os.name'
 
 ## Modules
 
-| Module                                                                                                                   | Status |
-| ------------------------------------------------------------------------------------------------------------------------ | ------ |
-| `os`, `host`, `kernel`, `uptime`, `locale`                                                                               | ✅     |
-| `colors`                                                                                                                 | ✅     |
-| `cpu`, `memory`, `disk`, `gpu`, `network`, `battery`, `processes`, `packages`, `shell`, `terminal`, `de`, `wm`, `custom` | 🚧     |
-| `title`, `separator`                                                                                                     | 📐     |
+All modules run in parallel via Rayon and detect from your system automatically.
 
-All modules run in parallel via Rayon. Stubs return empty — [PRs welcome](https://github.com/mahesh-diwan/flexfetch/pulls).
+| Module                                                                                                         | Status |
+| -------------------------------------------------------------------------------------------------------------- | ------ |
+| `os`, `host`, `kernel`, `uptime`, `locale`                                                                     | ✅     |
+| `cpu`, `memory`, `disk`, `gpu`, `network`, `battery`, `processes`, `packages`, `shell`, `terminal`, `de`, `wm` | ✅     |
+| `colors`                                                                                                       | ✅     |
+| `custom`                                                                                                       | ✅     |
+| `title`, `separator`                                                                                           | 📐     |
 
 <br>
 
@@ -285,8 +286,6 @@ cargo test
 **How is this different from neofetch/fastfetch?** Lua plugins, Tera templates, and theme presets — no other tool has all three.
 
 **How do I add info that isn't built in?** Two ways: `[custom]` config section (shell commands) or a Lua plugin.
-
-**Why are some modules empty?** 13 are stubs — they compile but need implementation. See the [Module trait](flexfetch-core/src/module.rs).
 
 **Does it work on macOS?** Yes. OS detection via `sw_vers`. macOS logo auto-detected.
 

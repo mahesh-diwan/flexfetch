@@ -112,9 +112,15 @@ impl Config {
             "shell".into(),
             "terminal".into(),
             "de".into(),
+            "wm".into(),
             "cpu".into(),
             "memory".into(),
+            "gpu".into(),
             "disk".into(),
+            "network".into(),
+            "battery".into(),
+            "processes".into(),
+            "locale".into(),
             "colors".into(),
         ]
     }

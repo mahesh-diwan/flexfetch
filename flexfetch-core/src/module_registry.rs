@@ -12,15 +12,37 @@ impl ModuleRegistry {
         let mut builders: Vec<(&'static str, ModuleBuilder)> = Vec::new();
 
         // Only modules with implemented structs are registered.
-        // Stub modules (battery, colors, cpu, custom, de, disk, gpu, memory,
-        // network, packages, processes, shell, terminal, wm) added when
-        // Tasks 4/5 complete them.
         builders.push(("os", || Box::new(crate::modules::os::OsModule)));
         builders.push(("host", || Box::new(crate::modules::host::HostModule)));
         builders.push(("kernel", || Box::new(crate::modules::kernel::KernelModule)));
         builders.push(("uptime", || Box::new(crate::modules::uptime::UptimeModule)));
         builders.push(("locale", || Box::new(crate::modules::locale::LocaleModule)));
         builders.push(("colors", || Box::new(crate::modules::colors::ColorsModule)));
+        builders.push(("de", || Box::new(crate::modules::de::DeModule)));
+        builders.push(("packages", || {
+            Box::new(crate::modules::packages::PackagesModule)
+        }));
+        builders.push(("shell", || Box::new(crate::modules::shell::ShellModule)));
+        builders.push(("terminal", || {
+            Box::new(crate::modules::terminal::TerminalModule)
+        }));
+        builders.push(("wm", || Box::new(crate::modules::wm::WmModule)));
+        builders.push(("cpu", || Box::new(crate::modules::cpu::CpuModule)));
+        builders.push(("memory", || Box::new(crate::modules::memory::MemoryModule)));
+        builders.push(("processes", || {
+            Box::new(crate::modules::processes::ProcessesModule)
+        }));
+        builders.push(("battery", || {
+            Box::new(crate::modules::battery::BatteryModule)
+        }));
+        builders.push(("gpu", || Box::new(crate::modules::gpu::GpuModule)));
+        builders.push(("disk", || Box::new(crate::modules::disk::DiskModule)));
+        builders.push(("network", || {
+            Box::new(crate::modules::network::NetworkModule)
+        }));
+        builders.push(("custom", || {
+            Box::new(crate::modules::custom::CustomCommandsModule)
+        }));
 
         ModuleRegistry { builders }
     }

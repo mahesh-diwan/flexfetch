@@ -47,10 +47,16 @@ fn main() {
 
     let config_dir = get_config_dir();
     let cache_dir = get_cache_dir();
-    let ctx = Context::new(config_dir.clone(), cache_dir, cli.debug);
 
     let config_path = cli.config.as_ref().map(|s| std::path::Path::new(s));
     let mut config = Config::load(config_path).unwrap_or_else(|_| Config::default_for_testing());
+
+    let ctx = Context::new(
+        config_dir.clone(),
+        cache_dir,
+        cli.debug,
+        config.custom.clone(),
+    );
 
     if let Some(theme) = cli.theme {
         config.display.theme = Some(theme);
