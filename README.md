@@ -1,101 +1,129 @@
-# flexfetch
+<p align="center">
+  <img src="assets/default.svg" width="660" alt="flexfetch terminal output">
+</p>
 
-Fast, flexible system information tool for Linux and macOS. Written in Rust.
+<h1 align="center">flexfetch</h1>
 
-```
-$ flexfetch
-OS: CachyOS
-Kernel: Linux 7.1.3-2-cachyos x86_64
-Host: cachyos-x8664
-Uptime: 5h 49m
-```
+<p align="center">
+  <em>Fast, flexible system info for Linux & macOS · Written in Rust</em>
+</p>
 
-## Requirements
+<p align="center">
+  <a href="#quick-start"><kbd>🚀 Quick Start</kbd></a>
+  <a href="#usage"><kbd>📖 Usage</kbd></a>
+  <a href="#modules"><kbd>🧩 Modules</kbd></a>
+  <a href="#configuration"><kbd>⚙️ Config</kbd></a>
+  <a href="#lua-plugins"><kbd>🔌 Lua Plugins</kbd></a>
+</p>
 
-- **Rust** 1.75+ (edition 2021)
-- **OS**: Linux (primary) or macOS
-- **Lua 5.4** (optional, for Lua plugins — enabled by default in CLI build)
+<br>
 
-### Dependencies (auto-managed by Cargo)
-
-| Crate                  | Purpose                      |
-| ---------------------- | ---------------------------- |
-| `clap` 4               | CLI argument parsing         |
-| `serde` / `serde_json` | JSON serialization           |
-| `toml` 0.8             | Config file parsing          |
-| `tera` 1               | Template engine              |
-| `rayon` 1              | Parallel module collection   |
-| `mlua` 0.10            | Lua 5.4 scripting (optional) |
-| `chrono` 0.4           | Timestamps                   |
-| `walkdir` 2            | Directory traversal          |
-| `libc` 0.2             | macOS syscalls               |
-
-## Installation
-
-### From source
+## Quick Start
 
 ```bash
 git clone https://github.com/mahesh-diwan/flexfetch.git
 cd flexfetch
 cargo build --release
-sudo cp target/release/flexfetch /usr/local/bin/flexfetch
+sudo cp target/release/flexfetch /usr/local/bin/
+
+flexfetch
 ```
 
-Or run directly:
+**No dependencies to install** — Rust builds a static binary with everything included. Lua 5.4 optional for plugins.
 
-```bash
-cargo run --release
-```
+## Why flexfetch?
 
-### Cargo install (once published)
+|                | flexfetch | neofetch | fastfetch |
+| -------------- | --------- | -------- | --------- |
+| Language       | Rust      | Bash     | C         |
+| Plugins        | Lua 5.4   | —        | —         |
+| Templates      | Tera      | —        | —         |
+| Config format  | TOML      | —        | JSON5     |
+| Binary size    | ~5 MB     | ~1 MB    | ~2 MB     |
+| Parallel fetch | ✅        | —        | ✅        |
 
-```bash
-cargo install flexfetch
-```
+## Features
+
+- **5 working modules**: OS, Host, Kernel, Uptime, Locale — ready now
+- **14 stub modules**: CPU, Memory, Disk, GPU, Network, Battery, Processes, Packages, Shell, Terminal, DE, WM, Colors, Custom — wired up, return empty until implemented
+- **Lua plugin system**: drop `.lua` files in `~/.config/flexfetch/plugins/`, get custom info from scripts
+- **Tera templates**: Jinja2-like syntax, full control over output layout
+- **JSON output**: machine-readable `-f json` for piping into other tools
+- **Parallel collection**: modules gather data concurrently via Rayon
+- **TOML config**: choose modules, set display options, define custom commands
+- **No runtime deps**: static binary, works on any Linux/macOS system
 
 ## Usage
 
 ```
 flexfetch [OPTIONS]
-
-Options:
-  -c, --config <FILE>      Path to config file
-  -m, --modules <LIST>     Colon-separated module list (e.g. "os:cpu:memory")
-  -t, --template <NAME>    Template name (reserved, WIP)
-  -f, --format <FMT>       Output format: text (default) or json
-      --debug              Show module errors
-      --gen-config         Generate default config file
-      --list-modules       List available built-in modules
-      --list-plugins       List loaded Lua plugins
-  -h, --help               Print help
-  -V, --version            Print version
 ```
+
+| Option                  | What it does                       |
+| ----------------------- | ---------------------------------- |
+| `-f, --format <FMT>`    | Output: `text` (default) or `json` |
+| `-m, --modules <LIST>`  | Colon-separated module list        |
+| `-c, --config <FILE>`   | Custom config path                 |
+| `-t, --template <NAME>` | Template name (reserved)           |
+| `--debug`               | Show per-module errors             |
+| `--gen-config`          | Generate default `config.toml`     |
+| `--list-modules`        | List available built-in modules    |
+| `--list-plugins`        | List discovered Lua plugins        |
 
 ### Examples
 
 ```bash
-# Basic system info
+# default system info
 flexfetch
 
-# JSON output
+# machine-readable JSON
 flexfetch -f json
 
-# Specific modules
-flexfetch -m "os:kernel:uptime:packages"
+# specific modules only
+flexfetch -m "os:kernel:uptime"
 
-# Generate default config
-flexfetch --gen-config
+# pick modules from config
+flexfetch -c ~/.config/flexfetch/config.toml
 
-# Debug mode — shows module errors
+# debug mode to diagnose module errors
 flexfetch --debug
+
+# pipe JSON into jq
+flexfetch -f json | jq '.os'
 ```
+
+<p align="center">
+  <img src="assets/json.svg" width="660" alt="flexfetch JSON output">
+</p>
+
+## Modules
+
+### Working (5)
+
+| Module   | Source                                         | Output                  |
+| -------- | ---------------------------------------------- | ----------------------- |
+| `os`     | `/etc/os-release` / `sw_vers`                  | name, version, ID, arch |
+| `host`   | `gethostname(2)` / `/proc/sys/kernel/hostname` | hostname                |
+| `kernel` | `uname -srm`                                   | kernel version + arch   |
+| `uptime` | `/proc/uptime` / `sysctl`                      | human-readable uptime   |
+| `locale` | `$LANG` / `$LC_CTYPE` / `$LC_ALL`              | language + encoding     |
+
+### Stubs (14 — WIP)
+
+Modules below compile but return empty. They need implementation in `src/modules/`:
+
+`cpu` · `memory` · `disk` · `gpu` · `network` · `battery` · `processes` · `packages` · `shell` · `terminal` · `de` · `wm` · `colors` · `custom`
+
+### Layout-only
+
+`title` — renders header · `separator` — renders divider (template use only)
 
 ## Configuration
 
-Config file at `~/.config/flexfetch/config.toml`:
+Config lives at `~/.config/flexfetch/config.toml`:
 
 ```toml
-modules = ["os", "host", "kernel", "uptime", "cpu", "memory", "disk", "colors"]
+modules = ["os", "host", "kernel", "uptime", "colors"]
 
 [display]
 separator = ": "
@@ -112,34 +140,16 @@ my_custom = { command = "uptime -p", label = "Uptime" }
 
 Generate default config: `flexfetch --gen-config`
 
-## Modules
+### Display
 
-### Currently implemented
+| Field          | Default | Description           |
+| -------------- | ------- | --------------------- |
+| `separator`    | `": "`  | between key and value |
+| `key_width`    | `8`     | right-aligns keys     |
+| `color_keys`   | —       | ANSI color for keys   |
+| `color_values` | —       | ANSI color for values |
 
-| Module   | Source                                                     | Output                             |
-| -------- | ---------------------------------------------------------- | ---------------------------------- |
-| `os`     | `/etc/os-release` (Linux), `sw_vers` (macOS)               | OS name, version, ID, architecture |
-| `host`   | `/proc/sys/kernel/hostname` (Linux), `gethostname` (macOS) | Hostname                           |
-| `kernel` | `uname -srm`                                               | Kernel version + architecture      |
-| `uptime` | `/proc/uptime` (Linux), `sysctl` (macOS)                   | Human-readable uptime              |
-| `locale` | `$LANG`, `$LC_CTYPE` / `$LC_ALL`                           | System language + encoding         |
-
-### Stubs (WIP — not yet collecting data)
-
-Modules marked `Stub — Task 4/5` in source. They compile but return empty output until implemented:
-
-cpu, memory, disk, gpu, network, battery, processes, packages, shell, terminal, de, wm, colors, custom
-
-### Layout-only (no data collection)
-
-| Name        | Purpose                            |
-| ----------- | ---------------------------------- |
-| `title`     | Renders title/header in template   |
-| `separator` | Renders separator line in template |
-
-## Custom Modules
-
-Define custom commands in config:
+### Custom Modules
 
 ```toml
 [custom]
@@ -147,17 +157,15 @@ my_temp = { command = "sensors | grep temp1", label = "Temp" }
 sys_load = { command = "uptime | awk -F'load average:' '{print $2}'", label = "Load" }
 ```
 
-Fields:
-
-| Field     | Required | Description                             |
-| --------- | -------- | --------------------------------------- |
-| `command` | Yes      | Shell command to execute                |
-| `label`   | No       | Display label (defaults to module name) |
-| `shell`   | No       | Shell binary (default: `sh -c`)         |
+| Field     | Required | Description                     |
+| --------- | -------- | ------------------------------- |
+| `command` | yes      | shell command to execute        |
+| `label`   | no       | display label (default: name)   |
+| `shell`   | no       | shell binary (default: `sh -c`) |
 
 ## Lua Plugins
 
-Place Lua scripts in `~/.config/flexfetch/plugins/`:
+Place scripts in `~/.config/flexfetch/plugins/`:
 
 ```lua
 return {
@@ -165,63 +173,67 @@ return {
     collect = function(ctx)
         local user = ctx.get_env("USER")
         local host = ctx.run_command("hostname")
-        return { value = user .. "@" .. host, type = "scalar" }
+        return { value = user .. "@" .. host }
     end
 }
 ```
 
-### Plugin API (`ctx` table)
+### Plugin API
 
-| Function      | Signature                  | Description              |
-| ------------- | -------------------------- | ------------------------ |
-| `read_file`   | `(path: string) -> string` | Read file contents       |
-| `run_command` | `(cmd: string) -> string`  | Execute shell command    |
-| `get_env`     | `(key: string) -> string`  | Get environment variable |
+| Function      | Signature          | Description           |
+| ------------- | ------------------ | --------------------- |
+| `read_file`   | `(path) -> string` | read file contents    |
+| `run_command` | `(cmd) -> string`  | execute shell command |
+| `get_env`     | `(key) -> string`  | get env variable      |
 
-Built with `mlua` 0.10, Lua 5.4 runtime. Disable with `--no-default-features` on flexfetch-core.
+Return a table with `{ value = "..." }` for scalar, or `{ key1 = "val1", key2 = "val2" }` for map.
+
+Built with `mlua` 0.10 (Lua 5.4). Disable: `--no-default-features` on flexfetch-core.
 
 ## Templates
 
-Default template uses [Tera](https://tera.netlify.app/) (Jinja2-like) syntax. Variables are set per module name.
+Default template uses Tera (Jinja2/Django syntax). Custom templates go in `~/.config/flexfetch/templates/`.
 
-Custom templates: place `.tera` files in `~/.config/flexfetch/templates/` (configurable path — WIP).
+Template variables are per-module keys (`os`, `host`, `kernel`, …) plus `display_separator` and `display_key_width`.
 
 ## Output Formats
 
-- **text** — Renders selected modules through Tera template
-- **json** — Machine-readable JSON with all module data
-
-```json
-{
-  "os": { "id": "cachyos", "name": "CachyOS Linux", "arch": "x86_64" },
-  "host": "cachyos-x8664",
-  "uptime": "5h 49m"
-}
-```
+| Format | Command               | Use case             |
+| ------ | --------------------- | -------------------- |
+| text   | `flexfetch` (default) | human-readable       |
+| json   | `flexfetch -f json`   | programmatic parsing |
 
 ## Project Structure
 
 ```
 flexfetch/
-├── Cargo.toml              # Workspace manifest
-├── flexfetch-core/          # Detection library
+├── Cargo.toml              # workspace manifest
+├── flexfetch-core/         # detection library
 │   └── src/
-│       ├── lib.rs          # Crate root + re-exports
+│       ├── lib.rs          # crate root + re-exports
 │       ├── module.rs       # Module trait, InfoValue, SystemInfo
-│       ├── module_registry.rs  # Module registration + parallel dispatch
-│       ├── config.rs       # Config loader (TOML)
-│       ├── context.rs      # Runtime context (dirs, cache)
+│       ├── module_registry.rs  # registry + parallel dispatch
+│       ├── config.rs       # TOML config loader
+│       ├── context.rs      # runtime context (dirs, cache)
 │       ├── template.rs     # Tera template engine
-│       ├── cache.rs        # File-backed JSON cache with TTL
-│       ├── error.rs        # Error types
-│       └── modules/        # Individual detection modules
-├── flexfetch-cli/           # CLI binary
+│       ├── cache.rs        # file-backed JSON cache (TTL)
+│       ├── error.rs        # error types
+│       └── modules/        # detection modules
+├── flexfetch-cli/          # CLI binary
 │   └── src/main.rs
-├── flexfetch-lua/           # Lua plugin host (optional)
+├── flexfetch-lua/          # Lua plugin host (optional)
 │   └── src/lib.rs
 └── templates/
-    └── default.tera        # Default output template
+    └── default.tera
 ```
+
+## Requirements
+
+- **Rust** 1.75+ (edition 2021)
+- **OS**: Linux (primary) or macOS
+- **Lua 5.4** (optional, for plugins)
+
+All crate dependencies managed by Cargo: `clap`, `serde`/`serde_json`, `toml`, `tera`, `rayon`, `mlua`, `chrono`, `walkdir`, `libc`.
 
 ## License
 
@@ -229,8 +241,7 @@ MIT
 
 ## Credits
 
-- [neofetch](https://github.com/dylanaraps/neofetch) — the project that inspired flexfetch
-- [fastfetch](https://github.com/fastfetch-cli/fastfetch) — similar tool, also Rust-based
+- [neofetch](https://github.com/dylanaraps/neofetch) — inspiration
+- [fastfetch](https://github.com/fastfetch-cli/fastfetch) — Rust reference
 - [Tera](https://tera.netlify.app/) — template engine
-- [mlua](https://github.com/khvzak/mlua) — Lua bindings for Rust
-- [clap](https://clap.rs/) — CLI argument parser
+- [mlua](https://github.com/khvzak/mlua) — Lua bindings
