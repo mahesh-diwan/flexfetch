@@ -8,10 +8,6 @@
       <stop offset="0%" stop-color="#1e1e2e"/>
       <stop offset="100%" stop-color="#11111b"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
 
   <!-- Shadow -->
@@ -39,43 +35,48 @@
 
   <!-- Row 1: OS -->
   <text x="50" y="122" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">     /\     </text>
-  <text x="308" y="122" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">OS<tspan fill="#585b70">:</tspan></text>
-  <text x="370" y="122" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">CachyOS 20260720 x86_64</text>
+  <text x="356" y="122" text-anchor="end" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">OS</text>
+  <text x="362" y="122" fill="#585b70" font-family="SFMono-Regular,Consolas,monospace" font-size="14">:</text>
+  <text x="376" y="122" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">CachyOS 20260720 x86_64</text>
 
   <!-- Row 2: Kernel -->
   <text x="50" y="150" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">    /  \    </text>
-  <text x="308" y="150" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Kernel<tspan fill="#585b70">:</tspan></text>
-  <text x="370" y="150" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Linux 7.1.3-2-cachyos</text>
+  <text x="356" y="150" text-anchor="end" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Kernel</text>
+  <text x="362" y="150" fill="#585b70" font-family="SFMono-Regular,Consolas,monospace" font-size="14">:</text>
+  <text x="376" y="150" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Linux 7.1.3-2-cachyos</text>
 
   <!-- Row 3: Host -->
   <text x="44" y="178" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">   / /\ \   </text>
-  <text x="308" y="178" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Host<tspan fill="#585b70">:</tspan></text>
-  <text x="370" y="178" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">cachyos-x8664</text>
+  <text x="356" y="178" text-anchor="end" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Host</text>
+  <text x="362" y="178" fill="#585b70" font-family="SFMono-Regular,Consolas,monospace" font-size="14">:</text>
+  <text x="376" y="178" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">cachyos-x8664</text>
 
   <!-- Row 4: Uptime -->
   <text x="44" y="206" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">  / ____ \  </text>
-  <text x="308" y="206" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Uptime<tspan fill="#585b70">:</tspan></text>
-  <text x="370" y="206" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">7h 31m</text>
+  <text x="356" y="206" text-anchor="end" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Uptime</text>
+  <text x="362" y="206" fill="#585b70" font-family="SFMono-Regular,Consolas,monospace" font-size="14">:</text>
+  <text x="376" y="206" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">7h 31m</text>
 
   <!-- Row 5: Colors -->
   <text x="44" y="234" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14"> /_/    \_\ </text>
-  <text x="308" y="234" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Colors<tspan fill="#585b70">:</tspan></text>
-  <text x="370" y="234" fill="#f38ba8" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="386" y="234" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="402" y="234" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="418" y="234" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="434" y="234" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="450" y="234" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="466" y="234" fill="#94e2d5" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="482" y="234" fill="#bac2de" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="502" y="234" fill="#585b70" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="518" y="234" fill="#f38ba8" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="534" y="234" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="550" y="234" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="566" y="234" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="582" y="234" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="598" y="234" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
-  <text x="614" y="234" fill="#94e2d5" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="356" y="234" text-anchor="end" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="14">Colors</text>
+  <text x="362" y="234" fill="#585b70" font-family="SFMono-Regular,Consolas,monospace" font-size="14">:</text>
+  <text x="376" y="234" fill="#f38ba8" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="392" y="234" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="408" y="234" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="424" y="234" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="440" y="234" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="456" y="234" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="472" y="234" fill="#94e2d5" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="488" y="234" fill="#bac2de" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="508" y="234" fill="#585b70" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="524" y="234" fill="#f38ba8" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="540" y="234" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="556" y="234" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="572" y="234" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="588" y="234" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="604" y="234" fill="#cba6f7" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
+  <text x="620" y="234" fill="#94e2d5" font-family="SFMono-Regular,Consolas,monospace" font-size="13">&#x2588;&#x2588;</text>
 
   <!-- Bottom separator -->
   <line x1="22" y1="254" x2="698" y2="254" stroke="#313244" stroke-width="1"/>
