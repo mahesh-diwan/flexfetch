@@ -26,8 +26,9 @@
 |                                                      |                                                   |                                                                   |
 | ---------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- |
 | ⚡ **Rust** — fast, safe, static binary              | 🎨 **ASCII logos** — distro art side-by-side      | 🎭 **5 themes** — Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night |
-| 🧩 **19 modules** — 5 working, 14 stubs              | 🔌 **Lua plugins** — extend with scripts          | 📝 **Tera templates** — full layout control                       |
+| 🧩 **19 modules** — 6 working, 13 stubs              | 🔌 **Lua plugins** — extend with scripts          | 📝 **Tera templates** — full layout control                       |
 | ⚙️ **TOML config** — choose modules, themes, display | 📊 **JSON output** — machine-readable (`-f json`) | 🚀 **Parallel fetch** — Rayon-powered concurrency                 |
+| 🎨 **Color blocks** — 16-color terminal bar          | 🌐 **CI/CD** — GitHub Actions + release tarballs  | 📦 **One-liner** — `curl ... install.sh \| sh`                    |
 
 ## Why flexfetch?
 
@@ -59,6 +60,28 @@ sudo cp target/release/flexfetch /usr/local/bin/
 ```bash
 cargo install --git https://github.com/mahesh-diwan/flexfetch
 ```
+
+### GitHub Releases (pre-built binary)
+
+One-liner (curl | sh, needs sudo):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh
+```
+
+Or manually:
+
+```bash
+# find latest release tag
+TAG=$(curl -s https://api.github.com/repos/mahesh-diwan/flexfetch/releases/latest \
+  | grep tag_name | cut -d'"' -f4)
+# download + install
+wget "https://github.com/mahesh-diwan/flexfetch/releases/download/$TAG/flexfetch-linux-amd64.tar.gz"
+tar xzf flexfetch-linux-amd64.tar.gz
+sudo mv flexfetch /usr/local/bin/
+```
+
+CI builds tagged releases via GitHub Actions (`v*` tags trigger `.github/workflows/release.yml`). Uploads `flexfetch-linux-amd64.tar.gz` to release assets.
 
 ### Requirements
 
@@ -151,7 +174,7 @@ Text output renders distro ASCII art side-by-side with system info, colored by t
 
 ## Modules
 
-### Working (5)
+### Working (6)
 
 | Module   | Source                                         | Output                  |
 | -------- | ---------------------------------------------- | ----------------------- |
@@ -160,12 +183,13 @@ Text output renders distro ASCII art side-by-side with system info, colored by t
 | `kernel` | `uname -srm`                                   | kernel version + arch   |
 | `uptime` | `/proc/uptime` / `sysctl`                      | human-readable uptime   |
 | `locale` | `$LANG` / `$LC_CTYPE` / `$LC_ALL`              | language + encoding     |
+| `colors` | 16 ANSI color codes                            | color block row         |
 
-### Stubs (14 — PRs welcome)
+### Stubs (13 — PRs welcome)
 
 Compile but return empty. Implementation needed in `flexfetch-core/src/modules/`:
 
-`cpu` • `memory` • `disk` • `gpu` • `network` • `battery` • `processes` • `packages` • `shell` • `terminal` • `de` • `wm` • `colors` • `custom`
+`cpu` • `memory` • `disk` • `gpu` • `network` • `battery` • `processes` • `packages` • `shell` • `terminal` • `de` • `wm` • `custom`
 
 ### Template-only
 
@@ -203,14 +227,17 @@ Logo colored with `theme.keys` ANSI code. 3-character gap between logo and info 
 
 ### Per-field overrides
 
-Set individual ANSI escape codes in config to override any preset:
+Override any preset field by name or raw ANSI code:
 
 ```toml
 [display]
 theme = "catppuccin"
-color_keys = "\u001b[93m"        # yellow keys instead of catppuccin blue
-color_values = "\u001b[92m"      # green values instead of cyan
+color_keys = "yellow"            # named color — yellow keys instead of blue
+color_values = "green"           # named color — green values instead of cyan
 ```
+
+Named colors: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `bright_black`, `bright_red`, `bright_green`, `bright_yellow`, `bright_blue`, `bright_magenta`, `bright_cyan`, `bright_white`, `bold`.  
+Raw ANSI codes also work: `"\u001b[93m"`, `"\u001b[1;95m"` for bold colors.
 
 | Field          | Effect                   |
 | -------------- | ------------------------ |
