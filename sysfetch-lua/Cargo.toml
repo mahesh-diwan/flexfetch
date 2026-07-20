@@ -1,0 +1,8 @@
+[package]
+name = "sysfetch-lua"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sysfetch-core = { path = "../sysfetch-core" }
+mlua = { version = "0.10", features = ["lua54"] }
