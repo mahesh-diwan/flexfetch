@@ -1,4 +1,7 @@
+use std::cmp;
 use tera::{Context as TeraContext, Tera};
+
+use crate::{InfoValue, SystemInfo};
 
 pub struct TeraEngine {
     tera: Tera,
@@ -16,11 +19,7 @@ impl TeraEngine {
         }
     }
 
-    pub fn render(
-        &self,
-        info: &crate::SystemInfo,
-        config: &crate::Config,
-    ) -> crate::Result<String> {
+    pub fn render(&self, info: &SystemInfo, config: &crate::Config) -> crate::Result<String> {
         let mut ctx = TeraContext::new();
         for (name, value) in &info.entries {
             let json_val = serde_json::to_value(value)
@@ -37,8 +36,56 @@ impl TeraEngine {
         ctx.insert("theme_sep", &theme.sep);
         ctx.insert("theme_reset", &theme.reset);
 
-        self.tera
+        let raw = self
+            .tera
             .render(&self.template_name, &ctx)
-            .map_err(|e| crate::Error::Template(e.to_string()))
+            .map_err(|e| crate::Error::Template(e.to_string()))?;
+
+        let os_id = info
+            .entries
+            .iter()
+            .find(|(n, _)| *n == "os")
+            .and_then(|(_, v)| {
+                if let InfoValue::Map(m) = v {
+                    m.get("id").cloned()
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_default();
+
+        let logo = crate::logo::detect(&os_id);
+        let logow = crate::logo::logo_width(logo) + 3;
+
+        let info_lines: Vec<&str> = raw.lines().collect();
+        let max = cmp::max(logo.len(), info_lines.len());
+        let mut out = String::with_capacity(raw.len() + logo.len() * 60);
+
+        for i in 0..max {
+            match (i < logo.len(), i < info_lines.len()) {
+                (true, true) => {
+                    let padded = format!("{:width$}", logo[i], width = logow);
+                    out.push_str(&theme.keys);
+                    out.push_str(&padded);
+                    out.push_str(&theme.reset);
+                    out.push_str(info_lines[i]);
+                }
+                (true, false) => {
+                    let padded = format!("{:width$}", logo[i], width = logow);
+                    out.push_str(&theme.keys);
+                    out.push_str(&padded);
+                    out.push_str(&theme.reset);
+                }
+                (false, true) => {
+                    let pad: String = std::iter::repeat(' ').take(logow).collect();
+                    out.push_str(&pad);
+                    out.push_str(info_lines[i]);
+                }
+                (false, false) => {}
+            }
+            out.push('\n');
+        }
+
+        Ok(out)
     }
 }

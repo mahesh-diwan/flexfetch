@@ -1,0 +1,69 @@
+pub fn detect(os_id: &str) -> &'static [&'static str] {
+    match os_id {
+        "arch" | "cachyos" | "endeavouros" | "arcolinux" | "artix" | "manjaro" => &ARCH,
+        "debian" | "raspbian" => &DEBIAN,
+        "ubuntu" | "linuxmint" | "pop" | "elementary" | "zorin" => &UBUNTU,
+        "fedora" => &FEDORA,
+        "nixos" => &NIXOS,
+        _ if cfg!(target_os = "macos") => &MACOS,
+        _ => &GENERIC,
+    }
+}
+
+pub fn logo_width(logo: &[&str]) -> usize {
+    logo.iter().map(|l| l.len()).max().unwrap_or(0)
+}
+
+const GENERIC: &[&str] = &[
+    "  ___________",
+    " /   _____/ ",
+    " \\_____  \\  ",
+    " /        \\ ",
+    "/_______  /  ",
+    "        \\/   ",
+];
+
+const ARCH: &[&str] = &[
+    "      /\\      ",
+    "     /  \\     ",
+    "    / /\\ \\    ",
+    "   / ____ \\   ",
+    "  /_/    \\_\\  ",
+];
+
+const DEBIAN: &[&str] = &[
+    "  _______",
+    " |  ___  |",
+    " | |   | |",
+    " | |___| |",
+    " |_______|",
+];
+
+const UBUNTU: &[&str] = &[
+    "  _   _   ",
+    " | | | |  ",
+    " | |_| |  ",
+    " |  _  |  ",
+    " |_| |_|  ",
+];
+
+const FEDORA: &[&str] = &[
+    "  ________",
+    " /   __   \\",
+    "|   /  \\  |",
+    "|  |   |  |",
+    " \\  \\_/  /",
+    "  \\_____/",
+];
+
+const NIXOS: &[&str] = &[
+    "  ~~~~~~~",
+    " :::::::: ",
+    " :::::::: ",
+    " :::::::: ",
+    "  ::::::  ",
+];
+
+const MACOS: &[&str] = &[
+    "  .::::.", " :::::::", " :::::::", " :::::::", " :::::::", "  '::::'",
+];

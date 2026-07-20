@@ -2,6 +2,7 @@ pub mod cache;
 pub mod config;
 pub mod context;
 pub mod error;
+pub mod logo;
 pub mod module;
 pub mod module_registry;
 pub mod template;
