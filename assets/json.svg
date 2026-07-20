@@ -1,36 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 350" width="660" height="350">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420">
   <defs>
+    <linearGradient id="shadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#1e1e2e"/>
       <stop offset="100%" stop-color="#11111b"/>
     </linearGradient>
   </defs>
-  <!-- Window -->
-  <rect x="0" y="0" width="660" height="350" rx="10" fill="url(#bg)"/>
-  <rect x="0" y="0" width="660" height="36" rx="10" fill="#181825"/>
-  <rect x="0" y="20" width="660" height="16" fill="#181825"/>
+
+  <!-- Shadow -->
+  <rect x="6" y="6" width="710" height="420" rx="12" fill="url(#shadow)"/>
+
+  <!-- Terminal window -->
+  <rect x="0" y="0" width="720" height="420" rx="12" fill="url(#bg)"/>
+  <rect x="0" y="0" width="720" height="38" rx="12" fill="#181825"/>
+  <rect x="0" y="20" width="720" height="18" fill="#181825"/>
+
   <!-- Traffic lights -->
-  <circle cx="18" cy="18" r="6" fill="#ff5555"/>
-  <circle cx="38" cy="18" r="6" fill="#f1fa8c"/>
-  <circle cx="58" cy="18" r="6" fill="#50fa7b"/>
+  <circle cx="22" cy="19" r="5.5" fill="#ff5555"/>
+  <circle cx="44" cy="19" r="5.5" fill="#f1fa8c"/>
+  <circle cx="66" cy="19" r="5.5" fill="#50fa7b"/>
+
   <!-- Title -->
-  <text x="330" y="23" text-anchor="middle" fill="#6c7086" font-family="system-ui,-apple-system,sans-serif" font-size="12">flexfetch --format json</text>
+  <text x="360" y="25" text-anchor="middle" fill="#6c7086" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="500">flexfetch —format json</text>
+
+  <!-- Command line -->
+  <text x="22" y="78" fill="#6c7086" font-family="SFMono-Regular,Consolas,monospace" font-size="14">$ <tspan fill="#a6e3a1">flexfetch -f json | jq .</tspan></text>
+
+  <!-- Separator -->
+  <line x1="22" y1="92" x2="698" y2="92" stroke="#313244" stroke-width="1"/>
+
   <!-- JSON output -->
-  <text x="18" y="72" fill="#6c7086" font-family="SFMono-Regular,Consolas,monospace" font-size="14">$ flexfetch -f json</text>
-  <text x="18" y="104" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">{</text>
-  <text x="36" y="130" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"host": </text>
-  <text x="106" y="130" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"cachyos-x8664"</text>
-  <text x="18" y="156" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"kernel": </text>
-  <text x="106" y="156" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"Linux 7.1.3-2-cachyos x86_64"</text>
-  <text x="18" y="182" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"os": {</text>
-  <text x="36" y="208" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"arch": </text>
-  <text x="106" y="208" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"x86_64"</text>
-  <text x="36" y="234" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"name": </text>
-  <text x="106" y="234" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"CachyOS Linux"</text>
-  <text x="36" y="260" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"pretty_name": </text>
-  <text x="150" y="260" fill="#a6e3a1" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"CachyOS"</text>
-  <text x="18" y="286" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">}</text>
-  <text x="18" y="312" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">}</text>
+  <text x="22" y="124" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">{</text>
+
+  <!-- host -->
+  <text x="44" y="152" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"host":<tspan fill="#a6e3a1"> "cachyos-x8664"</tspan>,</text>
+
+  <!-- kernel -->
+  <text x="44" y="180" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"kernel":<tspan fill="#a6e3a1"> "Linux 7.1.3-2-cachyos x86_64"</tspan>,</text>
+
+  <!-- locale -->
+  <text x="44" y="208" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"locale":<tspan fill="#a6e3a1"> "en_US.UTF-8"</tspan>,</text>
+
+  <!-- os (nested) -->
+  <text x="44" y="236" fill="#fab387" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"os": {</text>
+  <text x="66" y="264" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"name":<tspan fill="#a6e3a1"> "CachyOS Linux"</tspan>,</text>
+  <text x="66" y="292" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"pretty_name":<tspan fill="#a6e3a1"> "CachyOS"</tspan>,</text>
+  <text x="66" y="320" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"id":<tspan fill="#a6e3a1"> "cachyos"</tspan>,</text>
+  <text x="66" y="348" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"version":<tspan fill="#a6e3a1"> "20260720"</tspan>,</text>
+  <text x="66" y="376" fill="#f9e2af" font-family="SFMono-Regular,Consolas,monospace" font-size="14">"arch":<tspan fill="#a6e3a1"> "x86_64"</tspan></text>
+  <text x="44" y="396" fill="#89b4fa" font-family="SFMono-Regular,Consolas,monospace" font-size="14">},</text>
+
   <!-- Cursor -->
-  <rect x="18" y="318" width="8" height="15" rx="2" fill="#cba6f7" opacity="0.6"/>
+  <rect x="22" y="396" width="8" height="15" rx="2" fill="#a6e3a1" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.1;0.7" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
 </svg>
