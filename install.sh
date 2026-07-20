@@ -4,6 +4,7 @@ set -eu
 REPO="mahesh-diwan/flexfetch"
 BIN="flexfetch"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+LOCAL_DIR="${HOME}/.local/bin"
 
 # Detect arch
 ARCH=$(uname -m)
@@ -65,11 +66,17 @@ fi
 tar xzf "$TMPDIR/$BIN.tar.gz" -C "$TMPDIR"
 chmod +x "$TMPDIR/$BIN"
 
-# Install
-if command -v sudo >/dev/null 2>&1; then
-	sudo mv "$TMPDIR/$BIN" "$INSTALL_DIR/$BIN"
+# Install (no sudo — try target dir, fall back to ~/.local/bin)
+TARGET=""
+if mkdir -p "$INSTALL_DIR" 2>/dev/null && mv "$TMPDIR/$BIN" "$INSTALL_DIR/$BIN" 2>/dev/null; then
+	TARGET="$INSTALL_DIR/$BIN"
+elif mkdir -p "$LOCAL_DIR" && mv "$TMPDIR/$BIN" "$LOCAL_DIR/$BIN" 2>/dev/null; then
+	TARGET="$LOCAL_DIR/$BIN"
+	! echo ":$PATH:" | grep -q ":${LOCAL_DIR}:" && echo "  Hint: add $LOCAL_DIR to PATH (export PATH=\"\$PATH:$LOCAL_DIR\")"
 else
-	mv "$TMPDIR/$BIN" "$INSTALL_DIR/$BIN"
+	echo "Error: cannot write to $INSTALL_DIR or $LOCAL_DIR"
+	echo "  Try: INSTALL_DIR=~/mybin sh install.sh"
+	exit 1
 fi
 
-echo "Done. $BIN $TAG installed to $INSTALL_DIR/$BIN"
+echo "Done. $BIN $TAG installed to $TARGET"
