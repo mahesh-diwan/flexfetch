@@ -50,10 +50,7 @@ fn main() {
     let ctx = Context::new(config_dir.clone(), cache_dir, cli.debug);
 
     let config_path = cli.config.as_ref().map(|s| std::path::Path::new(s));
-    let mut config = Config::load(config_path).unwrap_or_else(|e| {
-        eprintln!("warning: config error: {e}, using defaults");
-        Config::default_for_testing()
-    });
+    let mut config = Config::load(config_path).unwrap_or_else(|_| Config::default_for_testing());
 
     if let Some(theme) = cli.theme {
         config.display.theme = Some(theme);
