@@ -3,7 +3,7 @@ set -eu
 
 REPO="mahesh-diwan/flexfetch"
 BIN="flexfetch"
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 
 # Detect arch
 ARCH=$(uname -m)
@@ -32,6 +32,23 @@ if [ -z "$TAG" ]; then
 	exit 1
 fi
 
+# Check current version
+CURRENT=""
+if command -v "$BIN" >/dev/null 2>&1; then
+	CURRENT=$("$BIN" --version 2>/dev/null | head -1 | awk '{print $2}' || echo "")
+fi
+
+if [ -n "$CURRENT" ] && [ "v$CURRENT" = "$TAG" ]; then
+	echo "$BIN already at latest version ($CURRENT)"
+	exit 0
+fi
+
+if [ -n "$CURRENT" ]; then
+	echo "Upgrading $BIN v$CURRENT -> $TAG..."
+else
+	echo "Installing $BIN $TAG..."
+fi
+
 URL="https://github.com/$REPO/releases/download/$TAG/flexfetch-linux-${ARCH_ALIAS}.tar.gz"
 
 # Download
@@ -55,4 +72,4 @@ else
 	mv "$TMPDIR/$BIN" "$INSTALL_DIR/$BIN"
 fi
 
-echo "Installed $BIN $TAG to $INSTALL_DIR/$BIN"
+echo "Done. $BIN $TAG installed to $INSTALL_DIR/$BIN"
