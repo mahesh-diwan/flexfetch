@@ -15,21 +15,17 @@ impl Module for NetworkModule {
             if let Ok(entries) = std::fs::read_dir("/sys/class/net/") {
                 for entry in entries.flatten() {
                     let name = entry.file_name().to_string_lossy().to_string();
-                    if name == "lo" {
+                    if name == "lo"
+                        || name.starts_with("docker")
+                        || name.starts_with("br-")
+                        || name.starts_with("veth")
+                        || name.starts_with("virbr")
+                    {
                         continue;
                     }
-                    let state = std::fs::read_to_string(entry.path().join("operstate"))
-                        .unwrap_or_default()
-                        .trim()
-                        .to_string();
-                    let speed = std::fs::read_to_string(entry.path().join("speed"))
-                        .ok()
-                        .and_then(|s| s.trim().parse::<u64>().ok())
-                        .unwrap_or(0);
-                    let mac = std::fs::read_to_string(entry.path().join("address"))
-                        .unwrap_or_default()
-                        .trim()
-                        .to_string();
+                    if !nets.is_empty() {
+                        continue;
+                    }
                     let ip = std::process::Command::new("ip")
                         .args(["-o", "-4", "addr", "show", "dev", &name])
                         .output()
@@ -41,18 +37,7 @@ impl Module for NetworkModule {
                                 .map(|s| s.split('/').next().unwrap_or("").to_string())
                         })
                         .unwrap_or_default();
-                    let mut parts = vec![format!("{name}:")];
-                    if !ip.is_empty() {
-                        parts.push(ip.clone());
-                    }
-                    if !mac.is_empty() {
-                        parts.push(mac.clone());
-                    }
-                    parts.push(state.clone());
-                    if speed > 0 {
-                        parts.push(format!("({speed} Mbps)"));
-                    }
-                    nets.push(parts.join(" "));
+                    nets.push(format!("{name}: {ip}"));
                 }
             }
         }
@@ -62,7 +47,11 @@ impl Module for NetworkModule {
             if let Ok(output) = std::process::Command::new("ifconfig").output() {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 for line in stdout.lines() {
-                    if line.starts_with('\t') || line.starts_with(' ') {
+                    if !nets.is_empty() {
+                        break;
+                    }
+                    if line.is_empty() || line.as_bytes()[0] == b' ' || line.as_bytes()[0] == b'\t'
+                    {
                         continue;
                     }
                     if let Some(iface) = line.split(':').next() {
