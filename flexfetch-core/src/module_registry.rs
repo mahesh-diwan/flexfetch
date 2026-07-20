@@ -40,6 +40,9 @@ impl ModuleRegistry {
         builders.push(("network", || {
             Box::new(crate::modules::network::NetworkModule)
         }));
+        builders.push(("resolution", || {
+            Box::new(crate::modules::resolution::ResolutionModule)
+        }));
         builders.push(("custom", || {
             Box::new(crate::modules::custom::CustomCommandsModule)
         }));

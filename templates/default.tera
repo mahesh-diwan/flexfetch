@@ -17,22 +17,25 @@
 {{ theme_keys }}Shell{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ shell }}{{ theme_reset }}
 {% endif -%}
 {%- if terminal -%}
-{{ theme_keys }}Term{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ terminal }}{{ theme_reset }}
+{{ theme_keys }}Term{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ terminal.name }}{{ theme_reset }}{% if terminal.font %} ({{ terminal.font }}){% endif %}
 {% endif -%}
 {%- if de -%}
 {{ theme_keys }}DE{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ de }}{{ theme_reset }}
 {% endif -%}
 {%- if wm -%}
-{{ theme_keys }}WM{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ wm }}{{ theme_reset }}
+{{ theme_keys }}WM{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ wm.name }}{{ theme_reset }}{% if wm.theme %} ({{ wm.theme }}){% endif %}
 {% endif -%}
 {%- if locale -%}
 {{ theme_keys }}Locale{{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if locale.lang %}{{ locale.lang }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}{% else %}{{ locale }}{% endif %}{{ theme_reset }}
 {% endif -%}
 {%- if cpu -%}
-{{ theme_keys }}CPU{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}{{ theme_reset }}
+{{ theme_keys }}CPU{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}{% if cpu.usage_pct %} ({{ cpu.usage_pct }}){% endif %}{% if cpu.temp %} — {{ cpu.temp }}{% endif %}{{ theme_reset }}
 {% endif -%}
 {%- if memory -%}
 {{ theme_keys }}Memory{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.used }} / {{ memory.total }} ({{ memory.percent }}){{ theme_reset }}
+{% endif -%}
+{%- if memory.swap_percent -%}
+{{ theme_keys }}Swap{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.swap_used }} / {{ memory.swap_total }} ({{ memory.swap_percent }}){{ theme_reset }}
 {% endif -%}
 {%- if gpu -%}{%- for device in gpu -%}
 {{ theme_keys }}GPU{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ device }}{{ theme_reset }}
@@ -43,6 +46,9 @@
 {%- if network -%}{%- for iface in network -%}
 {{ theme_keys }}Net{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ iface }}{{ theme_reset }}
 {% endfor %}{% endif -%}
+{%- if resolution -%}
+{{ theme_keys }}Resolution{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ resolution }}{{ theme_reset }}
+{% endif -%}
 {%- if battery -%}
 {{ theme_keys }}Battery{{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if battery.percent %}{{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}{% else %}{{ battery }}{% endif %}{{ theme_reset }}
 {% endif -%}

@@ -13,6 +13,7 @@ pub mod network;
 pub mod os;
 pub mod packages;
 pub mod processes;
+pub mod resolution;
 pub mod shell;
 pub mod terminal;
 pub mod uptime;

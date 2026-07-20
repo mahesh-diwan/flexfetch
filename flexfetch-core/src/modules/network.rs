@@ -26,11 +26,33 @@ impl Module for NetworkModule {
                         .ok()
                         .and_then(|s| s.trim().parse::<u64>().ok())
                         .unwrap_or(0);
-                    if speed > 0 {
-                        nets.push(format!("{name}: {state} ({speed} Mbps)"));
-                    } else {
-                        nets.push(format!("{name}: {state}"));
+                    let mac = std::fs::read_to_string(entry.path().join("address"))
+                        .unwrap_or_default()
+                        .trim()
+                        .to_string();
+                    let ip = std::process::Command::new("ip")
+                        .args(["-o", "-4", "addr", "show", "dev", &name])
+                        .output()
+                        .ok()
+                        .and_then(|o| {
+                            let out = String::from_utf8_lossy(&o.stdout);
+                            out.split_whitespace()
+                                .nth(3)
+                                .map(|s| s.split('/').next().unwrap_or("").to_string())
+                        })
+                        .unwrap_or_default();
+                    let mut parts = vec![format!("{name}:")];
+                    if !ip.is_empty() {
+                        parts.push(ip.clone());
                     }
+                    if !mac.is_empty() {
+                        parts.push(mac.clone());
+                    }
+                    parts.push(state.clone());
+                    if speed > 0 {
+                        parts.push(format!("({speed} Mbps)"));
+                    }
+                    nets.push(parts.join(" "));
                 }
             }
         }

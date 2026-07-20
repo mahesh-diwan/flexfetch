@@ -39,9 +39,13 @@ impl Module for DiskModule {
             for line in stdout.lines().skip(1) {
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if parts.len() >= 6 {
+                    let pct = parts[4].trim_end_matches('%').parse::<u8>().unwrap_or(0);
+                    let filled = (pct / 10).min(10) as usize;
+                    let empty = (10 - filled).min(10) as usize;
+                    let bar = format!("[{}{}]", "█".repeat(filled), "░".repeat(empty));
                     disks.push(format!(
-                        "{}: {} / {} ({})",
-                        parts[5], parts[2], parts[1], parts[4]
+                        "{}: {} / {} {} {}",
+                        parts[5], parts[2], parts[1], bar, parts[4]
                     ));
                 }
             }

@@ -121,7 +121,8 @@ impl Config {
             "battery".into(),
             "processes".into(),
             "locale".into(),
-            "colors".into(),
+                        "resolution".into(),
+                        "colors".into(),
         ]
     }
 

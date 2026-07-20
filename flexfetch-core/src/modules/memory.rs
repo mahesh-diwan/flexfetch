@@ -18,6 +18,8 @@ impl Module for MemoryModule {
                 let mut avail_kb = 0u64;
                 let mut free_kb = 0u64;
                 let mut cached_kb = 0u64;
+                let mut swap_total = 0u64;
+                let mut swap_free = 0u64;
 
                 for line in content.lines() {
                     if let Some((key, val)) = line.split_once(':') {
@@ -28,6 +30,8 @@ impl Module for MemoryModule {
                                 "MemAvailable" => avail_kb = num,
                                 "MemFree" => free_kb = num,
                                 "Cached" => cached_kb = num,
+                                "SwapTotal" => swap_total = num,
+                                "SwapFree" => swap_free = num,
                                 _ => {}
                             }
                         }
@@ -47,6 +51,22 @@ impl Module for MemoryModule {
                     map.insert("total".into(), format!("{:.1} GiB", total_gb));
                     map.insert("used".into(), format!("{:.1} GiB", used_gb));
                     map.insert("percent".into(), format!("{}%", percent));
+
+                    if swap_total > 0 {
+                        let swap_used = swap_total.saturating_sub(swap_free);
+                        map.insert(
+                            "swap_total".into(),
+                            format!("{:.1} GiB", swap_total as f64 / 1048576.0),
+                        );
+                        map.insert(
+                            "swap_used".into(),
+                            format!("{:.1} GiB", swap_used as f64 / 1048576.0),
+                        );
+                        map.insert(
+                            "swap_percent".into(),
+                            format!("{}%", swap_used * 100 / swap_total),
+                        );
+                    }
                 }
             }
         }
