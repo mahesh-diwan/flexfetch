@@ -19,9 +19,9 @@ esac
 
 # Fetch latest release tag
 TAG=""
-if [ -n "$GITHUB_TOKEN" ]; then
+if [ -n "${GITHUB_TOKEN:-}" ]; then
 	# Authenticated API call (5000 req/hr)
-	TAG=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+	TAG=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' || true)
 fi
 
 # Unauthenticated API
