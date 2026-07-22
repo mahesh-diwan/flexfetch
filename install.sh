@@ -19,13 +19,19 @@ esac
 
 # Fetch latest release tag
 TAG=""
-if command -v curl >/dev/null 2>&1; then
-	TAG=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
-elif command -v wget >/dev/null 2>&1; then
-	TAG=$(wget -q -O - "https://api.github.com/repos/$REPO/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
-else
-	echo "Error: need curl or wget"
-	exit 1
+if [ -n "$GITHUB_TOKEN" ]; then
+	# Authenticated API call (5000 req/hr)
+	TAG=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+fi
+
+# Unauthenticated API
+if [ -z "$TAG" ]; then
+	TAG=$(curl -sf "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' || true)
+fi
+
+# Fallback: git ls-remote (bypasses API rate limits)
+if [ -z "$TAG" ] && command -v git >/dev/null 2>&1; then
+	TAG=$(git ls-remote --tags "https://github.com/$REPO.git" 2>/dev/null | sed 's/.*refs\/tags\///' | grep '^v[0-9]' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)
 fi
 
 if [ -z "$TAG" ]; then
