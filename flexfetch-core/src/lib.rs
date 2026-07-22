@@ -2,6 +2,7 @@ pub mod cache;
 pub mod config;
 pub mod context;
 pub mod error;
+pub mod image_logo;
 pub mod logo;
 pub mod module;
 pub mod module_registry;
@@ -13,10 +14,12 @@ pub mod modules;
 pub use config::Config;
 pub use context::Context;
 pub use error::{Error, Result};
+pub use image_logo::{
+    get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
+};
 pub use module::{InfoValue, Module, SystemInfo};
 pub use module_registry::ModuleRegistry;
 pub use template::TeraEngine;
-pub use theme::ThemeStrings;
 
 #[cfg(test)]
 mod tests {

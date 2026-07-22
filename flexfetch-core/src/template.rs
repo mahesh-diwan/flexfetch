@@ -4,6 +4,12 @@ use tera::{Context as TeraContext, Tera};
 
 use crate::{InfoValue, SystemInfo};
 
+use crate::image_logo::{
+    get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
+};
+use crate::logo::{detect, logo_width, render, visible_len};
+use base64::Engine;
+
 static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
 
 fn get_tera() -> &'static Tera {
@@ -32,6 +38,52 @@ impl TeraEngine {
         include_str!("../../templates/default.tera")
     }
 
+    fn module_logos(info: &SystemInfo) -> serde_json::Value {
+        let modules = [
+            "title",
+            "os",
+            "host",
+            "kernel",
+            "uptime",
+            "locale",
+            "shell",
+            "terminal",
+            "de",
+            "wm",
+            "packages",
+            "cpu",
+            "memory",
+            "disk",
+            "gpu",
+            "network",
+            "battery",
+            "processes",
+            "resolution",
+            "colors",
+            "custom",
+        ];
+
+        let mut map = serde_json::Map::new();
+        for name in modules {
+            // Check if this module is present in the info
+            if info.entries.iter().any(|(n, _)| *n == name) {
+                let logo = detect(name);
+                let lines: Vec<String> = logo.lines.iter().map(|s| s.to_string()).collect();
+                let rendered = render(logo, lines.len());
+                map.insert(
+                    name.to_string(),
+                    serde_json::Value::Array(
+                        rendered
+                            .iter()
+                            .map(|l| serde_json::Value::String(l.clone()))
+                            .collect(),
+                    ),
+                );
+            }
+        }
+        serde_json::Value::Object(map)
+    }
+
     pub fn render(&self, info: &SystemInfo, config: &crate::Config) -> crate::Result<String> {
         let mut ctx = TeraContext::new();
         for (name, value) in &info.entries {
@@ -57,6 +109,74 @@ impl TeraEngine {
         } else {
             ctx.insert("theme_gradient_start", &[0u8; 3]);
             ctx.insert("theme_gradient_end", &[255u8; 3]);
+        }
+
+        // Add image logos to context
+        let modules = [
+            "title",
+            "os",
+            "host",
+            "kernel",
+            "uptime",
+            "locale",
+            "shell",
+            "terminal",
+            "de",
+            "wm",
+            "packages",
+            "cpu",
+            "memory",
+            "disk",
+            "gpu",
+            "network",
+            "battery",
+            "processes",
+            "resolution",
+            "colors",
+            "custom",
+        ];
+        let mut image_logos = serde_json::Map::new();
+        for name in modules {
+            if info.entries.iter().any(|(n, _)| *n == name) {
+                if let Some(path) = get_module_logo_path(name) {
+                    if std::path::Path::new(&path).exists() {
+                        let logo = ImageLogo::new(&path).with_size(15, 8);
+                        let protocol = ImageProtocol::detect();
+                        let mode = LogoMode::Auto;
+                        let ansi = logo.render(protocol, mode);
+                        if !ansi.is_empty() {
+                            image_logos.insert(name.to_string(), serde_json::Value::String(ansi));
+                        }
+                    }
+                }
+            }
+        }
+        ctx.insert("image_logos", &serde_json::Value::Object(image_logos));
+
+        // Add distro image logo
+        let os_id = info
+            .entries
+            .iter()
+            .find(|(n, _)| *n == "os")
+            .and_then(|(_, v)| {
+                if let InfoValue::Map(m) = v {
+                    m.get("id").cloned()
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_default();
+
+        if let Some(distro_path) = get_distro_logo_path(&os_id) {
+            if std::path::Path::new(&distro_path).exists() {
+                let logo = ImageLogo::new(&distro_path).with_size(15, 30);
+                let protocol = ImageProtocol::detect();
+                let mode = LogoMode::Auto;
+                let ansi = logo.render(protocol, mode);
+                if !ansi.is_empty() {
+                    ctx.insert("distro_image_logo", &ansi);
+                }
+            }
         }
 
         let raw = self

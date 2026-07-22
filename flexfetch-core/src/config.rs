@@ -33,6 +33,14 @@ pub struct ModuleConfig {
     pub label: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub enum LogoMode {
+    #[default]
+    Ascii,
+    Block,
+    Image,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DisplayConfig {
     #[serde(default = "DisplayConfig::default_separator")]
@@ -61,6 +69,9 @@ pub struct DisplayConfig {
 
     #[serde(default)]
     pub gradient_colors: Option<Vec<String>>,
+
+    #[serde(default)]
+    pub logo_mode: LogoMode,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -99,6 +110,7 @@ impl Default for DisplayConfig {
             color_sep: None,
             gradient: false,
             gradient_colors: None,
+            logo_mode: LogoMode::default(),
         }
     }
 }
@@ -256,6 +268,7 @@ fn merge_config(base: Config, override_config: Config) -> Config {
                 .display
                 .gradient_colors
                 .or(base.display.gradient_colors),
+            logo_mode: override_config.display.logo_mode,
         },
         cache: override_config.cache,
         custom: if !override_config.custom.is_empty() {
