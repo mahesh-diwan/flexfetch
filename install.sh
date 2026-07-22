@@ -6,6 +6,44 @@ BIN="flexfetch"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 LOCAL_DIR="${HOME}/.local/bin"
 
+# Pac-Man animation frames
+PACMAN_FRAMES=(
+    "🌕 ⬤ ⬤ ⬤ ⬤ ⬤"
+    "🌗  ⬤ ⬤ ⬤ ⬤ ⬤"
+    "🌘   ⬤ ⬤ ⬤ ⬤"
+    "🌑    ⬤ ⬤ ⬤"
+    "🌑     ⬤ ⬤"
+    "🌑      ⬤"
+    "🌘       "
+    "🌗        "
+)
+
+# Pac-Man animation function
+pacman_animate() {
+    local msg="$1"
+    local i=0
+    local frames=${#PACMAN_FRAMES[@]}
+    
+    # Hide cursor
+    printf '\033[?25l'
+    
+    while :; do
+        # Clear line and print frame
+        printf '\r\033[K%s %s' "${PACMAN_FRAMES[i]}" "$msg"
+        i=$(( (i + 1) % frames ))
+        sleep 0.15
+    done
+}
+
+# Stop pacman animation
+pacman_stop() {
+    local pid=$1
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    # Show cursor and clear line
+    printf '\033[?25h\r\033[K'
+}
+
 # Detect arch
 ARCH=$(uname -m)
 case "$ARCH" in
@@ -63,11 +101,19 @@ echo "Downloading $URL ..."
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
+# Start Pac-Man animation in background
+pacman_animate "Downloading..." &
+PACMAN_PID=$!
+
+# Download with progress suppressed (pacman shows activity)
 if command -v curl >/dev/null 2>&1; then
-	curl -#L "$URL" -o "$TMPDIR/$BIN.tar.gz"
+	curl -sL "$URL" -o "$TMPDIR/$BIN.tar.gz"
 else
-	wget "$URL" -O "$TMPDIR/$BIN.tar.gz"
+	wget -q "$URL" -O "$TMPDIR/$BIN.tar.gz"
 fi
+
+# Stop Pac-Man animation
+pacman_stop "$PACMAN_PID"
 
 # Extract
 tar xzf "$TMPDIR/$BIN.tar.gz" -C "$TMPDIR"
