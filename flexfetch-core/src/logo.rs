@@ -41,8 +41,30 @@ pub fn logo_width(rendered: &[String]) -> usize {
     rendered.iter().map(|l| visible_len(l)).max().unwrap_or(0)
 }
 
-pub fn detect(os_id: &str) -> &'static Logo {
-    match os_id {
+pub fn detect(module_type: &str) -> &'static Logo {
+    match module_type {
+        "title" => &TITLE_LOGO,
+        "os" => &OS_LOGO,
+        "host" => &HOST_LOGO,
+        "kernel" => &KERNEL_LOGO,
+        "uptime" => &UPTIME_LOGO,
+        "locale" => &LOCALE_LOGO,
+        "shell" => &SHELL_LOGO,
+        "terminal" => &TERMINAL_LOGO,
+        "de" => &DE_LOGO,
+        "wm" => &WM_LOGO,
+        "packages" => &PACKAGES_LOGO,
+        "cpu" => &CPU_LOGO,
+        "memory" => &MEMORY_LOGO,
+        "disk" => &DISK_LOGO,
+        "gpu" => &GPU_LOGO,
+        "network" => &NETWORK_LOGO,
+        "battery" => &BATTERY_LOGO,
+        "processes" => &PROCESSES_LOGO,
+        "resolution" => &RESOLUTION_LOGO,
+        "colors" => &COLORS_LOGO,
+        "custom" => &CUSTOM_LOGO,
+        // Legacy OS detection for backward compatibility
         "arch" | "cachyos" | "arcolinux" | "artix" => &ARCH_LOGO,
         "manjaro" => &MANJARO_LOGO,
         "endeavouros" => &ENDEAVOUROS_LOGO,
