@@ -1,7 +1,19 @@
 use std::cmp;
+use std::sync::OnceLock;
 use tera::{Context as TeraContext, Tera};
 
 use crate::{InfoValue, SystemInfo};
+
+static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
+
+fn get_tera() -> &'static Tera {
+    CACHED_TERA.get_or_init(|| {
+        let mut tera = Tera::default();
+        tera.add_raw_template("default", include_str!("../../templates/default.tera"))
+            .expect("default template is valid");
+        tera
+    })
+}
 
 pub struct TeraEngine {
     tera: Tera,
@@ -10,13 +22,14 @@ pub struct TeraEngine {
 
 impl TeraEngine {
     pub fn new_default() -> Self {
-        let mut tera = Tera::default();
-        tera.add_raw_template("default", include_str!("../../templates/default.tera"))
-            .expect("default template is valid");
         TeraEngine {
-            tera,
+            tera: get_tera().clone(),
             template_name: "default".to_string(),
         }
+    }
+
+    pub fn default_template_content() -> &'static str {
+        include_str!("../../templates/default.tera")
     }
 
     pub fn render(&self, info: &SystemInfo, config: &crate::Config) -> crate::Result<String> {
@@ -35,11 +48,40 @@ impl TeraEngine {
         ctx.insert("theme_values", &theme.values);
         ctx.insert("theme_sep", &theme.sep);
         ctx.insert("theme_reset", &theme.reset);
+        ctx.insert("theme_gradient", &theme.gradient);
+        if let (Some(&s), Some(&e)) = (theme.gradient_colors.first(), theme.gradient_colors.get(1))
+        {
+            ctx.insert("theme_gradient_start", &s);
+            ctx.insert("theme_gradient_end", &e);
+        } else {
+            ctx.insert("theme_gradient_start", &[0u8; 3]);
+            ctx.insert("theme_gradient_end", &[255u8; 3]);
+        }
 
         let raw = self
             .tera
             .render(&self.template_name, &ctx)
             .map_err(|e| crate::Error::Template(e.to_string()))?;
+
+        // Apply gradient to first line if enabled
+        let raw = if theme.gradient && theme.gradient_colors.len() >= 2 {
+            let start = theme.gradient_colors[0];
+            let end = theme.gradient_colors[1];
+            let mut out = String::new();
+            for (i, line) in raw.lines().enumerate() {
+                if i > 0 {
+                    out.push('\n');
+                }
+                if i == 0 {
+                    out.push_str(&crate::theme::gradient_text(line, start, end));
+                } else {
+                    out.push_str(line);
+                }
+            }
+            out
+        } else {
+            raw
+        };
 
         let os_id = info
             .entries
@@ -55,26 +97,23 @@ impl TeraEngine {
             .unwrap_or_default();
 
         let logo = crate::logo::detect(&os_id);
-        let logow = crate::logo::logo_width(logo) + 3;
+        let rendered = crate::logo::render(logo);
+        let logow = crate::logo::logo_width(&rendered) + 3;
 
         let info_lines: Vec<&str> = raw.lines().collect();
-        let max = cmp::max(logo.len(), info_lines.len());
-        let mut out = String::with_capacity(raw.len() + logo.len() * 60);
+        let max = cmp::max(rendered.len(), info_lines.len());
+        let mut out = String::with_capacity(raw.len() + rendered.len() * 60);
 
         for i in 0..max {
-            match (i < logo.len(), i < info_lines.len()) {
+            match (i < rendered.len(), i < info_lines.len()) {
                 (true, true) => {
-                    let padded = format!("{:width$}", logo[i], width = logow);
-                    out.push_str(&theme.keys);
+                    let padded = format!("{:width$}", rendered[i], width = logow);
                     out.push_str(&padded);
-                    out.push_str(&theme.reset);
                     out.push_str(info_lines[i]);
                 }
                 (true, false) => {
-                    let padded = format!("{:width$}", logo[i], width = logow);
-                    out.push_str(&theme.keys);
+                    let padded = format!("{:width$}", rendered[i], width = logow);
                     out.push_str(&padded);
-                    out.push_str(&theme.reset);
                 }
                 (false, true) => {
                     let pad: String = std::iter::repeat(' ').take(logow).collect();

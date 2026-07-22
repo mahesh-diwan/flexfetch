@@ -1,10 +1,43 @@
 use crate::config::Config;
 use crate::{Context, InfoValue, Module, SystemInfo};
+use std::collections::HashSet;
 
 type ModuleBuilder = fn() -> Box<dyn Module>;
 
 pub struct ModuleRegistry {
     builders: Vec<(&'static str, ModuleBuilder)>,
+}
+
+fn extract_template_modules(template_str: &str) -> HashSet<String> {
+    let mut modules = HashSet::new();
+    let known = [
+        "os",
+        "host",
+        "kernel",
+        "uptime",
+        "packages",
+        "shell",
+        "terminal",
+        "de",
+        "wm",
+        "cpu",
+        "memory",
+        "gpu",
+        "disk",
+        "network",
+        "battery",
+        "locale",
+        "resolution",
+        "colors",
+        "custom",
+        "processes",
+    ];
+    for word in known {
+        if template_str.contains(word) {
+            modules.insert(word.to_string());
+        }
+    }
+    modules
 }
 
 impl ModuleRegistry {
@@ -50,14 +83,24 @@ impl ModuleRegistry {
         ModuleRegistry { builders }
     }
 
-    pub fn run_selected(&self, selected: &[String], ctx: &Context) -> SystemInfo {
+    pub fn run_selected(
+        &self,
+        selected: &[String],
+        ctx: &Context,
+        template_content: &str,
+    ) -> SystemInfo {
         use rayon::prelude::*;
         let mut info = SystemInfo::new();
+
+        let template_modules = extract_template_modules(template_content);
 
         let entries: Vec<_> = selected
             .par_iter()
             .filter_map(|name| {
                 if name == "title" || name == "separator" {
+                    return None;
+                }
+                if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
                     return None;
                 }
                 self.builders
@@ -84,5 +127,17 @@ impl ModuleRegistry {
         }
 
         info
+    }
+
+    pub fn run_individual(&self, name: &str, ctx: &Context) -> Option<InfoValue> {
+        self.builders
+            .iter()
+            .find(|(n, _)| *n == name)
+            .map(|(_, builder)| {
+                let module = builder();
+                module
+                    .collect(ctx)
+                    .unwrap_or(InfoValue::Scalar("error".into()))
+            })
     }
 }

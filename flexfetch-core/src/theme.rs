@@ -7,6 +7,8 @@ pub struct ThemeStrings {
     pub values: String,
     pub sep: String,
     pub reset: &'static str,
+    pub gradient: bool,
+    pub gradient_colors: Vec<[u8; 3]>,
 }
 
 struct Theme {
@@ -61,6 +63,104 @@ const TOKYO_NIGHT: Theme = Theme {
     sep: "\x1b[90m",
     reset: RESET,
 };
+const SOLARIZED_DARK: Theme = Theme {
+    title: "\x1b[1;33m",
+    keys: "\x1b[36m",
+    values: "\x1b[34m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const SOLARIZED_LIGHT: Theme = Theme {
+    title: "\x1b[1;31m",
+    keys: "\x1b[34m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const ROSE_PINE: Theme = Theme {
+    title: "\x1b[1;36m",
+    keys: "\x1b[36m",
+    values: "\x1b[35m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const ROSE_PINE_DAWN: Theme = Theme {
+    title: "\x1b[1;34m",
+    keys: "\x1b[36m",
+    values: "\x1b[35m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const EVERFOREST_DARK: Theme = Theme {
+    title: "\x1b[1;32m",
+    keys: "\x1b[34m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const EVERFOREST_LIGHT: Theme = Theme {
+    title: "\x1b[1;32m",
+    keys: "\x1b[34m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const BAMBOO: Theme = Theme {
+    title: "\x1b[1;31m",
+    keys: "\x1b[32m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const OXOCARBON_DARK: Theme = Theme {
+    title: "\x1b[1;36m",
+    keys: "\x1b[36m",
+    values: "\x1b[35m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const ONE_DARK: Theme = Theme {
+    title: "\x1b[1;35m",
+    keys: "\x1b[31m",
+    values: "\x1b[32m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const ONE_LIGHT: Theme = Theme {
+    title: "\x1b[1;35m",
+    keys: "\x1b[31m",
+    values: "\x1b[32m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const TOKYO_NIGHT_STORM: Theme = Theme {
+    title: "\x1b[1;35m",
+    keys: "\x1b[34m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const CATPPUCCIN_MOCHA: Theme = Theme {
+    title: "\x1b[1;35m",
+    keys: "\x1b[34m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const CATPPUCCIN_FRAPPE: Theme = Theme {
+    title: "\x1b[1;35m",
+    keys: "\x1b[34m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
+const CATPPUCCIN_MACCHIATO: Theme = Theme {
+    title: "\x1b[1;35m",
+    keys: "\x1b[34m",
+    values: "\x1b[36m",
+    sep: "\x1b[90m",
+    reset: RESET,
+};
 
 pub fn resolve_ansi(code_or_name: &str) -> String {
     if code_or_name.starts_with('\x1b') || code_or_name.starts_with("\\u001b") {
@@ -96,8 +196,29 @@ pub fn resolve(config: &Config) -> ThemeStrings {
         "nord" => &NORD,
         "gruvbox" => &GRUVBOX,
         "tokyo-night" => &TOKYO_NIGHT,
+        "solarized-dark" => &SOLARIZED_DARK,
+        "solarized-light" => &SOLARIZED_LIGHT,
+        "rose-pine" => &ROSE_PINE,
+        "rose-pine-dawn" => &ROSE_PINE_DAWN,
+        "everforest-dark" => &EVERFOREST_DARK,
+        "everforest-light" => &EVERFOREST_LIGHT,
+        "bamboo" => &BAMBOO,
+        "oxocarbon-dark" => &OXOCARBON_DARK,
+        "one-dark" => &ONE_DARK,
+        "one-light" => &ONE_LIGHT,
+        "tokyo-night-storm" => &TOKYO_NIGHT_STORM,
+        "catppuccin-mocha" => &CATPPUCCIN_MOCHA,
+        "catppuccin-frappe" => &CATPPUCCIN_FRAPPE,
+        "catppuccin-macchiato" => &CATPPUCCIN_MACCHIATO,
         _ => &NONE,
     };
+
+    let gradient_colors = config
+        .display
+        .gradient_colors
+        .as_deref()
+        .map(|cs| cs.iter().filter_map(|c| parse_hex_color(c)).collect())
+        .unwrap_or_default();
 
     ThemeStrings {
         title: config
@@ -125,5 +246,37 @@ pub fn resolve(config: &Config) -> ThemeStrings {
             .map(resolve_ansi)
             .unwrap_or_else(|| preset.sep.to_string()),
         reset: preset.reset,
+        gradient: config.display.gradient,
+        gradient_colors,
     }
+}
+
+fn parse_hex_color(s: &str) -> Option<[u8; 3]> {
+    let hex = s.trim_start_matches('#');
+    if hex.len() != 6 {
+        return None;
+    }
+    let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
+    let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
+    let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
+    Some([r, g, b])
+}
+
+pub fn gradient_text(text: &str, start: [u8; 3], end: [u8; 3]) -> String {
+    let len = text.chars().count();
+    text.chars()
+        .enumerate()
+        .map(|(i, c)| {
+            let t = if len <= 1 {
+                0.0
+            } else {
+                i as f64 / (len - 1) as f64
+            };
+            let r = (start[0] as f64 + t * (end[0] as f64 - start[0] as f64)) as u8;
+            let g = (start[1] as f64 + t * (end[1] as f64 - start[1] as f64)) as u8;
+            let b = (start[2] as f64 + t * (end[2] as f64 - start[2] as f64)) as u8;
+            format!("\x1b[38;2;{};{};{}m{}", r, g, b, c)
+        })
+        .collect::<String>()
+        + "\x1b[0m"
 }

@@ -21,6 +21,16 @@ pub struct Config {
 
     #[serde(default)]
     pub custom: HashMap<String, CustomModule>,
+
+    #[serde(default)]
+    pub modules_config: HashMap<String, ModuleConfig>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub struct ModuleConfig {
+    pub color_keys: Option<String>,
+    pub color_values: Option<String>,
+    pub label: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -45,6 +55,12 @@ pub struct DisplayConfig {
 
     #[serde(default)]
     pub color_sep: Option<String>,
+
+    #[serde(default)]
+    pub gradient: bool,
+
+    #[serde(default)]
+    pub gradient_colors: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -81,6 +97,8 @@ impl Default for DisplayConfig {
             color_keys: None,
             color_values: None,
             color_sep: None,
+            gradient: false,
+            gradient_colors: None,
         }
     }
 }
@@ -130,15 +148,40 @@ impl Config {
     }
 
     pub fn load(path: Option<&std::path::Path>) -> crate::Result<Self> {
-        let config_path = path
-            .map(|p| p.to_path_buf())
-            .or_else(find_config)
-            .ok_or_else(|| crate::Error::Config("no config file found".into()))?;
+        // Start with defaults
+        let mut config = Config::default_for_testing();
 
-        let content = std::fs::read_to_string(&config_path)
-            .map_err(|e| crate::Error::Config(format!("cannot read {:?}: {e}", config_path)))?;
+        // Layer 1: User config ($XDG_CONFIG_HOME/flexfetch/config.toml)
+        if let Some(user_config) = find_user_config() {
+            if let Ok(content) = std::fs::read_to_string(&user_config) {
+                if let Ok(merged) = toml::from_str::<Config>(&content) {
+                    config = merge_config(config, merged);
+                }
+            }
+        }
 
-        toml::from_str(&content).map_err(|e| crate::Error::Config(format!("parse error: {e}")))
+        // Layer 2: Project config (./flexfetch.toml)
+        if let Ok(cwd) = std::env::current_dir() {
+            let project_config = cwd.join("flexfetch.toml");
+            if project_config.exists() {
+                if let Ok(content) = std::fs::read_to_string(&project_config) {
+                    if let Ok(merged) = toml::from_str::<Config>(&content) {
+                        config = merge_config(config, merged);
+                    }
+                }
+            }
+        }
+
+        // Layer 3: Explicit path (CLI --config)
+        if let Some(explicit) = path {
+            if let Ok(content) = std::fs::read_to_string(explicit) {
+                if let Ok(merged) = toml::from_str::<Config>(&content) {
+                    config = merge_config(config, merged);
+                }
+            }
+        }
+
+        Ok(config)
     }
 
     pub fn default_for_testing() -> Self {
@@ -149,11 +192,12 @@ impl Config {
             display: DisplayConfig::default(),
             cache: CacheConfig::default(),
             custom: HashMap::new(),
+            modules_config: HashMap::new(),
         }
     }
 }
 
-fn find_config() -> Option<PathBuf> {
+fn find_user_config() -> Option<PathBuf> {
     let xdg = std::env::var("XDG_CONFIG_HOME")
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
@@ -166,5 +210,63 @@ fn find_config() -> Option<PathBuf> {
         Some(p)
     } else {
         None
+    }
+}
+
+fn merge_config(base: Config, override_config: Config) -> Config {
+    Config {
+        modules: if override_config.modules != Config::default_modules() {
+            override_config.modules
+        } else {
+            base.modules
+        },
+        template: if override_config.template != "default" {
+            override_config.template
+        } else {
+            base.template
+        },
+        plugins_dir: override_config.plugins_dir.or(base.plugins_dir),
+        display: DisplayConfig {
+            separator: if override_config.display.separator != ": " {
+                override_config.display.separator
+            } else {
+                base.display.separator
+            },
+            key_width: if override_config.display.key_width != 8 {
+                override_config.display.key_width
+            } else {
+                base.display.key_width
+            },
+            theme: override_config.display.theme.or(base.display.theme),
+            color_title: override_config
+                .display
+                .color_title
+                .or(base.display.color_title),
+            color_keys: override_config
+                .display
+                .color_keys
+                .or(base.display.color_keys),
+            color_values: override_config
+                .display
+                .color_values
+                .or(base.display.color_values),
+            color_sep: override_config.display.color_sep.or(base.display.color_sep),
+            gradient: override_config.display.gradient || base.display.gradient,
+            gradient_colors: override_config
+                .display
+                .gradient_colors
+                .or(base.display.gradient_colors),
+        },
+        cache: override_config.cache,
+        custom: if !override_config.custom.is_empty() {
+            override_config.custom
+        } else {
+            base.custom
+        },
+        modules_config: if !override_config.modules_config.is_empty() {
+            override_config.modules_config
+        } else {
+            base.modules_config
+        },
     }
 }
