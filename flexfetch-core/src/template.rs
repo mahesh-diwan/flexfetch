@@ -98,27 +98,37 @@ impl TeraEngine {
             .unwrap_or_default();
 
         let logo = crate::logo::detect(&os_id);
-        let rendered = crate::logo::render(logo);
-        let logow = crate::logo::logo_width(&rendered) + 3;
-
         let info_lines: Vec<&str> = raw.lines().collect();
+        let rendered = crate::logo::render(logo, info_lines.len());
+        let logow = crate::logo::logo_width(&rendered) + 3;
         let max = cmp::max(rendered.len(), info_lines.len());
         let mut out = String::with_capacity(raw.len() + rendered.len() * 60);
 
         for i in 0..max {
             match (i < rendered.len(), i < info_lines.len()) {
                 (true, true) => {
-                    let padded = format!("{:width$}", rendered[i], width = logow);
-                    out.push_str(&padded);
+                    let vl = crate::logo::visible_len(&rendered[i]);
+                    if vl < logow {
+                        out.push_str(&rendered[i]);
+                        out.push_str(&" ".repeat(logow - vl));
+                    } else {
+                        out.push_str(&rendered[i]);
+                        out.push(' ');
+                    }
                     out.push_str(info_lines[i]);
                 }
                 (true, false) => {
-                    let padded = format!("{:width$}", rendered[i], width = logow);
-                    out.push_str(&padded);
+                    let vl = crate::logo::visible_len(&rendered[i]);
+                    if vl < logow {
+                        out.push_str(&rendered[i]);
+                        out.push_str(&" ".repeat(logow - vl));
+                    } else {
+                        out.push_str(&rendered[i]);
+                        out.push(' ');
+                    }
                 }
                 (false, true) => {
-                    let pad: String = std::iter::repeat(' ').take(logow).collect();
-                    out.push_str(&pad);
+                    out.push_str(&" ".repeat(logow));
                     out.push_str(info_lines[i]);
                 }
                 (false, false) => {}
