@@ -16,5 +16,6 @@ pub mod processes;
 pub mod resolution;
 pub mod shell;
 pub mod terminal;
+pub mod title;
 pub mod uptime;
 pub mod wm;

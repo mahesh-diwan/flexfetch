@@ -4,7 +4,8 @@ pub struct Logo {
 }
 
 pub fn render(logo: &Logo) -> Vec<String> {
-    let mut out = Vec::with_capacity(logo.lines.len());
+    let target = 28;
+    let mut out = Vec::with_capacity(target);
     for line in logo.lines {
         let mut s = line.to_string();
         if logo.colors.len() >= 3 {
@@ -13,6 +14,9 @@ pub fn render(logo: &Logo) -> Vec<String> {
             s = s.replace("${3}", logo.colors[2]);
         }
         out.push(s);
+    }
+    while out.len() < target {
+        out.push(String::new());
     }
     out
 }

@@ -47,6 +47,7 @@ impl TeraEngine {
         ctx.insert("theme_keys", &theme.keys);
         ctx.insert("theme_values", &theme.values);
         ctx.insert("theme_sep", &theme.sep);
+        ctx.insert("theme_section", &theme.section);
         ctx.insert("theme_reset", &theme.reset);
         ctx.insert("theme_gradient", &theme.gradient);
         if let (Some(&s), Some(&e)) = (theme.gradient_colors.first(), theme.gradient_colors.get(1))

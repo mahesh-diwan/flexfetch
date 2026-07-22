@@ -6,6 +6,7 @@ pub struct ThemeStrings {
     pub keys: String,
     pub values: String,
     pub sep: String,
+    pub section: String,
     pub reset: &'static str,
     pub gradient: bool,
     pub gradient_colors: Vec<[u8; 3]>,
@@ -16,6 +17,7 @@ struct Theme {
     keys: &'static str,
     values: &'static str,
     sep: &'static str,
+    section: &'static str,
     reset: &'static str,
 }
 
@@ -26,6 +28,7 @@ const NONE: Theme = Theme {
     keys: "",
     values: "",
     sep: "",
+    section: "",
     reset: "",
 };
 const CATPPUCCIN: Theme = Theme {
@@ -33,6 +36,7 @@ const CATPPUCCIN: Theme = Theme {
     keys: "\x1b[94m",
     values: "\x1b[96m",
     sep: "\x1b[90m",
+    section: "\x1b[1;94m",
     reset: RESET,
 };
 const DRACULA: Theme = Theme {
@@ -40,6 +44,7 @@ const DRACULA: Theme = Theme {
     keys: "\x1b[95m",
     values: "\x1b[96m",
     sep: "\x1b[90m",
+    section: "\x1b[1;96m",
     reset: RESET,
 };
 const NORD: Theme = Theme {
@@ -47,6 +52,7 @@ const NORD: Theme = Theme {
     keys: "\x1b[94m",
     values: "\x1b[92m",
     sep: "\x1b[90m",
+    section: "\x1b[1;92m",
     reset: RESET,
 };
 const GRUVBOX: Theme = Theme {
@@ -54,6 +60,7 @@ const GRUVBOX: Theme = Theme {
     keys: "\x1b[93m",
     values: "\x1b[92m",
     sep: "\x1b[90m",
+    section: "\x1b[1;93m",
     reset: RESET,
 };
 const TOKYO_NIGHT: Theme = Theme {
@@ -61,6 +68,7 @@ const TOKYO_NIGHT: Theme = Theme {
     keys: "\x1b[94m",
     values: "\x1b[96m",
     sep: "\x1b[90m",
+    section: "\x1b[1;95m",
     reset: RESET,
 };
 const SOLARIZED_DARK: Theme = Theme {
@@ -68,6 +76,7 @@ const SOLARIZED_DARK: Theme = Theme {
     keys: "\x1b[36m",
     values: "\x1b[34m",
     sep: "\x1b[90m",
+    section: "\x1b[1;33m",
     reset: RESET,
 };
 const SOLARIZED_LIGHT: Theme = Theme {
@@ -75,6 +84,7 @@ const SOLARIZED_LIGHT: Theme = Theme {
     keys: "\x1b[34m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;31m",
     reset: RESET,
 };
 const ROSE_PINE: Theme = Theme {
@@ -82,6 +92,7 @@ const ROSE_PINE: Theme = Theme {
     keys: "\x1b[36m",
     values: "\x1b[35m",
     sep: "\x1b[90m",
+    section: "\x1b[1;36m",
     reset: RESET,
 };
 const ROSE_PINE_DAWN: Theme = Theme {
@@ -89,6 +100,7 @@ const ROSE_PINE_DAWN: Theme = Theme {
     keys: "\x1b[36m",
     values: "\x1b[35m",
     sep: "\x1b[90m",
+    section: "\x1b[1;34m",
     reset: RESET,
 };
 const EVERFOREST_DARK: Theme = Theme {
@@ -96,6 +108,7 @@ const EVERFOREST_DARK: Theme = Theme {
     keys: "\x1b[34m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;32m",
     reset: RESET,
 };
 const EVERFOREST_LIGHT: Theme = Theme {
@@ -103,6 +116,7 @@ const EVERFOREST_LIGHT: Theme = Theme {
     keys: "\x1b[34m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;32m",
     reset: RESET,
 };
 const BAMBOO: Theme = Theme {
@@ -110,6 +124,7 @@ const BAMBOO: Theme = Theme {
     keys: "\x1b[32m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;31m",
     reset: RESET,
 };
 const OXOCARBON_DARK: Theme = Theme {
@@ -117,6 +132,7 @@ const OXOCARBON_DARK: Theme = Theme {
     keys: "\x1b[36m",
     values: "\x1b[35m",
     sep: "\x1b[90m",
+    section: "\x1b[1;36m",
     reset: RESET,
 };
 const ONE_DARK: Theme = Theme {
@@ -124,6 +140,7 @@ const ONE_DARK: Theme = Theme {
     keys: "\x1b[31m",
     values: "\x1b[32m",
     sep: "\x1b[90m",
+    section: "\x1b[1;35m",
     reset: RESET,
 };
 const ONE_LIGHT: Theme = Theme {
@@ -131,6 +148,7 @@ const ONE_LIGHT: Theme = Theme {
     keys: "\x1b[31m",
     values: "\x1b[32m",
     sep: "\x1b[90m",
+    section: "\x1b[1;35m",
     reset: RESET,
 };
 const TOKYO_NIGHT_STORM: Theme = Theme {
@@ -138,6 +156,7 @@ const TOKYO_NIGHT_STORM: Theme = Theme {
     keys: "\x1b[34m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;35m",
     reset: RESET,
 };
 const CATPPUCCIN_MOCHA: Theme = Theme {
@@ -145,6 +164,7 @@ const CATPPUCCIN_MOCHA: Theme = Theme {
     keys: "\x1b[34m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;35m",
     reset: RESET,
 };
 const CATPPUCCIN_FRAPPE: Theme = Theme {
@@ -152,6 +172,7 @@ const CATPPUCCIN_FRAPPE: Theme = Theme {
     keys: "\x1b[34m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;35m",
     reset: RESET,
 };
 const CATPPUCCIN_MACCHIATO: Theme = Theme {
@@ -159,6 +180,7 @@ const CATPPUCCIN_MACCHIATO: Theme = Theme {
     keys: "\x1b[34m",
     values: "\x1b[36m",
     sep: "\x1b[90m",
+    section: "\x1b[1;35m",
     reset: RESET,
 };
 
@@ -245,6 +267,7 @@ pub fn resolve(config: &Config) -> ThemeStrings {
             .as_deref()
             .map(resolve_ansi)
             .unwrap_or_else(|| preset.sep.to_string()),
+        section: preset.section.to_string(),
         reset: preset.reset,
         gradient: config.display.gradient,
         gradient_colors,

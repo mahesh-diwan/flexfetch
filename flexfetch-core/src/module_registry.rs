@@ -31,6 +31,7 @@ fn extract_template_modules(template_str: &str) -> HashSet<String> {
         "colors",
         "custom",
         "processes",
+        "title",
     ];
     for word in known {
         if template_str.contains(word) {
@@ -76,6 +77,7 @@ impl ModuleRegistry {
         builders.push(("resolution", || {
             Box::new(crate::modules::resolution::ResolutionModule)
         }));
+        builders.push(("title", || Box::new(crate::modules::title::TitleModule)));
         builders.push(("custom", || {
             Box::new(crate::modules::custom::CustomCommandsModule)
         }));
@@ -97,7 +99,7 @@ impl ModuleRegistry {
         let entries: Vec<_> = selected
             .par_iter()
             .filter_map(|name| {
-                if name == "title" || name == "separator" {
+                if name == "separator" {
                     return None;
                 }
                 if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
