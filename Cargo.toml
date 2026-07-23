@@ -3,7 +3,7 @@ resolver = "2"
 members = ["flexfetch-core", "flexfetch-cli", "flexfetch-lua"]
 
 [workspace.package]
-version = "0.5.3"
+version = "0.5.6"
 edition = "2021"
 license = "MIT"
 
