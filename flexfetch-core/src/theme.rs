@@ -183,6 +183,70 @@ const CATPPUCCIN_MACCHIATO: Theme = Theme {
     section: "\x1b[1;35m",
     reset: RESET,
 };
+const MONOKAI: Theme = Theme {
+    title: "\x1b[1;93m",
+    keys: "\x1b[1;92m",
+    values: "\x1b[91m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;93m",
+    reset: RESET,
+};
+const MONOKAI_PRO: Theme = Theme {
+    title: "\x1b[1;95m",
+    keys: "\x1b[1;96m",
+    values: "\x1b[93m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;95m",
+    reset: RESET,
+};
+const AYU_DARK: Theme = Theme {
+    title: "\x1b[1;93m",
+    keys: "\x1b[1;96m",
+    values: "\x1b[92m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;93m",
+    reset: RESET,
+};
+const AYU_MIRAGE: Theme = Theme {
+    title: "\x1b[1;95m",
+    keys: "\x1b[1;96m",
+    values: "\x1b[93m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;95m",
+    reset: RESET,
+};
+const PALENIGHT: Theme = Theme {
+    title: "\x1b[1;93m",
+    keys: "\x1b[1;96m",
+    values: "\x1b[92m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;93m",
+    reset: RESET,
+};
+const MATERIAL_OCEAN: Theme = Theme {
+    title: "\x1b[1;93m",
+    keys: "\x1b[1;96m",
+    values: "\x1b[91m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;93m",
+    reset: RESET,
+};
+const KANAGAWA: Theme = Theme {
+    title: "\x1b[1;91m",
+    keys: "\x1b[1;96m",
+    values: "\x1b[92m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;91m",
+    reset: RESET,
+};
+const MELLOW_PURPLE: Theme = Theme {
+    title: "\x1b[1;95m",
+    keys: "\x1b[1;96m",
+    values: "\x1b[92m",
+    sep: "\x1b[90m",
+    section: "\x1b[1;95m",
+    reset: RESET,
+};
 
 pub fn resolve_ansi(code_or_name: &str) -> String {
     if code_or_name.starts_with('\x1b') || code_or_name.starts_with("\\u001b") {
@@ -232,6 +296,14 @@ pub fn resolve(config: &Config) -> ThemeStrings {
         "catppuccin-mocha" => &CATPPUCCIN_MOCHA,
         "catppuccin-frappe" => &CATPPUCCIN_FRAPPE,
         "catppuccin-macchiato" => &CATPPUCCIN_MACCHIATO,
+        "monokai" => &MONOKAI,
+        "monokai-pro" => &MONOKAI_PRO,
+        "ayu-dark" => &AYU_DARK,
+        "ayu-mirage" => &AYU_MIRAGE,
+        "palenight" => &PALENIGHT,
+        "material-ocean" => &MATERIAL_OCEAN,
+        "kanagawa" => &KANAGAWA,
+        "mellow-purple" => &MELLOW_PURPLE,
         _ => &NONE,
     };
 

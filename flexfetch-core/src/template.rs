@@ -88,16 +88,26 @@ impl TeraEngine {
             "custom",
         ];
         let mut image_logos = serde_json::Map::new();
-        for name in modules {
-            if info.entries.iter().any(|(n, _)| *n == name) {
-                if let Some(path) = get_module_logo_path(name) {
-                    if std::path::Path::new(&path).exists() {
-                        let logo = ImageLogo::new(&path).with_size(15, 8);
-                        let protocol = ImageProtocol::detect();
-                        let mode = LogoMode::Auto;
-                        let ansi = logo.render(protocol, mode);
-                        if !ansi.is_empty() {
-                            image_logos.insert(name.to_string(), serde_json::Value::String(ansi));
+        let protocol = ImageProtocol::detect();
+        // Only render inline image logos when terminal supports image protocols
+        if matches!(
+            protocol,
+            ImageProtocol::Kitty
+                | ImageProtocol::Iterm2
+                | ImageProtocol::Sixel
+                | ImageProtocol::Block
+        ) {
+            for name in modules {
+                if info.entries.iter().any(|(n, _)| *n == name) {
+                    if let Some(path) = get_module_logo_path(name) {
+                        if std::path::Path::new(&path).exists() {
+                            let logo = ImageLogo::new(&path).with_size(15, 8);
+                            let mode = LogoMode::Auto;
+                            let ansi = logo.render(protocol, mode);
+                            if !ansi.is_empty() {
+                                image_logos
+                                    .insert(name.to_string(), serde_json::Value::String(ansi));
+                            }
                         }
                     }
                 }
@@ -119,14 +129,21 @@ impl TeraEngine {
             })
             .unwrap_or_default();
 
-        if let Some(distro_path) = get_distro_logo_path(&os_id) {
-            if std::path::Path::new(&distro_path).exists() {
-                let logo = ImageLogo::new(&distro_path).with_size(15, 30);
-                let protocol = ImageProtocol::detect();
-                let mode = LogoMode::Auto;
-                let ansi = logo.render(protocol, mode);
-                if !ansi.is_empty() {
-                    ctx.insert("distro_image_logo", &ansi);
+        if matches!(
+            protocol,
+            ImageProtocol::Kitty
+                | ImageProtocol::Iterm2
+                | ImageProtocol::Sixel
+                | ImageProtocol::Block
+        ) {
+            if let Some(distro_path) = get_distro_logo_path(&os_id) {
+                if std::path::Path::new(&distro_path).exists() {
+                    let logo = ImageLogo::new(&distro_path).with_size(15, 30);
+                    let mode = LogoMode::Auto;
+                    let ansi = logo.render(protocol, mode);
+                    if !ansi.is_empty() {
+                        ctx.insert("distro_image_logo", &ansi);
+                    }
                 }
             }
         }

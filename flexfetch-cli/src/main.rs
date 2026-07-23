@@ -2,6 +2,7 @@ use clap::Parser;
 use flexfetch_core::{Config, Context, ModuleRegistry, TeraEngine};
 use std::collections::HashMap;
 use std::io::IsTerminal;
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "flexfetch", version, about = "Fast, flexible system info tool")]
@@ -31,7 +32,7 @@ struct Cli {
     list_modules: bool,
 
     #[arg(long)]
-    list_plugins: bool,
+    list_presets: bool,
 
     #[arg(long)]
     benchmark: bool,
@@ -52,7 +53,10 @@ struct Cli {
     preset: Option<String>,
 
     #[arg(long)]
-    list_presets: bool,
+    export: Option<String>,
+
+    #[arg(short = 'o', long)]
+    output: Option<PathBuf>,
 }
 
 fn main() {
@@ -146,6 +150,45 @@ fn main() {
         eprintln!("  template render: {render_dur:?}");
         eprintln!("  total:           {:?}", t0.elapsed());
         eprintln!("---");
+        if let Some(ref format) = cli.export {
+            let output_path = cli
+                .output
+                .as_deref()
+                .unwrap_or_else(|| match format.as_str() {
+                    "svg" => std::path::Path::new("flexfetch.svg"),
+                    "html" => std::path::Path::new("flexfetch.html"),
+                    "png" => std::path::Path::new("flexfetch.png"),
+                    _ => std::path::Path::new("flexfetch.out"),
+                });
+            match format.as_str() {
+                "svg" => match flexfetch_core::export::export_svg(&info, &config) {
+                    Ok(svg) => {
+                        if let Err(e) = std::fs::write(output_path, &svg) {
+                            eprintln!("write error: {e}");
+                        } else {
+                            println!("wrote {output_path:?}");
+                        }
+                    }
+                    Err(e) => eprintln!("export error: {e}"),
+                },
+                "html" => match flexfetch_core::export::export_html(&info, &config) {
+                    Ok(html) => {
+                        if let Err(e) = std::fs::write(output_path, &html) {
+                            eprintln!("write error: {e}");
+                        } else {
+                            println!("wrote {output_path:?}");
+                        }
+                    }
+                    Err(e) => eprintln!("export error: {e}"),
+                },
+                "png" => match flexfetch_core::export::export_png(&info, &config, output_path) {
+                    Ok(()) => println!("wrote {output_path:?}"),
+                    Err(e) => eprintln!("export error: {e}"),
+                },
+                _ => eprintln!("unknown export format: {format} (use svg, html, png)"),
+            }
+            return;
+        }
         match cli.format.as_str() {
             "json" => {
                 println!(
@@ -162,6 +205,47 @@ fn main() {
     }
 
     let info = registry.run_selected(&modules, &ctx, template_content);
+
+    // Handle --export flag
+    if let Some(ref format) = cli.export {
+        let output_path = cli
+            .output
+            .as_deref()
+            .unwrap_or_else(|| match format.as_str() {
+                "svg" => std::path::Path::new("flexfetch.svg"),
+                "html" => std::path::Path::new("flexfetch.html"),
+                "png" => std::path::Path::new("flexfetch.png"),
+                _ => std::path::Path::new("flexfetch.out"),
+            });
+        match format.as_str() {
+            "svg" => match flexfetch_core::export::export_svg(&info, &config) {
+                Ok(svg) => {
+                    if let Err(e) = std::fs::write(output_path, &svg) {
+                        eprintln!("write error: {e}");
+                    } else {
+                        println!("wrote {output_path:?}");
+                    }
+                }
+                Err(e) => eprintln!("export error: {e}"),
+            },
+            "html" => match flexfetch_core::export::export_html(&info, &config) {
+                Ok(html) => {
+                    if let Err(e) = std::fs::write(output_path, &html) {
+                        eprintln!("write error: {e}");
+                    } else {
+                        println!("wrote {output_path:?}");
+                    }
+                }
+                Err(e) => eprintln!("export error: {e}"),
+            },
+            "png" => match flexfetch_core::export::export_png(&info, &config, output_path) {
+                Ok(()) => println!("wrote {output_path:?}"),
+                Err(e) => eprintln!("export error: {e}"),
+            },
+            _ => eprintln!("unknown export format: {format} (use svg, html, png)"),
+        }
+        return;
+    }
 
     match cli.format.as_str() {
         "json" => {
