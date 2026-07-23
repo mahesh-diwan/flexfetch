@@ -123,7 +123,6 @@ fn main() {
 
     if cli.benchmark {
         let t0 = std::time::Instant::now();
-        let t1 = std::time::Instant::now();
         let mut timings = Vec::new();
         for name in &modules {
             if name == "title" || name == "separator" {
@@ -142,7 +141,7 @@ fn main() {
         let rendered = engine.render(&info, &config);
         let render_dur = t3.elapsed();
         eprintln!("--- flexfetch benchmark ---");
-        eprintln!("  registry init:   {:?}", t1.elapsed());
+        eprintln!("  registry init:   {:?}", t0.elapsed());
         for (name, dur) in &timings {
             eprintln!("  {name:15} {dur:?}");
         }
@@ -151,42 +150,7 @@ fn main() {
         eprintln!("  total:           {:?}", t0.elapsed());
         eprintln!("---");
         if let Some(ref format) = cli.export {
-            let output_path = cli
-                .output
-                .as_deref()
-                .unwrap_or_else(|| match format.as_str() {
-                    "svg" => std::path::Path::new("flexfetch.svg"),
-                    "html" => std::path::Path::new("flexfetch.html"),
-                    "png" => std::path::Path::new("flexfetch.png"),
-                    _ => std::path::Path::new("flexfetch.out"),
-                });
-            match format.as_str() {
-                "svg" => match flexfetch_core::export::export_svg(&info, &config) {
-                    Ok(svg) => {
-                        if let Err(e) = std::fs::write(output_path, &svg) {
-                            eprintln!("write error: {e}");
-                        } else {
-                            println!("wrote {output_path:?}");
-                        }
-                    }
-                    Err(e) => eprintln!("export error: {e}"),
-                },
-                "html" => match flexfetch_core::export::export_html(&info, &config) {
-                    Ok(html) => {
-                        if let Err(e) = std::fs::write(output_path, &html) {
-                            eprintln!("write error: {e}");
-                        } else {
-                            println!("wrote {output_path:?}");
-                        }
-                    }
-                    Err(e) => eprintln!("export error: {e}"),
-                },
-                "png" => match flexfetch_core::export::export_png(&info, &config, output_path) {
-                    Ok(()) => println!("wrote {output_path:?}"),
-                    Err(e) => eprintln!("export error: {e}"),
-                },
-                _ => eprintln!("unknown export format: {format} (use svg, html, png)"),
-            }
+            handle_export(&info, &config, format, cli.output.as_deref());
             return;
         }
         match cli.format.as_str() {
@@ -208,42 +172,7 @@ fn main() {
 
     // Handle --export flag
     if let Some(ref format) = cli.export {
-        let output_path = cli
-            .output
-            .as_deref()
-            .unwrap_or_else(|| match format.as_str() {
-                "svg" => std::path::Path::new("flexfetch.svg"),
-                "html" => std::path::Path::new("flexfetch.html"),
-                "png" => std::path::Path::new("flexfetch.png"),
-                _ => std::path::Path::new("flexfetch.out"),
-            });
-        match format.as_str() {
-            "svg" => match flexfetch_core::export::export_svg(&info, &config) {
-                Ok(svg) => {
-                    if let Err(e) = std::fs::write(output_path, &svg) {
-                        eprintln!("write error: {e}");
-                    } else {
-                        println!("wrote {output_path:?}");
-                    }
-                }
-                Err(e) => eprintln!("export error: {e}"),
-            },
-            "html" => match flexfetch_core::export::export_html(&info, &config) {
-                Ok(html) => {
-                    if let Err(e) = std::fs::write(output_path, &html) {
-                        eprintln!("write error: {e}");
-                    } else {
-                        println!("wrote {output_path:?}");
-                    }
-                }
-                Err(e) => eprintln!("export error: {e}"),
-            },
-            "png" => match flexfetch_core::export::export_png(&info, &config, output_path) {
-                Ok(()) => println!("wrote {output_path:?}"),
-                Err(e) => eprintln!("export error: {e}"),
-            },
-            _ => eprintln!("unknown export format: {format} (use svg, html, png)"),
-        }
+        handle_export(&info, &config, format, cli.output.as_deref());
         return;
     }
 
@@ -262,6 +191,51 @@ fn main() {
             }
         }
     }
+}
+
+fn handle_export(
+    info: &flexfetch_core::SystemInfo,
+    config: &Config,
+    format: &str,
+    output: Option<&std::path::Path>,
+) -> bool {
+    let path = output.unwrap_or_else(|| match format {
+        "svg" => std::path::Path::new("flexfetch.svg"),
+        "html" => std::path::Path::new("flexfetch.html"),
+        "png" => std::path::Path::new("flexfetch.png"),
+        _ => std::path::Path::new("flexfetch.out"),
+    });
+    match format {
+        "svg" => match flexfetch_core::export::export_svg(info, config) {
+            Ok(svg) => {
+                if let Err(e) = std::fs::write(path, &svg) {
+                    eprintln!("write error: {e}");
+                } else {
+                    println!("wrote {path:?}");
+                }
+            }
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "html" => match flexfetch_core::export::export_html(info, config) {
+            Ok(html) => {
+                if let Err(e) = std::fs::write(path, &html) {
+                    eprintln!("write error: {e}");
+                } else {
+                    println!("wrote {path:?}");
+                }
+            }
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "png" => match flexfetch_core::export::export_png(info, config, path) {
+            Ok(()) => println!("wrote {path:?}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        _ => {
+            eprintln!("unknown export format: {format} (use svg, html, png)");
+            return false;
+        }
+    }
+    true
 }
 
 fn module_group(name: &str) -> Vec<String> {

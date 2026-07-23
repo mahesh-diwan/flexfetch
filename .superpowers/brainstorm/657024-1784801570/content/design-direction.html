@@ -1,0 +1,109 @@
+<h2>flexfetch — New Design Features</h2>
+<p class="subtitle">What visual improvements would you like to see?</p>
+
+<div class="section">
+  <h3>Current Output</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --theme catppuccin</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="color: #f5c2e7; font-weight: bold;">mahesh-diwan@cachyos-x8664</div>
+      <div style="color: #6c7086;">────────────────────────────</div>
+      <div style="margin-top: 8px;">
+        <span style="color: #89b4fa; font-weight: bold;">╭─ System</span><br>
+        <span style="color: #89b4fa;">│</span> OS      : <span style="color: #94e2d5;">CachyOS</span><br>
+        <span style="color: #89b4fa;">│</span> Kernel  : <span style="color: #94e2d5;">Linux 7.1.3-2-cachyos x86_64</span><br>
+        <span style="color: #89b4fa;">│</span> Host    : <span style="color: #94e2d5;">cachyos-x8664</span><br>
+        <span style="color: #89b4fa;">│</span> Uptime  : <span style="color: #94e2d5;">2d 23h 42m</span><br>
+        <span style="color: #89b4fa;">│</span> Locale  : <span style="color: #94e2d5;">en_IN.UTF-8</span>
+      </div>
+      <div style="margin-top: 8px;">
+        <span style="color: #89b4fa; font-weight: bold;">╭─ Software</span><br>
+        <span style="color: #89b4fa;">│</span> Pkgs    : <span style="color: #94e2d5;">1726 (pacman)</span><br>
+        <span style="color: #89b4fa;">│</span> Shell   : <span style="color: #94e2d5;">zsh</span><br>
+        <span style="color: #89b4fa;">│</span> Term    : <span style="color: #94e2d5;">zed</span><br>
+        <span style="color: #89b4fa;">│</span> DE      : <span style="color: #94e2d5;">Hyprland</span><br>
+        <span style="color: #89b4fa;">│</span> WM      : <span style="color: #94e2d5;">Hyprland (adw-gtk3)</span>
+      </div>
+      <div style="margin-top: 8px;">
+        <span style="color: #89b4fa; font-weight: bold;">╭─ Hardware</span><br>
+        <span style="color: #89b4fa;">│</span> CPU     : <span style="color: #94e2d5;">i5-12450H (12 cores) @ 942 MHz — 53°C</span><br>
+        <span style="color: #89b4fa;">│</span> Memory  : <span style="color: #94e2d5;">12.2 GiB / 15.3 GiB (79%)</span><br>
+        <span style="color: #89b4fa;">│</span> GPU     : <span style="color: #94e2d5;">i915</span><br>
+        <span style="color: #89b4fa;">│</span> Disk    : <span style="color: #94e2d5;">/: 376G / 477G [████████░░] 80%</span><br>
+        <span style="color: #89b4fa;">│</span> Net     : <span style="color: #94e2d5;">wlan0: 10.41.175.214</span><br>
+        <span style="color: #89b4fa;">│</span> Battery : <span style="color: #94e2d5;">32% (Discharging)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>What would you like to improve?</h3>
+  <p class="subtitle">Select all that interest you — we'll design each one</p>
+
+  <div class="options" data-multiselect>
+    <div class="option" data-choice="side-by-side" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>Side-by-Side Logo Layout</h3>
+        <p>ASCII distro logo rendered next to info text (like neofetch). Currently logos exist but aren't shown in the default template.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="bar-graphs" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>Bar Graphs for Resources</h3>
+        <p>Visual progress bars for CPU, Memory, Disk, Battery with color-coded usage levels (green → yellow → red).</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="kitty-fix" onclick="toggleSelect(this)">
+      <div class="letter">3</div>
+      <div class="content">
+        <h3>Fix Kitty Protocol + Sixel</h3>
+        <p>Kitty uses wrong protocol (currently uses iTerm2 escape). Sixel is stubbed out. Fix both for proper image rendering.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="gradient-template" onclick="toggleSelect(this)">
+      <div class="letter">4</div>
+      <div class="content">
+        <h3>Gradient Title in Template</h3>
+        <p>Wire the existing gradient_text() feature into the template so title/section headers can render RGB gradients.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="interactive" onclick="toggleSelect(this)">
+      <div class="letter">5</div>
+      <div class="content">
+        <h3>Interactive TUI Mode</h3>
+        <p>Live theme/module picker with real-time preview. Arrow keys to browse, enter to select. Uses ratatui.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="new-themes" onclick="toggleSelect(this)">
+      <div class="letter">6</div>
+      <div class="content">
+        <h3>New Theme Presets</h3>
+        <p>Add more popular themes: Tokyo Night, Gruvbox Light, Rosé Pine, Everforest, Oxocarbon, etc.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="custom-ordering" onclick="toggleSelect(this)">
+      <div class="letter">7</div>
+      <div class="content">
+        <h3>Custom Section Ordering</h3>
+        <p>Let users reorder sections (System, Software, Hardware, Palette) and toggle visibility per section.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="export" onclick="toggleSelect(this)">
+      <div class="letter">8</div>
+      <div class="content">
+        <h3>Export Formats</h3>
+        <p>Export output as SVG, HTML, or PNG (using image crate). Useful for README badges or screenshots.</p>
+      </div>
+    </div>
+  </div>
+</div>

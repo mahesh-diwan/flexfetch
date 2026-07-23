@@ -1,0 +1,110 @@
+<h2>Features 5 + 7 + 8: TUI + Ordering + Export</h2>
+<p class="subtitle">Interactive mode, section ordering, and export formats</p>
+
+<div class="section">
+  <h3>Feature 5: Interactive TUI Mode</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --interactive (ratatui)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 12px; line-height: 1.3; padding: 0; background: #1e1e2e; color: #cdd6f4;">
+      <div style="display: flex; height: 300px;">
+        <div style="width: 200px; border-right: 1px solid #45475a; padding: 8px;">
+          <div style="color: #f5c2e7; font-weight: bold; margin-bottom: 8px;">Themes</div>
+          <div style="color: #89b4fa; background: #45475a; padding: 2px 4px;">▸ catppuccin</div>
+          <div style="padding: 2px 4px;">  catppuccin-mocha</div>
+          <div style="padding: 2px 4px;">  catppuccin-frappe</div>
+          <div style="padding: 2px 4px;">  dracula</div>
+          <div style="padding: 2px 4px;">  nord</div>
+          <div style="padding: 2px 4px;">  gruvbox</div>
+          <div style="padding: 2px 4px;">  tokyo-night</div>
+          <div style="padding: 2px 4px;">  solarized-dark</div>
+          <div style="padding: 2px 4px;">  rose-pine</div>
+          <div style="padding: 2px 4px;">  ...</div>
+          <div style="color: #6c7086; margin-top: 8px;">↑↓ navigate  Enter select</div>
+        </div>
+        <div style="flex: 1; padding: 8px;">
+          <div style="color: #f5c2e7; font-weight: bold; margin-bottom: 8px;">Preview</div>
+          <div style="color: #94e2d5;">⠀⠀⠀⠀⠀⠀⣀⣤⣴⣶⣶⣶⣶⣦⣤⣀</div>
+          <div style="color: #94e2d5;">⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀</div>
+          <div style="color: #94e2d5;">⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇</div>
+          <div style="margin-top: 8px;">
+            <div style="color: #f5c2e7; font-weight: bold;">mahesh-diwan@cachyos</div>
+            <div style="color: #6c7086;">────────────────────</div>
+            <div><span style="color: #89b4fa;">OS</span>     : <span style="color: #94e2d5;">CachyOS</span></div>
+            <div><span style="color: #89b4fa;">Kernel</span> : <span style="color: #94e2d5;">7.1.3-2-cachyos</span></div>
+            <div><span style="color: #89b4fa;">CPU</span>    : <span style="color: #94e2d5;">i5-12450H (12)</span></div>
+            <div><span style="color: #89b4fa;">Memory</span> : <span style="color: #94e2d5;">12.2/15.3G</span></div>
+          </div>
+          <div style="color: #6c7086; margin-top: 12px;">← → sections  q quit  Tab modules</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Feature 7: Custom Section Ordering</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch.toml — section order</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.6; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="color: #6c7086;"># config.toml</div>
+      <div style="margin-top: 4px;">
+        <span style="color: #89b4fa;">[display]</span><br>
+        <span style="color: #89b4fa;">section_order</span> = [<span style="color: #94e2d5;">"hardware"</span>, <span style="color: #94e2d5;">"software"</span>, <span style="color: #94e2d5;">"system"</span>, <span style="color: #94e2d5;">"palette"</span>]<br>
+        <span style="color: #89b4fa;">hide_sections</span> = [<span style="color: #94e2d5;">"palette"</span>]<br>
+        <span style="color: #89b4fa;">separator</span> = <span style="color: #94e2d5;">": "</span><br>
+        <span style="color: #89b4fa;">key_width</span> = <span style="color: #fab387;">10</span>
+      </div>
+      <div style="margin-top: 8px; color: #6c7086;"># Result: Hardware first, no palette</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Feature 8: Export Formats</h3>
+  <div class="mockup">
+    <div class="mockup-header">CLI export flags</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.6; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="margin-bottom: 8px;">
+        <span style="color: #94e2d5;">flexfetch</span> <span style="color: #89b4fa;">--export</span> <span style="color: #f9e2af;">svg</span> <span style="color: #89b4fa;">-o</span> <span style="color: #94e2d5;">output.svg</span><br>
+        <span style="color: #94e2d5;">flexfetch</span> <span style="color: #89b4fa;">--export</span> <span style="color: #f9e2af;">html</span> <span style="color: #89b4fa;">-o</span> <span style="color: #94e2d5;">output.html</span><br>
+        <span style="color: #94e2d5;">flexfetch</span> <span style="color: #89b4fa;">--export</span> <span style="color: #f9e2af;">png</span> <span style="color: #89b4fa;">-o</span> <span style="color: #94e2d5;">screenshot.png</span><br>
+        <span style="color: #94e2d5;">flexfetch</span> <span style="color: #89b4fa;">--export</span> <span style="color: #f9e2af;">json</span> <span style="color: #89b4fa;">-o</span> <span style="color: #94e2d5;">data.json</span>
+      </div>
+      <div style="margin-top: 8px; color: #6c7086;"># SVG = terminal-style vector graphic</div>
+      <div style="color: #6c7086;"># HTML = styled terminal card</div>
+      <div style="color: #6c7086;"># PNG = screenshot (via image crate)</div>
+      <div style="color: #6c7086;"># JSON = structured data (existing --format json)</div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a-all" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>All three features</h3>
+      <p>TUI mode, section ordering, and SVG/HTML export. Full feature set.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b-tui-ordering" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>TUI + Ordering only</h3>
+      <p>Interactive mode and section ordering. Skip export for now.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c-ordering-export" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Ordering + Export only</h3>
+      <p>Section ordering and export formats. Skip TUI (complex, ratatui dep).</p>
+    </div>
+  </div>
+  <div class="option" data-choice="d-export-only" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Export only</h3>
+      <p>Just SVG/HTML export. Smallest scope, most practical.</p>
+    </div>
+  </div>
+</div>

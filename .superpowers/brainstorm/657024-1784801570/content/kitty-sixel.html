@@ -1,0 +1,79 @@
+<h2>Feature 3: Fix Kitty Protocol + Sixel</h2>
+<p class="subtitle">Proper image rendering across terminal emulators</p>
+
+<div class="section">
+  <h3>Current: Kitty uses wrong protocol</h3>
+  <div class="mockup">
+    <div class="mockup-header">image_logo.rs — current code</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 12px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="color: #6c7086;">// Kitty protocol (WRONG — uses iTerm2 escape)</div>
+      <div style="color: #f38ba8;">fn render_kitty_protocol(&self) -> String {</div>
+      <div style="color: #f38ba8;">    cmd.push_str("\x1b]1337;File=inline=1;size=");</div>
+      <div style="color: #f38ba8;">    // ^ This is iTerm2, not Kitty!</div>
+      <div style="color: #f38ba8;">}</div>
+      <div style="margin-top: 8px; color: #6c7086;">// Kitty actually uses:</div>
+      <div style="color: #a6e3a1;">// \x1b_Gf=100,t=f,a=T,i=1;{base64}\x1b\\</div>
+      <div style="color: #a6e3a1;">// \x1b_Gf=100,t=d;{chunk}\x1b\\</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>What needs fixing</h3>
+  <div class="options" data-multiselect>
+    <div class="option" data-choice="kitty-fix" onclick="toggleSelect(this)">
+      <div class="letter">K</div>
+      <div class="content">
+        <h3>Fix Kitty Protocol</h3>
+        <p>Implement correct Kitty graphics protocol: \x1b_Gf=100,t=f,a=T + chunked base64 transfer.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="sixel-implement" onclick="toggleSelect(this)">
+      <div class="letter">S</div>
+      <div class="content">
+        <h3>Implement Sixel</h3>
+        <p>Real Sixel rendering for foot, mlterm, contour, xterm. Uses image crate to convert PNG to Sixel escape sequences.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="block-render" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Implement Block Fallback</h3>
+        <p>Unicode block characters (▀▄█) with ANSI colors. Works everywhere, no protocol needed.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="all-three" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>All three fixes</h3>
+        <p>Fix Kitty, implement Sixel, implement block fallback. Full image support.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Terminal Protocol Support Matrix</h3>
+  <div class="mockup">
+    <div class="mockup-header">Supported terminals</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 12px; line-height: 1.5; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="display: grid; grid-template-columns: 120px 60px 60px 60px 60px; gap: 4px;">
+        <div style="color: #f5c2e7; font-weight: bold;">Terminal</div>
+        <div style="color: #f5c2e7; font-weight: bold;">Kitty</div>
+        <div style="color: #f5c2e7; font-weight: bold;">iTerm2</div>
+        <div style="color: #f5c2e7; font-weight: bold;">Sixel</div>
+        <div style="color: #f5c2e7; font-weight: bold;">Block</div>
+        <div style="color: #94e2d5;">Kitty</div><div style="color: #a6e3a1;">✓</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">Ghostty</div><div style="color: #a6e3a1;">✓</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">iTerm2</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">WezTerm</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div><div style="color: #a6e3a1;">✓</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">foot</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">mlterm</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">contour</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">xterm</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">VS Code</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div>
+        <div style="color: #94e2d5;">Zed</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #6c7086;">—</div><div style="color: #a6e3a1;">✓</div>
+      </div>
+    </div>
+  </div>
+</div>

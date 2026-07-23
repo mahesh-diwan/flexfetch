@@ -1,0 +1,130 @@
+<h2>Full Feature Set — Summary</h2>
+<p class="subtitle">All 8 features selected. Here's what we're building.</p>
+
+<div class="section">
+  <div class="cards">
+    <div class="card" data-choice="f1" onclick="toggleSelect(this)">
+      <div class="card-image" style="background: #1e1e2e; padding: 12px; font-family: monospace; font-size: 11px; color: #94e2d5;">
+        <div style="display: flex; gap: 12px;">
+          <div style="white-space: pre; color: #94e2d5;">⣀⣤⣶⣶⣦⣀
+⣿⣿⣿⣿⣿⣷⡀
+⣿⣿⣿⣿⣿⣿⡇
+⠹⣿⣿⣿⡿⠃</div>
+          <div style="border-left: 1px solid #45475a; padding-left: 8px;">
+            <span style="color: #89b4fa;">OS</span> : <span style="color: #94e2d5;">CachyOS</span><br>
+            <span style="color: #89b4fa;">CPU</span>: <span style="color: #94e2d5;">i5-12450H</span><br>
+            <span style="color: #89b4fa;">Mem</span>: <span style="color: #94e2d5;">12.2/15.3G</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>1. Side-by-Side Logo</h3>
+        <p>ASCII logo next to info. Classic neofetch layout.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="f2" onclick="toggleSelect(this)">
+      <div class="card-image" style="background: #1e1e2e; padding: 12px; font-family: monospace; font-size: 11px; color: #cdd6f4;">
+        <span style="color: #89b4fa;">CPU</span>: <span style="color: #a6e3a1;">████████░░</span> <span style="color: #6c7086;">62%</span><br>
+        <span style="color: #89b4fa;">Mem</span>: <span style="color: #f9e2af;">███████░░░</span> <span style="color: #6c7086;">79%</span><br>
+        <span style="color: #89b4fa;">Disk</span>: <span style="color: #f38ba8;">████████░░</span> <span style="color: #6c7086;">80%</span><br>
+        <span style="color: #89b4fa;">Batt</span>: <span style="color: #f38ba8;">███░░░░░░░</span> <span style="color: #6c7086;">32%</span>
+      </div>
+      <div class="card-body">
+        <h3>2. Bar Graphs</h3>
+        <p>Color-coded progress bars for resources.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="f3" onclick="toggleSelect(this)">
+      <div class="card-image" style="background: #1e1e2e; padding: 12px; font-family: monospace; font-size: 11px; color: #cdd6f4;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+          <div><span style="color: #a6e3a1;">Kitty</span> ✓</div>
+          <div><span style="color: #a6e3a1;">iTerm2</span> ✓</div>
+          <div><span style="color: #a6e3a1;">Sixel</span> ✓</div>
+          <div><span style="color: #a6e3a1;">Block</span> ✓</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>3. Image Protocols</h3>
+        <p>Fix Kitty, implement Sixel + block fallback.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="f4" onclick="toggleSelect(this)">
+      <div class="card-image" style="background: #1e1e2e; padding: 12px; font-family: monospace; font-size: 11px;">
+        <div style="background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">gradient title</div>
+        <div style="color: #6c7086; margin-top: 4px;">+ 8 new themes</div>
+      </div>
+      <div class="card-body">
+        <h3>4 + 6. Gradient + Themes</h3>
+        <p>RGB gradients in template + monokai, kanagawa, ayu.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="f5" onclick="toggleSelect(this)">
+      <div class="card-image" style="background: #1e1e2e; padding: 12px; font-family: monospace; font-size: 11px; color: #cdd6f4;">
+        <div style="display: flex; height: 60px;">
+          <div style="width: 60px; border-right: 1px solid #45475a; padding: 4px; font-size: 9px;">
+            <div style="color: #89b4fa;">▸ catppuccin</div>
+            <div>  dracula</div>
+            <div>  nord</div>
+          </div>
+          <div style="padding: 4px; font-size: 9px;">
+            <div style="color: #89b4fa;">OS</span> : CachyOS</div>
+            <div><span style="color: #89b4fa;">CPU</span>: i5-12450H</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>5. Interactive TUI</h3>
+        <p>Live theme picker with real-time preview.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="f6" onclick="toggleSelect(this)">
+      <div class="card-image" style="background: #1e1e2e; padding: 12px; font-family: monospace; font-size: 11px; color: #cdd6f4;">
+        <div style="color: #89b4fa;">[display]</div>
+        <div>section_order = [<span style="color: #94e2d5;">"hw"</span>, <span style="color: #94e2d5;">"sw"</span>]</div>
+        <div>hide_sections = [<span style="color: #94e2d5;">"palette"</span>]</div>
+      </div>
+      <div class="card-body">
+        <h3>7. Section Ordering</h3>
+        <p>Custom section order + hide sections.</p>
+      </div>
+    </div>
+
+    <div class="card" data-choice="f7" onclick="toggleSelect(this)">
+      <div class="card-image" style="background: #1e1e2e; padding: 12px; font-family: monospace; font-size: 11px; color: #cdd6f4;">
+        <div><span style="color: #94e2d5;">flexfetch</span> <span style="color: #89b4fa;">--export</span> <span style="color: #f9e2af;">svg</span></div>
+        <div><span style="color: #94e2d5;">flexfetch</span> <span style="color: #89b4fa;">--export</span> <span style="color: #f9e2af;">html</span></div>
+        <div><span style="color: #94e2d5;">flexfetch</span> <span style="color: #89b4fa;">--export</span> <span style="color: #f9e2af;">png</span></div>
+      </div>
+      <div class="card-body">
+        <h3>8. Export Formats</h3>
+        <p>SVG, HTML, PNG output for READMEs.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Implementation Order (Recommended)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Build sequence</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.6; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div><span style="color: #a6e3a1;">Phase 1</span> — Quick wins (no new deps)</div>
+      <div style="padding-left: 16px;">4. Gradient title wiring</div>
+      <div style="padding-left: 16px;">7. Section ordering config</div>
+      <div style="padding-left: 16px;">6. New theme presets</div>
+      <div style="margin-top: 8px;"><span style="color: #f9e2af;">Phase 2</span> — Visual overhaul</div>
+      <div style="padding-left: 16px;">1. Side-by-side logo layout</div>
+      <div style="padding-left: 16px;">2. Bar graphs for resources</div>
+      <div style="margin-top: 8px;"><span style="color: #f38ba8;">Phase 3</span> — Image protocols</div>
+      <div style="padding-left: 16px;">3. Fix Kitty + implement Sixel + block</div>
+      <div style="margin-top: 8px;"><span style="color: #cba6f7;">Phase 4</span> — Export + TUI</div>
+      <div style="padding-left: 16px;">8. SVG/HTML/PNG export</div>
+      <div style="padding-left: 16px;">5. Interactive TUI mode</div>
+    </div>
+  </div>
+</div>

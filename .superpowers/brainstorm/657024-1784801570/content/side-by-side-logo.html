@@ -1,0 +1,156 @@
+<h2>Feature 1: Side-by-Side Logo Layout</h2>
+<p class="subtitle">ASCII distro logo rendered next to info text — the neofetch look</p>
+
+<div class="section">
+  <h3>Current: No logo shown</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch (current default)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="color: #f5c2e7; font-weight: bold;">mahesh-diwan@cachyos-x8664</div>
+      <div style="color: #6c7086;">────────────────────────────</div>
+      <div style="margin-top: 8px;">
+        <span style="color: #89b4fa; font-weight: bold;">╭─ System</span><br>
+        <span style="color: #89b4fa;">│</span> OS      : <span style="color: #94e2d5;">CachyOS</span><br>
+        <span style="color: #89b4fa;">│</span> Kernel  : <span style="color: #94e2d5;">Linux 7.1.3-2-cachyos</span><br>
+        <span style="color: #89b4fa;">│</span> Host    : <span style="color: #94e2d5;">cachyos-x8664</span><br>
+        <span style="color: #89b4fa;">│</span> Uptime  : <span style="color: #94e2d5;">2d 23h 42m</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Option A: Classic Side-by-Side</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --logo side</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="display: flex; gap: 24px;">
+        <div style="color: #94e2d5; white-space: pre; flex-shrink: 0;">        ⠀⠀⠀⠀⠀⣀⣤⣴⣶⣶⣶⣶⣦⣤⣀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀
+⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀
+⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀
+⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠈⠉⠛⠛⠛⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣀⣤⣴⣶⣶⣶⣶⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀</div>
+        <div style="border-left: 1px solid #45475a; padding-left: 16px;">
+          <div style="color: #f5c2e7; font-weight: bold;">mahesh-diwan@cachyos-x8664</div>
+          <div style="color: #6c7086;">────────────────────────────</div>
+          <div style="margin-top: 8px;">
+            <span style="color: #89b4fa;">OS</span>      : <span style="color: #94e2d5;">CachyOS</span><br>
+            <span style="color: #89b4fa;">Kernel</span>  : <span style="color: #94e2d5;">Linux 7.1.3-2-cachyos</span><br>
+            <span style="color: #89b4fa;">Host</span>    : <span style="color: #94e2d5;">cachyos-x8664</span><br>
+            <span style="color: #89b4fa;">Uptime</span>  : <span style="color: #94e2d5;">2d 23h 42m</span><br>
+            <span style="color: #89b4fa;">Pkgs</span>    : <span style="color: #94e2d5;">1726 (pacman)</span><br>
+            <span style="color: #89b4fa;">Shell</span>   : <span style="color: #94e2d5;">zsh</span><br>
+            <span style="color: #89b4fa;">Term</span>    : <span style="color: #94e2d5;">zed</span><br>
+            <span style="color: #89b4fa;">CPU</span>     : <span style="color: #94e2d5;">i5-12450H (12) @ 942 MHz</span><br>
+            <span style="color: #89b4fa;">Memory</span>  : <span style="color: #94e2d5;">12.2 / 15.3 GiB (79%)</span><br>
+            <span style="color: #89b4fa;">GPU</span>     : <span style="color: #94e2d5;">i915</span><br>
+            <span style="color: #89b4fa;">Disk</span>    : <span style="color: #94e2d5;">376G / 477G (80%)</span><br>
+            <span style="color: #89b4fa;">Battery</span> : <span style="color: #94e2d5;">32% (Discharging)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Option B: Box-Drawing Side-by-Side</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --logo box</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="display: flex; gap: 0;">
+        <div style="color: #94e2d5; white-space: pre; flex-shrink: 0; border-right: 1px solid #45475a; padding-right: 16px;">        ⠀⠀⠀⠀⠀⣀⣤⣴⣶⣶⣶⣶⣦⣤⣀⠀⠀⠀⠀
+⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀
+⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀
+⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠈⠉⠛⠛⠛⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀</div>
+        <div style="padding-left: 16px;">
+          <div style="color: #f5c2e7; font-weight: bold;">mahesh-diwan@cachyos-x8664</div>
+          <div style="color: #6c7086;">────────────────────────────</div>
+          <div style="margin-top: 8px;">
+            <span style="color: #89b4fa; font-weight: bold;">╭─ System</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">OS</span>      : <span style="color: #94e2d5;">CachyOS</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Kernel</span>  : <span style="color: #94e2d5;">Linux 7.1.3-2-cachyos</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Host</span>    : <span style="color: #94e2d5;">cachyos-x8664</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Uptime</span>  : <span style="color: #94e2d5;">2d 23h 42m</span><br>
+            <span style="color: #89b4fa;">│</span><br>
+            <span style="color: #89b4fa; font-weight: bold;">╭─ Software</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Pkgs</span>    : <span style="color: #94e2d5;">1726 (pacman)</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Shell</span>   : <span style="color: #94e2d5;">zsh</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Term</span>    : <span style="color: #94e2d5;">zed</span><br>
+            <span style="color: #89b4fa;">│</span><br>
+            <span style="color: #89b4fa; font-weight: bold;">╭─ Hardware</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">CPU</span>     : <span style="color: #94e2d5;">i5-12450H (12) @ 942 MHz</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Memory</span>  : <span style="color: #94e2d5;">12.2 / 15.3 GiB (79%)</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">GPU</span>     : <span style="color: #94e2d5;">i915</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Disk</span>    : <span style="color: #94e2d5;">376G / 477G (80%)</span><br>
+            <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Battery</span> : <span style="color: #94e2d5;">32% (Discharging)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Option C: Compact with Inline Logo</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --logo inline</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <div style="color: #94e2d5;">⠀⠀⠀⠀⠀⠀⣀⣤⣴⣶⣶⣶⣶⣦⣤⣀</div>
+      <div style="color: #94e2d5;">⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀</div>
+      <div style="color: #94e2d5;">⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇</div>
+      <div style="color: #94e2d5;">⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇</div>
+      <div style="color: #94e2d5;">⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃</div>
+      <div style="color: #94e2d5;">⠀⠀⠀⠀⠀⠈⠉⠛⠛⠛⠛⠉⠁</div>
+      <div style="margin-top: 8px;">
+        <span style="color: #f5c2e7; font-weight: bold;">mahesh-diwan@cachyos-x8664</span><br>
+        <span style="color: #6c7086;">────────────────────────────</span><br>
+        <span style="color: #89b4fa;">OS</span>      : <span style="color: #94e2d5;">CachyOS</span>  ·  <span style="color: #89b4fa;">Kernel</span>  : <span style="color: #94e2d5;">7.1.3-2-cachyos</span><br>
+        <span style="color: #89b4fa;">Host</span>    : <span style="color: #94e2d5;">cachyos-x8664</span>  ·  <span style="color: #89b4fa;">Uptime</span>  : <span style="color: #94e2d5;">2d 23h</span><br>
+        <span style="color: #89b4fa;">Pkgs</span>    : <span style="color: #94e2d5;">1726</span>  ·  <span style="color: #89b4fa;">Shell</span>   : <span style="color: #94e2d5;">zsh</span>  ·  <span style="color: #89b4fa;">Term</span>    : <span style="color: #94e2d5;">zed</span><br>
+        <span style="color: #89b4fa;">CPU</span>     : <span style="color: #94e2d5;">i5-12450H (12) @ 942 MHz</span><br>
+        <span style="color: #89b4fa;">Memory</span>  : <span style="color: #94e2d5;">12.2 / 15.3 GiB (79%)</span>  ·  <span style="color: #89b4fa;">GPU</span>     : <span style="color: #94e2d5;">i915</span><br>
+        <span style="color: #89b4fa;">Disk</span>    : <span style="color: #94e2d5;">376G / 477G (80%)</span>  ·  <span style="color: #89b4fa;">Battery</span> : <span style="color: #94e2d5;">32%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a-classic" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Classic Side-by-Side</h3>
+      <p>Logo on left, info on right. Clean separator. Most familiar to neofetch users.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b-box" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Box-Drawing Side-by-Side</h3>
+      <p>Logo with box-drawing border. Keeps section headers. More structured look.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c-compact" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Compact with Inline Logo</h3>
+      <p>Logo on top, info below in compact 2-column layout. Space-efficient.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="d-none" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Keep current (no logo)</h3>
+      <p>The current single-column box-drawing layout works fine. No changes needed.</p>
+    </div>
+  </div>
+</div>

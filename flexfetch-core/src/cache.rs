@@ -52,6 +52,10 @@ impl Cache {
 
     fn flush(&self) {
         if let Ok(json) = serde_json::to_string(&self.data) {
+            // Create parent dir if missing
+            if let Some(parent) = self.path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
             let _ = std::fs::write(&self.path, &json);
         }
     }

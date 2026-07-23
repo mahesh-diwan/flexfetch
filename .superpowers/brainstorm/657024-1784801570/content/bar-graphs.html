@@ -1,0 +1,88 @@
+<h2>Feature 2: Bar Graphs for Resources</h2>
+<p class="subtitle">Visual progress bars for CPU, Memory, Disk, Battery</p>
+
+<div class="section">
+  <h3>Option A: Simple Block Bars</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --bars</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <span style="color: #89b4fa; font-weight: bold;">╭─ Hardware</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">CPU</span>     : <span style="color: #94e2d5;">i5-12450H (12 cores) @ 942 MHz</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #a6e3a1;">████████████░░░░░░░░</span> <span style="color: #6c7086;">62%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Memory</span>  : <span style="color: #94e2d5;">12.2 GiB / 15.3 GiB</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #f9e2af;">███████████████░░░░░</span> <span style="color: #6c7086;">79%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Swap</span>    : <span style="color: #94e2d5;">11.5 GiB / 23.0 GiB</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #a6e3a1;">██████████░░░░░░░░░░</span> <span style="color: #6c7086;">49%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Disk</span>    : <span style="color: #94e2d5;">/: 376G / 477G</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #f9e2af;">███████████████░░░░░</span> <span style="color: #6c7086;">80%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Battery</span> : <span style="color: #94e2d5;">32% (Discharging)</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #f38ba8;">██████░░░░░░░░░░░░░░</span> <span style="color: #6c7086;">32%</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Option B: Gradient Bars</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --bars gradient</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <span style="color: #89b4fa; font-weight: bold;">╭─ Hardware</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">CPU</span>     : <span style="color: #94e2d5;">i5-12450H (12 cores) @ 942 MHz</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #a6e3a1;">▓▓▓▓▓▓▓▓</span><span style="color: #f9e2af;">▓▓▓▓</span><span style="color: #45475a;">░░░░░░░░░░</span> <span style="color: #6c7086;">62%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Memory</span>  : <span style="color: #94e2d5;">12.2 GiB / 15.3 GiB</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #a6e3a1;">▓▓▓▓▓▓▓▓</span><span style="color: #f9e2af;">▓▓▓▓▓▓▓</span><span style="color: #45475a;">░░░░░░</span> <span style="color: #6c7086;">79%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Swap</span>    : <span style="color: #94e2d5;">11.5 GiB / 23.0 GiB</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #a6e3a1;">▓▓▓▓▓▓▓▓</span><span style="color: #45475a;">░░░░░░░░░░░░</span> <span style="color: #6c7086;">49%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Disk</span>    : <span style="color: #94e2d5;">/: 376G / 477G</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #a6e3a1;">▓▓▓▓▓▓▓▓</span><span style="color: #f9e2af;">▓▓▓▓▓▓▓</span><span style="color: #45475a;">░░░░░░</span> <span style="color: #6c7086;">80%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Battery</span> : <span style="color: #94e2d5;">32% (Discharging)</span><br>
+      <span style="color: #89b4fa;">│</span>           <span style="color: #f38ba8;">▓▓▓▓▓▓</span><span style="color: #45475a;">░░░░░░░░░░░░░░░░</span> <span style="color: #6c7086;">32%</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Option C: Compact Inline Bars</h3>
+  <div class="mockup">
+    <div class="mockup-header">flexfetch --bars compact</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.4; padding: 16px; background: #1e1e2e; color: #cdd6f4;">
+      <span style="color: #89b4fa; font-weight: bold;">╭─ Hardware</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">CPU</span>     : <span style="color: #94e2d5;">i5-12450H</span> <span style="color: #a6e3a1;">████████░░</span> <span style="color: #6c7086;">62%</span> <span style="color: #6c7086;">53°C</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Memory</span>  : <span style="color: #94e2d5;">12.2/15.3G</span> <span style="color: #f9e2af;">███████░░░</span> <span style="color: #6c7086;">79%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Swap</span>    : <span style="color: #94e2d5;">11.5/23.0G</span> <span style="color: #a6e3a1;">█████░░░░░</span> <span style="color: #6c7086;">49%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Disk</span>    : <span style="color: #94e2d5;">376/477G</span> <span style="color: #f9e2af;">███████░░░</span> <span style="color: #6c7086;">80%</span><br>
+      <span style="color: #89b4fa;">│</span> <span style="color: #89b4fa;">Battery</span> : <span style="color: #94e2d5;">32%</span> <span style="color: #f38ba8;">███░░░░░░░</span> <span style="color: #6c7086;">Discharging</span>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a-block" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Simple Block Bars</h3>
+      <p>█░ characters, color-coded by usage level. Clean and readable.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b-gradient" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Gradient Bars</h3>
+      <p>▓░ characters with smooth color transition. More polished look.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c-compact" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Compact Inline Bars</h3>
+      <p>Bar on same line as value. Saves vertical space.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="d-none" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>No bars</h3>
+      <p>Keep current text-only output. Numbers are enough.</p>
+    </div>
+  </div>
+</div>
