@@ -1,9 +1,9 @@
-use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
+use base64::Engine as _;
 use std::env;
 use std::fs;
 use std::path::Path;
 
-use crate::logo::{detect, render, visible_len, Logo};
+use crate::logo::{detect, render};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ImageProtocol {
@@ -170,9 +170,9 @@ impl ImageLogo {
         if let Some(h) = height {
             cmd.push_str(&format!(";height={}", h));
         }
-        cmd.push_str(":");
+        cmd.push(':');
         cmd.push_str(encoded);
-        cmd.push_str("\x07"); // BEL
+        cmd.push('\x07'); // BEL
 
         cmd
     }
@@ -186,24 +186,11 @@ impl ImageLogo {
         if let Some(h) = height {
             cmd.push_str(&format!(";height={}", h));
         }
-        cmd.push_str(":");
+        cmd.push(':');
         cmd.push_str(encoded);
-        cmd.push_str("\x07"); // BEL
+        cmd.push('\x07'); // BEL
 
         cmd
-    }
-
-    fn render_block(&self) -> String {
-        // Unicode block fallback - create a colored block representation
-        let width = self.width.unwrap_or(40) as usize;
-        let height = self.height.unwrap_or(20) as usize;
-
-        let mut result = String::new();
-        for _ in 0..height {
-            result.push_str(&"█".repeat(width / 2));
-            result.push('\n');
-        }
-        result
     }
 
     fn resolve_path(path: &str) -> String {

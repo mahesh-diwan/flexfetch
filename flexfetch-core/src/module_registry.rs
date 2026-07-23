@@ -1,12 +1,8 @@
-use crate::config::Config;
 use crate::{Context, InfoValue, Module, SystemInfo};
 use std::collections::HashSet;
+use std::sync::OnceLock;
 
 type ModuleBuilder = fn() -> Box<dyn Module>;
-
-pub struct ModuleRegistry {
-    builders: Vec<(&'static str, ModuleBuilder)>,
-}
 
 fn extract_template_modules(template_str: &str) -> HashSet<String> {
     let mut modules = HashSet::new();
@@ -41,8 +37,19 @@ fn extract_template_modules(template_str: &str) -> HashSet<String> {
     modules
 }
 
+pub struct ModuleRegistry {
+    builders: Vec<(&'static str, ModuleBuilder)>,
+}
+
+// Cached registry - built once, reused forever
+static REGISTRY: OnceLock<ModuleRegistry> = OnceLock::new();
+
+fn get_registry() -> &'static ModuleRegistry {
+    REGISTRY.get_or_init(|| ModuleRegistry::build())
+}
+
 impl ModuleRegistry {
-    pub fn new(_config: &Config) -> Self {
+    fn build() -> Self {
         let mut builders: Vec<(&'static str, ModuleBuilder)> = Vec::new();
 
         // Only modules with implemented structs are registered.
@@ -83,6 +90,10 @@ impl ModuleRegistry {
         }));
 
         ModuleRegistry { builders }
+    }
+
+    pub fn get() -> &'static ModuleRegistry {
+        get_registry()
     }
 
     pub fn run_selected(

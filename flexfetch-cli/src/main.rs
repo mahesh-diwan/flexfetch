@@ -114,7 +114,7 @@ fn main() {
         config.display.theme = Some("none".into());
     }
 
-    let registry = ModuleRegistry::new(&config);
+    let registry = ModuleRegistry::get();
     let template_content = TeraEngine::default_template_content();
 
     if cli.benchmark {

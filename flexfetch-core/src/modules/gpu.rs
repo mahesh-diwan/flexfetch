@@ -12,35 +12,40 @@ impl Module for GpuModule {
 
         #[cfg(target_os = "linux")]
         {
-            if let Ok(output) = std::process::Command::new("lspci").output() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                for line in stdout.lines() {
-                    let lower = line.to_lowercase();
-                    if lower.contains("vga") || lower.contains("3d") || lower.contains("display") {
-                        if let Some(idx) = line.rfind(':') {
-                            let name = line[idx + 1..]
-                                .split('(')
-                                .next()
-                                .unwrap_or("")
-                                .trim()
-                                .to_string();
-                            if !name.is_empty() {
-                                gpus.push(name);
+            // Use sysfs first (faster, no process spawn)
+            if let Ok(entries) = std::fs::read_dir("/sys/class/drm/") {
+                for entry in entries.flatten() {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    if name.starts_with("card") && name.len() <= 6 {
+                        let drv = entry.path().join("device").join("driver");
+                        if let Ok(link) = std::fs::read_link(&drv) {
+                            if let Some(d) = link.file_name() {
+                                gpus.push(d.to_string_lossy().to_string());
                             }
                         }
                     }
                 }
             }
 
+            // Fallback to lspci if sysfs didn't find anything
             if gpus.is_empty() {
-                if let Ok(entries) = std::fs::read_dir("/sys/class/drm/") {
-                    for entry in entries.flatten() {
-                        let name = entry.file_name().to_string_lossy().to_string();
-                        if name.starts_with("card") && name.len() <= 6 {
-                            let drv = entry.path().join("device").join("driver");
-                            if let Ok(link) = std::fs::read_link(&drv) {
-                                if let Some(d) = link.file_name() {
-                                    gpus.push(d.to_string_lossy().to_string());
+                if let Ok(output) = std::process::Command::new("lspci").output() {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    for line in stdout.lines() {
+                        let lower = line.to_lowercase();
+                        if lower.contains("vga")
+                            || lower.contains("3d")
+                            || lower.contains("display")
+                        {
+                            if let Some(idx) = line.rfind(':') {
+                                let name = line[idx + 1..]
+                                    .split('(')
+                                    .next()
+                                    .unwrap_or("")
+                                    .trim()
+                                    .to_string();
+                                if !name.is_empty() {
+                                    gpus.push(name);
                                 }
                             }
                         }

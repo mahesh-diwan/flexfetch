@@ -7,8 +7,6 @@ use crate::{InfoValue, SystemInfo};
 use crate::image_logo::{
     get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
 };
-use crate::logo::{detect, logo_width, render, visible_len};
-use base64::Engine;
 
 static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
 
@@ -36,52 +34,6 @@ impl TeraEngine {
 
     pub fn default_template_content() -> &'static str {
         include_str!("../../templates/default.tera")
-    }
-
-    fn module_logos(info: &SystemInfo) -> serde_json::Value {
-        let modules = [
-            "title",
-            "os",
-            "host",
-            "kernel",
-            "uptime",
-            "locale",
-            "shell",
-            "terminal",
-            "de",
-            "wm",
-            "packages",
-            "cpu",
-            "memory",
-            "disk",
-            "gpu",
-            "network",
-            "battery",
-            "processes",
-            "resolution",
-            "colors",
-            "custom",
-        ];
-
-        let mut map = serde_json::Map::new();
-        for name in modules {
-            // Check if this module is present in the info
-            if info.entries.iter().any(|(n, _)| *n == name) {
-                let logo = detect(name);
-                let lines: Vec<String> = logo.lines.iter().map(|s| s.to_string()).collect();
-                let rendered = render(logo, lines.len());
-                map.insert(
-                    name.to_string(),
-                    serde_json::Value::Array(
-                        rendered
-                            .iter()
-                            .map(|l| serde_json::Value::String(l.clone()))
-                            .collect(),
-                    ),
-                );
-            }
-        }
-        serde_json::Value::Object(map)
     }
 
     pub fn render(&self, info: &SystemInfo, config: &crate::Config) -> crate::Result<String> {
