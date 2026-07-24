@@ -8,6 +8,50 @@ use crate::image_logo::{
     get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
 };
 
+#[derive(Debug, Clone)]
+pub struct BoxChars {
+    pub header_left: String,
+    pub header_line: String,
+    pub row: String,
+    pub sep: String,
+}
+
+pub fn get_box_chars(style: &str) -> BoxChars {
+    match style {
+        "double" => BoxChars {
+            header_left: "╔═ ".into(),
+            header_line: "═".into(),
+            row: "║".into(),
+            sep: "╠".into(),
+        },
+        "dotted" => BoxChars {
+            header_left: "┌─ ".into(),
+            header_line: "─".into(),
+            row: "│".into(),
+            sep: "├".into(),
+        },
+        "thick" => BoxChars {
+            header_left: "┏━ ".into(),
+            header_line: "━".into(),
+            row: "┃".into(),
+            sep: "┣".into(),
+        },
+        "ascii" => BoxChars {
+            header_left: "+- ".into(),
+            header_line: "-".into(),
+            row: "|".into(),
+            sep: "+".into(),
+        },
+        _ => BoxChars {
+            // rounded (default)
+            header_left: "╭─ ".into(),
+            header_line: "─".into(),
+            row: "│".into(),
+            sep: "├".into(),
+        },
+    }
+}
+
 static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
 
 fn get_tera() -> &'static Tera {
@@ -45,6 +89,12 @@ impl TeraEngine {
         }
         ctx.insert("display_separator", &config.display.separator);
         ctx.insert("display_key_width", &config.display.key_width);
+
+        let box_chars = get_box_chars(&config.display.box_style);
+        ctx.insert("box_header_left", &box_chars.header_left);
+        ctx.insert("box_header_line", &box_chars.header_line);
+        ctx.insert("box_row", &box_chars.row);
+        ctx.insert("box_sep", &box_chars.sep);
 
         let theme = crate::theme::resolve(config);
         ctx.insert("theme_title", &theme.title);

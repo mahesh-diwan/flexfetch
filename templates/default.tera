@@ -22,78 +22,78 @@
 {{ theme_sep }}────────────────────────────{{ theme_reset }}
 {%- endif %}
 {%- if os %}
-{{ theme_section }}╭─ {{ image_logos.os | default(value="") }} System{{ theme_reset }}
-{{ theme_section }}│{{ theme_reset }} {{ theme_keys }}OS      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ os.pretty_name | default(value=os.name) }}{{ theme_reset }}
+{{ theme_section }}{{ box_header_left }}{{ image_logos.os | default(value="") }} System{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ theme_keys }}OS      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ os.pretty_name | default(value=os.name) }}{{ theme_reset }}
 {%- endif %}
 {%- if kernel %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.kernel | default(value="") }} {{ theme_keys }}Kernel  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ kernel }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.kernel | default(value="") }} {{ theme_keys }}Kernel  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ kernel }}{{ theme_reset }}
 {%- endif %}
 {%- if host %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.host | default(value="") }} {{ theme_keys }}Host    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ host }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.host | default(value="") }} {{ theme_keys }}Host    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ host }}{{ theme_reset }}
 {%- endif %}
 {%- if uptime %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.uptime | default(value="") }} {{ theme_keys }}Uptime  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ uptime }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.uptime | default(value="") }} {{ theme_keys }}Uptime  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ uptime }}{{ theme_reset }}
 {%- endif %}
 {%- if locale %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.locale | default(value="") }} {{ theme_keys }}Locale  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if locale.lang %}{{ locale.lang }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}{% else %}{{ locale }}{% endif %}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.locale | default(value="") }} {{ theme_keys }}Locale  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if locale.lang %}{{ locale.lang }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}{% else %}{{ locale }}{% endif %}{{ theme_reset }}
 {%- endif %}
 {%- if packages or shell or terminal or de or wm %}
 
-{{ theme_section }}╭─ {{ image_logos.packages | default(value="") }} Software{{ theme_reset }}
+{{ theme_section }}{{ box_header_left }}{{ image_logos.packages | default(value="") }} Software{{ theme_reset }}
 {%- endif %}
 {%- for name, count in packages %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.packages | default(value="") }} {{ theme_keys }}Pkgs    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ count }} ({{ name }}){{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.packages | default(value="") }} {{ theme_keys }}Pkgs    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ count }} ({{ name }}){{ theme_reset }}
 {%- endfor %}
 {%- if shell %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.shell | default(value="") }} {{ theme_keys }}Shell   {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ shell }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.shell | default(value="") }} {{ theme_keys }}Shell   {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ shell }}{{ theme_reset }}
 {%- endif %}
 {%- if terminal %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.terminal | default(value="") }} {{ theme_keys }}Term    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ terminal.name }}{{ theme_reset }}{% if terminal.font %} ({{ terminal.font }}){% endif %}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.terminal | default(value="") }} {{ theme_keys }}Term    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ terminal.name }}{{ theme_reset }}{% if terminal.font %} ({{ terminal.font }}){% endif %}
 {%- endif %}
 {%- if de %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.de | default(value="") }} {{ theme_keys }}DE      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ de }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.de | default(value="") }} {{ theme_keys }}DE      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ de }}{{ theme_reset }}
 {%- endif %}
 {%- if wm %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.wm | default(value="") }} {{ theme_keys }}WM      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ wm.name }}{{ theme_reset }}{% if wm.theme %} ({{ wm.theme }}){% endif %}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.wm | default(value="") }} {{ theme_keys }}WM      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ wm.name }}{{ theme_reset }}{% if wm.theme %} ({{ wm.theme }}){% endif %}
 {%- endif %}
 {%- if cpu or memory or gpu or disk or network or battery or resolution %}
 
-{{ theme_section }}╭─ {{ image_logos.cpu | default(value="") }} Hardware{{ theme_reset }}
+{{ theme_section }}{{ box_header_left }}{{ image_logos.cpu | default(value="") }} Hardware{{ theme_reset }}
 {%- endif %}
 {%- if cpu %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.cpu | default(value="") }} {{ theme_keys }}CPU     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}{% if cpu.usage_pct %} ({{ cpu.usage_pct }}){% endif %}{% if cpu.temp %} — {{ cpu.temp }}{% endif %}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.cpu | default(value="") }} {{ theme_keys }}CPU     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}{% if cpu.usage_pct %} ({{ cpu.usage_pct }}){% endif %}{% if cpu.temp %} — {{ cpu.temp }}{% endif %}{{ theme_reset }}
 {%- endif %}
 {%- if memory %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.memory | default(value="") }} {{ theme_keys }}Memory  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.used }} / {{ memory.total }} ({{ memory.percent }}){{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.memory | default(value="") }} {{ theme_keys }}Memory  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.used }} / {{ memory.total }} ({{ memory.percent }}){{ theme_reset }}
 {%- endif %}
 {%- if memory.swap_percent %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.memory | default(value="") }} {{ theme_keys }}Swap    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.swap_used }} / {{ memory.swap_total }} ({{ memory.swap_percent }}){{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.memory | default(value="") }} {{ theme_keys }}Swap    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.swap_used }} / {{ memory.swap_total }} ({{ memory.swap_percent }}){{ theme_reset }}
 {%- endif %}
 {%- for device in gpu %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.gpu | default(value="") }} {{ theme_keys }}GPU     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ device }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.gpu | default(value="") }} {{ theme_keys }}GPU     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ device }}{{ theme_reset }}
 {%- endfor %}
 {%- for mount in disk %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.disk | default(value="") }} {{ theme_keys }}Disk    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ mount }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.disk | default(value="") }} {{ theme_keys }}Disk    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ mount }}{{ theme_reset }}
 {%- endfor %}
 {%- for iface in network %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.network | default(value="") }} {{ theme_keys }}Net     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ iface }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.network | default(value="") }} {{ theme_keys }}Net     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ iface }}{{ theme_reset }}
 {%- endfor %}
 {%- if resolution %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.resolution | default(value="") }} {{ theme_keys }}Res     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ resolution }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.resolution | default(value="") }} {{ theme_keys }}Res     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ resolution }}{{ theme_reset }}
 {%- endif %}
 {%- if battery %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.battery | default(value="") }} {{ theme_keys }}Battery {{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if battery.percent %}{{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}{% else %}{{ battery }}{% endif %}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.battery | default(value="") }} {{ theme_keys }}Battery {{ theme_reset }}{{ display_separator }}{{ theme_values }}{% if battery.percent %}{{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}{% else %}{{ battery }}{% endif %}{{ theme_reset }}
 {%- endif %}
 {%- if processes %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.processes | default(value="") }} {{ theme_keys }}Procs   {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ processes }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.processes | default(value="") }} {{ theme_keys }}Procs   {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ processes }}{{ theme_reset }}
 {%- endif %}
 {%- if custom %}
 {%- for row in custom %}
-{{ theme_section }}│{{ theme_reset }} {{ image_logos.custom | default(value="") }} {{ theme_keys }}{{ row.label }}{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ row.value }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.custom | default(value="") }} {{ theme_keys }}{{ row.label }}{{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ row.value }}{{ theme_reset }}
 {%- endfor %}
 {%- endif %}
 {%- if colors %}
 
-{{ theme_section }}╭─ {{ image_logos.colors | default(value="") }} Palette{{ theme_reset }}
-{{ theme_section }}│{{ theme_reset }} {{ theme_values }}{{ colors | palette_display(style=display_palette_style) }}{{ theme_reset }}
+{{ theme_section }}{{ box_header_left }}{{ image_logos.colors | default(value="") }} Palette{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ theme_values }}{{ colors | palette_display(style=display_palette_style) }}{{ theme_reset }}
 {%- endif %}
