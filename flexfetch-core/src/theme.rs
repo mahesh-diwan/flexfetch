@@ -19,6 +19,7 @@ struct Theme {
     sep: &'static str,
     section: &'static str,
     reset: &'static str,
+    gradient_colors: &'static [[u8; 3]],
 }
 
 const RESET: &str = "\x1b[0m";
@@ -30,6 +31,7 @@ const NONE: Theme = Theme {
     sep: "",
     section: "",
     reset: "",
+    gradient_colors: &[],
 };
 const CATPPUCCIN: Theme = Theme {
     title: "\x1b[1;95m",
@@ -38,6 +40,7 @@ const CATPPUCCIN: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;94m",
     reset: RESET,
+    gradient_colors: &[[203, 166, 247], [245, 224, 220], [137, 180, 250]],
 };
 const DRACULA: Theme = Theme {
     title: "\x1b[1;95m",
@@ -46,6 +49,7 @@ const DRACULA: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;96m",
     reset: RESET,
+    gradient_colors: &[[189, 147, 249], [255, 121, 198], [139, 233, 253]],
 };
 const NORD: Theme = Theme {
     title: "\x1b[1;94m",
@@ -54,6 +58,7 @@ const NORD: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;92m",
     reset: RESET,
+    gradient_colors: &[[143, 188, 187], [136, 192, 208], [163, 190, 140]],
 };
 const GRUVBOX: Theme = Theme {
     title: "\x1b[1;93m",
@@ -62,6 +67,7 @@ const GRUVBOX: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;93m",
     reset: RESET,
+    gradient_colors: &[[250, 189, 47], [184, 184, 184], [131, 165, 152]],
 };
 const TOKYO_NIGHT: Theme = Theme {
     title: "\x1b[1;95m",
@@ -70,6 +76,7 @@ const TOKYO_NIGHT: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;95m",
     reset: RESET,
+    gradient_colors: &[[187, 154, 247], [122, 162, 247], [125, 207, 255]],
 };
 const SOLARIZED_DARK: Theme = Theme {
     title: "\x1b[1;33m",
@@ -78,6 +85,7 @@ const SOLARIZED_DARK: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;33m",
     reset: RESET,
+    gradient_colors: &[[181, 137, 0], [42, 161, 152], [38, 139, 210]],
 };
 const SOLARIZED_LIGHT: Theme = Theme {
     title: "\x1b[1;31m",
@@ -86,6 +94,7 @@ const SOLARIZED_LIGHT: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;31m",
     reset: RESET,
+    gradient_colors: &[[203, 75, 22], [38, 139, 210], [42, 161, 152]],
 };
 const ROSE_PINE: Theme = Theme {
     title: "\x1b[1;36m",
@@ -94,6 +103,7 @@ const ROSE_PINE: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;36m",
     reset: RESET,
+    gradient_colors: &[[235, 111, 146], [246, 193, 119], [156, 207, 216]],
 };
 const ROSE_PINE_DAWN: Theme = Theme {
     title: "\x1b[1;34m",
@@ -102,6 +112,7 @@ const ROSE_PINE_DAWN: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;34m",
     reset: RESET,
+    gradient_colors: &[[184, 90, 120], [204, 159, 95], [121, 164, 171]],
 };
 const EVERFOREST_DARK: Theme = Theme {
     title: "\x1b[1;32m",
@@ -110,6 +121,7 @@ const EVERFOREST_DARK: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;32m",
     reset: RESET,
+    gradient_colors: &[[163, 190, 140], [127, 187, 164], [211, 198, 170]],
 };
 const EVERFOREST_LIGHT: Theme = Theme {
     title: "\x1b[1;32m",
@@ -118,6 +130,7 @@ const EVERFOREST_LIGHT: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;32m",
     reset: RESET,
+    gradient_colors: &[[133, 160, 112], [96, 158, 139], [178, 162, 138]],
 };
 const BAMBOO: Theme = Theme {
     title: "\x1b[1;31m",
@@ -126,6 +139,7 @@ const BAMBOO: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;31m",
     reset: RESET,
+    gradient_colors: &[[220, 90, 90], [120, 190, 120], [100, 180, 210]],
 };
 const OXOCARBON_DARK: Theme = Theme {
     title: "\x1b[1;36m",
@@ -134,6 +148,7 @@ const OXOCARBON_DARK: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;36m",
     reset: RESET,
+    gradient_colors: &[[35, 165, 189], [169, 123, 255], [235, 188, 55]],
 };
 const ONE_DARK: Theme = Theme {
     title: "\x1b[1;35m",
@@ -142,6 +157,7 @@ const ONE_DARK: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;35m",
     reset: RESET,
+    gradient_colors: &[[198, 120, 221], [224, 108, 117], [152, 195, 121]],
 };
 const ONE_LIGHT: Theme = Theme {
     title: "\x1b[1;35m",
@@ -150,6 +166,7 @@ const ONE_LIGHT: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;35m",
     reset: RESET,
+    gradient_colors: &[[165, 93, 194], [209, 83, 97], [120, 169, 96]],
 };
 const TOKYO_NIGHT_STORM: Theme = Theme {
     title: "\x1b[1;35m",
@@ -158,6 +175,7 @@ const TOKYO_NIGHT_STORM: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;35m",
     reset: RESET,
+    gradient_colors: &[[187, 154, 247], [125, 207, 255], [187, 154, 247]],
 };
 const CATPPUCCIN_MOCHA: Theme = Theme {
     title: "\x1b[1;35m",
@@ -166,6 +184,7 @@ const CATPPUCCIN_MOCHA: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;35m",
     reset: RESET,
+    gradient_colors: &[[203, 166, 247], [245, 224, 220], [137, 180, 250]],
 };
 const CATPPUCCIN_FRAPPE: Theme = Theme {
     title: "\x1b[1;35m",
@@ -174,6 +193,7 @@ const CATPPUCCIN_FRAPPE: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;35m",
     reset: RESET,
+    gradient_colors: &[[202, 158, 230], [242, 213, 207], [140, 170, 238]],
 };
 const CATPPUCCIN_MACCHIATO: Theme = Theme {
     title: "\x1b[1;35m",
@@ -182,6 +202,7 @@ const CATPPUCCIN_MACCHIATO: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;35m",
     reset: RESET,
+    gradient_colors: &[[198, 160, 246], [238, 212, 209], [138, 173, 244]],
 };
 const MONOKAI: Theme = Theme {
     title: "\x1b[1;93m",
@@ -190,6 +211,7 @@ const MONOKAI: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;93m",
     reset: RESET,
+    gradient_colors: &[[229, 192, 123], [166, 226, 118], [249, 38, 114]],
 };
 const MONOKAI_PRO: Theme = Theme {
     title: "\x1b[1;95m",
@@ -198,6 +220,7 @@ const MONOKAI_PRO: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;95m",
     reset: RESET,
+    gradient_colors: &[[171, 123, 224], [120, 204, 220], [252, 183, 88]],
 };
 const AYU_DARK: Theme = Theme {
     title: "\x1b[1;93m",
@@ -206,6 +229,7 @@ const AYU_DARK: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;93m",
     reset: RESET,
+    gradient_colors: &[[230, 193, 70], [100, 210, 200], [171, 233, 124]],
 };
 const AYU_MIRAGE: Theme = Theme {
     title: "\x1b[1;95m",
@@ -214,6 +238,7 @@ const AYU_MIRAGE: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;95m",
     reset: RESET,
+    gradient_colors: &[[202, 150, 220], [100, 210, 200], [255, 204, 102]],
 };
 const PALENIGHT: Theme = Theme {
     title: "\x1b[1;93m",
@@ -222,6 +247,7 @@ const PALENIGHT: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;93m",
     reset: RESET,
+    gradient_colors: &[[199, 146, 234], [85, 180, 222], [171, 233, 124]],
 };
 const MATERIAL_OCEAN: Theme = Theme {
     title: "\x1b[1;93m",
@@ -230,6 +256,7 @@ const MATERIAL_OCEAN: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;93m",
     reset: RESET,
+    gradient_colors: &[[255, 183, 77], [0, 230, 230], [255, 82, 82]],
 };
 const KANAGAWA: Theme = Theme {
     title: "\x1b[1;91m",
@@ -238,6 +265,7 @@ const KANAGAWA: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;91m",
     reset: RESET,
+    gradient_colors: &[[232, 63, 86], [114, 191, 201], [166, 209, 137]],
 };
 const MELLOW_PURPLE: Theme = Theme {
     title: "\x1b[1;95m",
@@ -246,6 +274,7 @@ const MELLOW_PURPLE: Theme = Theme {
     sep: "\x1b[90m",
     section: "\x1b[1;95m",
     reset: RESET,
+    gradient_colors: &[[178, 102, 255], [0, 210, 210], [166, 226, 118]],
 };
 
 pub fn resolve_ansi(code_or_name: &str) -> String {

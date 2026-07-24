@@ -1,12 +1,24 @@
 {%- if title %}
+{%- if theme_gradient %}
+{{ theme_title_gradient }}{{ theme_reset }}
+{%- else %}
 {{ theme_title }}{{ title }}{{ theme_reset }}
+{%- endif %}
 {{ theme_sep }}────────────────────────────{{ theme_reset }}
 {%- endif %}
 {%- if distro_image_logo %}
-{{ theme_title }}{{ distro_image_logo }}{{ title }}{{ theme_reset }}
+{%- if theme_gradient %}
+{{ theme_title_gradient }}{{ theme_reset }}
+{%- else %}
+{{ theme_title }}{{ title }}{{ theme_reset }}
+{%- endif %}
 {{ theme_sep }}────────────────────────────{{ theme_reset }}
 {%- elif title %}
+{%- if theme_gradient %}
+{{ theme_title_gradient }}{{ theme_reset }}
+{%- else %}
 {{ theme_title }}{{ title }}{{ theme_reset }}
+{%- endif %}
 {{ theme_sep }}────────────────────────────{{ theme_reset }}
 {%- endif %}
 {%- if os %}
