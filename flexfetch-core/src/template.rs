@@ -1,12 +1,43 @@
 use std::cmp;
+use std::collections::HashMap;
 use std::sync::OnceLock;
-use tera::{Context as TeraContext, Tera};
+use tera::{Context as TeraContext, Tera, Value};
 
 use crate::{InfoValue, SystemInfo};
 
 use crate::image_logo::{
     get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
 };
+
+struct PaletteDisplayFilter;
+
+// ponytail: palette_display filter — swaps block char in ANSI-colored strings
+impl tera::Filter for PaletteDisplayFilter {
+    fn filter(&self, _value: &Value, args: &HashMap<String, Value>) -> Result<Value, tera::Error> {
+        let style = args
+            .get("style")
+            .and_then(|v| v.as_str())
+            .unwrap_or("blocks");
+        let colors = args
+            .get("colors")
+            .and_then(|v| v.as_array())
+            .ok_or_else(|| tera::Error::msg("palette_display requires a colors array"))?;
+
+        let ch = match style {
+            "squares" => "\u{2593}", // ▓
+            "dots" => "\u{25CF}",    // ●
+            _ => "\u{2588}",         // █ (blocks)
+        };
+
+        let parts: Vec<String> = colors
+            .iter()
+            .filter_map(|v| v.as_str())
+            .map(|s| s.replace('\u{2588}', ch))
+            .collect();
+
+        Ok(Value::String(parts.join(" ")))
+    }
+}
 
 static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
 
@@ -15,6 +46,7 @@ fn get_tera() -> &'static Tera {
         let mut tera = Tera::default();
         tera.add_raw_template("default", include_str!("../../templates/default.tera"))
             .expect("default template is valid");
+        tera.register_filter("palette_display", PaletteDisplayFilter);
         tera
     })
 }
@@ -45,6 +77,7 @@ impl TeraEngine {
         }
         ctx.insert("display_separator", &config.display.separator);
         ctx.insert("display_key_width", &config.display.key_width);
+        ctx.insert("display_palette_style", &config.display.palette_style);
 
         let theme = crate::theme::resolve(config);
         ctx.insert("theme_title", &theme.title);
@@ -54,13 +87,26 @@ impl TeraEngine {
         ctx.insert("theme_section", &theme.section);
         ctx.insert("theme_reset", &theme.reset);
         ctx.insert("theme_gradient", &theme.gradient);
-        if let (Some(&s), Some(&e)) = (theme.gradient_colors.first(), theme.gradient_colors.get(1))
-        {
-            ctx.insert("theme_gradient_start", &s);
-            ctx.insert("theme_gradient_end", &e);
+
+        // Compute gradient title if enabled
+        let title_text = info
+            .entries
+            .iter()
+            .find(|(n, _)| *n == "title")
+            .and_then(|(_, v)| {
+                if let crate::InfoValue::Scalar(s) = v {
+                    Some(s.as_str())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or("");
+
+        if config.display.gradient_title && !theme.gradient_colors.is_empty() {
+            let gradient = crate::theme::gradient_text(title_text, &theme.gradient_colors);
+            ctx.insert("theme_title_gradient", &gradient);
         } else {
-            ctx.insert("theme_gradient_start", &[0u8; 3]);
-            ctx.insert("theme_gradient_end", &[255u8; 3]);
+            ctx.insert("theme_title_gradient", &theme.title);
         }
 
         // Add image logos to context
@@ -152,26 +198,6 @@ impl TeraEngine {
             .tera
             .render(&self.template_name, &ctx)
             .map_err(|e| crate::Error::Template(e.to_string()))?;
-
-        // Apply gradient to first line if enabled
-        let raw = if theme.gradient && theme.gradient_colors.len() >= 2 {
-            let start = theme.gradient_colors[0];
-            let end = theme.gradient_colors[1];
-            let mut out = String::new();
-            for (i, line) in raw.lines().enumerate() {
-                if i > 0 {
-                    out.push('\n');
-                }
-                if i == 0 {
-                    out.push_str(&crate::theme::gradient_text(line, start, end));
-                } else {
-                    out.push_str(line);
-                }
-            }
-            out
-        } else {
-            raw
-        };
 
         let os_id = info
             .entries

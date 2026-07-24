@@ -83,5 +83,5 @@
 {%- if colors %}
 
 {{ theme_section }}╭─ {{ image_logos.colors | default(value="") }} Palette{{ theme_reset }}
-{{ theme_section }}│{{ theme_reset }} {{ theme_values }}{{ colors | join(sep=" ") }}{{ theme_reset }}
+{{ theme_section }}│{{ theme_reset }} {{ theme_values }}{{ colors | palette_display(style=display_palette_style) }}{{ theme_reset }}
 {%- endif %}

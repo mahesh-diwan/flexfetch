@@ -312,7 +312,7 @@ pub fn resolve(config: &Config) -> ThemeStrings {
         .gradient_colors
         .as_deref()
         .map(|cs| cs.iter().filter_map(|c| parse_hex_color(c)).collect())
-        .unwrap_or_default();
+        .unwrap_or_else(|| preset.gradient_colors.to_vec());
 
     ThemeStrings {
         title: config
@@ -357,21 +357,18 @@ fn parse_hex_color(s: &str) -> Option<[u8; 3]> {
     Some([r, g, b])
 }
 
-pub fn gradient_text(text: &str, start: [u8; 3], end: [u8; 3]) -> String {
-    let len = text.chars().count();
-    text.chars()
-        .enumerate()
-        .map(|(i, c)| {
-            let t = if len <= 1 {
-                0.0
-            } else {
-                i as f64 / (len - 1) as f64
-            };
-            let r = (start[0] as f64 + t * (end[0] as f64 - start[0] as f64)) as u8;
-            let g = (start[1] as f64 + t * (end[1] as f64 - start[1] as f64)) as u8;
-            let b = (start[2] as f64 + t * (end[2] as f64 - start[2] as f64)) as u8;
-            format!("\x1b[38;2;{};{};{}m{}", r, g, b, c)
-        })
-        .collect::<String>()
-        + "\x1b[0m"
+pub fn gradient_text(text: &str, colors: &[[u8; 3]]) -> String {
+    if colors.is_empty() || text.is_empty() {
+        return text.to_string();
+    }
+    let mut result = String::with_capacity(text.len() * 20);
+    for (i, ch) in text.char_indices() {
+        let color = colors[i % colors.len()];
+        result.push_str(&format!(
+            "\x1b[38;2;{};{};{}m{}",
+            color[0], color[1], color[2], ch
+        ));
+    }
+    result.push_str(RESET);
+    result
 }
