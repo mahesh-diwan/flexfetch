@@ -56,7 +56,34 @@ impl Cache {
             if let Some(parent) = self.path.parent() {
                 let _ = std::fs::create_dir_all(parent);
             }
-            let _ = std::fs::write(&self.path, &json);
+
+            // Atomic write: write to temp file then rename
+            let temp_path = self.path.with_extension("json.tmp");
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::OpenOptionsExt;
+                let result = std::fs::OpenOptions::new()
+                    .write(true)
+                    .create(true)
+                    .mode(0o600)
+                    .open(&temp_path)
+                    .and_then(|mut f| {
+                        use std::io::Write;
+                        f.write_all(json.as_bytes())
+                    });
+
+                if result.is_ok() {
+                    let _ = std::fs::rename(&temp_path, &self.path);
+                }
+            }
+
+            #[cfg(not(unix))]
+            {
+                let result = std::fs::write(&temp_path, &json);
+                if result.is_ok() {
+                    let _ = std::fs::rename(&temp_path, &self.path);
+                }
+            }
         }
     }
 }
