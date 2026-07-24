@@ -106,7 +106,11 @@ fn progress_bar_filter(
     value: &serde_json::Value,
     args: &std::collections::HashMap<String, serde_json::Value>,
 ) -> tera::Result<serde_json::Value> {
-    let percent = value.as_u64().unwrap_or(0) as u8;
+    let percent = match value {
+        serde_json::Value::Number(n) => n.as_u64().unwrap_or(0) as u8,
+        serde_json::Value::String(s) => s.parse::<u8>().unwrap_or(0),
+        _ => 0,
+    };
     let width = args.get("width").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
     let filled = (percent as usize * width) / 100;
     let empty = width - filled;
@@ -163,6 +167,7 @@ impl TeraEngine {
         }
         ctx.insert("display_separator", &config.display.separator);
         ctx.insert("display_key_width", &config.display.key_width);
+        ctx.insert("display_palette_style", &config.display.palette_style);
 
         let box_chars = get_box_chars(&config.display.box_style);
         ctx.insert("box_header_left", &box_chars.header_left);
