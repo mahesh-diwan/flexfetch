@@ -8,6 +8,26 @@ use crate::image_logo::{
     get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
 };
 
+pub fn frame_wrap(text: &str, style: &str, color: &str) -> String {
+    let (tl, tr, bl, br, h, v) = match style {
+        "double" => ("╔", "╗", "╚", "╝", "═", "║"),
+        "decorative" | "single" => ("┌", "┐", "└", "┘", "─", "│"),
+        _ => return text.to_string(),
+    };
+    let max_w = text.lines().map(|l| l.len()).max().unwrap_or(40);
+    let mut result = String::new();
+    result.push_str(&format!("{color}{tl}{}{tr}\x1b[0m\n", h.repeat(max_w)));
+    for line in text.lines() {
+        let padding = max_w.saturating_sub(line.len());
+        result.push_str(&format!(
+            "{color}{v}\x1b[0m {line}{pad} {color}{v}\x1b[0m\n",
+            pad = " ".repeat(padding),
+        ));
+    }
+    result.push_str(&format!("{color}{bl}{}{br}\x1b[0m\n", h.repeat(max_w)));
+    result
+}
+
 #[derive(Debug, Clone)]
 pub struct BoxChars {
     pub header_left: String,
@@ -52,6 +72,58 @@ pub fn get_box_chars(style: &str) -> BoxChars {
     }
 }
 
+fn palette_display_filter(
+    value: &serde_json::Value,
+    args: &std::collections::HashMap<String, serde_json::Value>,
+) -> tera::Result<serde_json::Value> {
+    let style = args
+        .get("style")
+        .and_then(|v| v.as_str())
+        .unwrap_or("blocks");
+    let colors = match value {
+        serde_json::Value::Array(arr) => arr,
+        _ => return Ok(serde_json::Value::String(String::new())),
+    };
+    let result: String = colors
+        .iter()
+        .filter_map(|c| {
+            let arr = c.as_array()?;
+            let r = arr.get(0)?.as_u64()? as u8;
+            let g = arr.get(1)?.as_u64()? as u8;
+            let b = arr.get(2)?.as_u64()? as u8;
+            Some(match style {
+                "squares" => format!("\x1b[48;2;{r};{g};{b}m  \x1b[0m"),
+                "dots" => format!("\x1b[38;2;{r};{g};{b}m▪\x1b[0m"),
+                _ => format!("\x1b[48;2;{r};{g};{b}m██\x1b[0m"),
+            })
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+    Ok(serde_json::Value::String(result))
+}
+
+fn progress_bar_filter(
+    value: &serde_json::Value,
+    args: &std::collections::HashMap<String, serde_json::Value>,
+) -> tera::Result<serde_json::Value> {
+    let percent = value.as_u64().unwrap_or(0) as u8;
+    let width = args.get("width").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+    let filled = (percent as usize * width) / 100;
+    let empty = width - filled;
+    let color = if percent < 60 {
+        "\x1b[32m"
+    } else if percent < 85 {
+        "\x1b[33m"
+    } else {
+        "\x1b[31m"
+    };
+    Ok(serde_json::Value::String(format!(
+        "{color}[{}{}]\x1b[0m",
+        "█".repeat(filled),
+        "░".repeat(empty),
+    )))
+}
+
 static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
 
 fn get_tera() -> &'static Tera {
@@ -59,6 +131,8 @@ fn get_tera() -> &'static Tera {
         let mut tera = Tera::default();
         tera.add_raw_template("default", include_str!("../../templates/default.tera"))
             .expect("default template is valid");
+        tera.register_filter("palette_display", palette_display_filter);
+        tera.register_filter("progress_bar", progress_bar_filter);
         tera
     })
 }

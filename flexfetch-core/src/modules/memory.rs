@@ -50,6 +50,8 @@ impl Module for MemoryModule {
 
                     map.insert("total".into(), format!("{:.1} GiB", total_gb));
                     map.insert("used".into(), format!("{:.1} GiB", used_gb));
+                    let percent_u8 = percent.min(100) as u8;
+                    map.insert("percent_int".into(), percent_u8.to_string());
                     map.insert("percent".into(), format!("{}%", percent));
 
                     if swap_total > 0 {

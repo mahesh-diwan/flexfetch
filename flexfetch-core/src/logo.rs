@@ -83,6 +83,22 @@ pub fn detect(module_type: &str) -> &'static Logo {
     }
 }
 
+pub fn pixel_logo(name: &str) -> Option<Vec<String>> {
+    match name {
+        "arch" | "cachyos" | "arcolinux" | "artix" => {
+            Some(vec!["▀▄▀▄▀▄".into(), "▄▀▄▀▄▀".into(), "█▀▀▀▀█".into()])
+        }
+        "fedora" => Some(vec!["▄▀▀█▀▄".into(), "█▀▄▄▀█".into(), "▀▄▀▀▄▀".into()]),
+        "ubuntu" | "linuxmint" | "pop" => {
+            Some(vec!["○●●●●○".into(), "●○○○○●".into(), "○●●●●○".into()])
+        }
+        "debian" | "raspbian" => Some(vec!["█▀▄▄▀█".into(), "▀█▄▄█▀".into(), "▄▀▀▀▀▄".into()]),
+        "nixos" => Some(vec!["█▀▄▀█".into(), "█▄▀▄█".into(), "▀▀▀▀▀".into()]),
+        "void" => Some(vec!["█▄▄▄█".into(), "█▀▀▀█".into(), "█▄▄▄█".into()]),
+        _ => None,
+    }
+}
+
 const CYAN: &str = "\x1b[36m";
 const RESET: &str = "\x1b[0m";
 const WHITE: &str = "\x1b[37m";

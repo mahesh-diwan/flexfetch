@@ -197,7 +197,19 @@ fn main() {
                 );
             }
             _ => match rendered {
-                Ok(output) => println!("{output}"),
+                Ok(output) => {
+                    let out = if config.display.frame != "none" {
+                        let theme = flexfetch_core::theme::resolve(&config);
+                        flexfetch_core::template::frame_wrap(
+                            &output,
+                            &config.display.frame,
+                            &theme.section,
+                        )
+                    } else {
+                        output
+                    };
+                    println!("{out}");
+                }
                 Err(e) => eprintln!("template error: {e}"),
             },
         }
@@ -222,7 +234,19 @@ fn main() {
         _ => {
             let engine = TeraEngine::new_default();
             match engine.render(&info, &config) {
-                Ok(output) => println!("{output}"),
+                Ok(output) => {
+                    let out = if config.display.frame != "none" {
+                        let theme = flexfetch_core::theme::resolve(&config);
+                        flexfetch_core::template::frame_wrap(
+                            &output,
+                            &config.display.frame,
+                            &theme.section,
+                        )
+                    } else {
+                        output
+                    };
+                    println!("{out}");
+                }
                 Err(e) => eprintln!("template error: {e}"),
             }
         }

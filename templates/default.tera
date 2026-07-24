@@ -64,7 +64,7 @@
 {{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.cpu | default(value="") }} {{ theme_keys }}CPU     {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ cpu.model }} ({{ cpu.cores }} cores){% if cpu.freq_mhz %} @ {{ cpu.freq_mhz }} MHz{% endif %}{% if cpu.usage_pct %} ({{ cpu.usage_pct }}){% endif %}{% if cpu.temp %} — {{ cpu.temp }}{% endif %}{{ theme_reset }}
 {%- endif %}
 {%- if memory %}
-{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.memory | default(value="") }} {{ theme_keys }}Memory  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.used }} / {{ memory.total }} ({{ memory.percent }}){{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.memory | default(value="") }} {{ theme_keys }}Memory  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.used }} / {{ memory.total }} {{ memory.percent_int | progress_bar(width=10) }}{{ memory.percent }}{{ theme_reset }}
 {%- endif %}
 {%- if memory.swap_percent %}
 {{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.memory | default(value="") }} {{ theme_keys }}Swap    {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ memory.swap_used }} / {{ memory.swap_total }} ({{ memory.swap_percent }}){{ theme_reset }}
