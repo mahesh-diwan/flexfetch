@@ -57,6 +57,24 @@ struct Cli {
 
     #[arg(short = 'o', long)]
     output: Option<PathBuf>,
+
+    #[arg(long)]
+    no_gradient: bool,
+
+    #[arg(long)]
+    no_progress: bool,
+
+    #[arg(long)]
+    box_style: Option<String>,
+
+    #[arg(long)]
+    pixel_logo: bool,
+
+    #[arg(long)]
+    palette_style: Option<String>,
+
+    #[arg(long)]
+    frame: Option<String>,
 }
 
 fn main() {
@@ -92,6 +110,24 @@ fn main() {
 
     if let Some(theme) = cli.theme {
         config.display.theme = Some(theme);
+    }
+    if cli.no_gradient {
+        config.display.gradient_title = false;
+    }
+    if cli.no_progress {
+        config.display.progress_bars = false;
+    }
+    if let Some(ref s) = cli.box_style {
+        config.display.box_style = s.clone();
+    }
+    if cli.pixel_logo {
+        config.display.pixel_logo = true;
+    }
+    if let Some(ref s) = cli.palette_style {
+        config.display.palette_style = s.clone();
+    }
+    if let Some(ref s) = cli.frame {
+        config.display.frame = s.clone();
     }
 
     // Pipe detection

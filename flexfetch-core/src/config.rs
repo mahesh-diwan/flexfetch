@@ -72,6 +72,24 @@ pub struct DisplayConfig {
 
     #[serde(default)]
     pub logo_mode: LogoMode,
+
+    #[serde(default = "DisplayConfig::default_gradient_title")]
+    pub gradient_title: bool,
+
+    #[serde(default = "DisplayConfig::default_progress_bars")]
+    pub progress_bars: bool,
+
+    #[serde(default = "DisplayConfig::default_box_style")]
+    pub box_style: String,
+
+    #[serde(default = "DisplayConfig::default_pixel_logo")]
+    pub pixel_logo: bool,
+
+    #[serde(default = "DisplayConfig::default_palette_style")]
+    pub palette_style: String,
+
+    #[serde(default = "DisplayConfig::default_frame")]
+    pub frame: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -96,6 +114,24 @@ impl DisplayConfig {
     pub fn default_key_width() -> usize {
         8
     }
+    pub fn default_gradient_title() -> bool {
+        true
+    }
+    pub fn default_progress_bars() -> bool {
+        true
+    }
+    pub fn default_box_style() -> String {
+        "rounded".into()
+    }
+    pub fn default_pixel_logo() -> bool {
+        false
+    }
+    pub fn default_palette_style() -> String {
+        "blocks".into()
+    }
+    pub fn default_frame() -> String {
+        "none".into()
+    }
 }
 
 impl Default for DisplayConfig {
@@ -111,6 +147,12 @@ impl Default for DisplayConfig {
             gradient: false,
             gradient_colors: None,
             logo_mode: LogoMode::default(),
+            gradient_title: Self::default_gradient_title(),
+            progress_bars: Self::default_progress_bars(),
+            box_style: Self::default_box_style(),
+            pixel_logo: Self::default_pixel_logo(),
+            palette_style: Self::default_palette_style(),
+            frame: Self::default_frame(),
         }
     }
 }
@@ -269,6 +311,12 @@ fn merge_config(base: Config, override_config: Config) -> Config {
                 .gradient_colors
                 .or(base.display.gradient_colors),
             logo_mode: override_config.display.logo_mode,
+            gradient_title: override_config.display.gradient_title,
+            progress_bars: override_config.display.progress_bars,
+            box_style: override_config.display.box_style,
+            pixel_logo: override_config.display.pixel_logo,
+            palette_style: override_config.display.palette_style,
+            frame: override_config.display.frame,
         },
         cache: override_config.cache,
         custom: if !override_config.custom.is_empty() {
