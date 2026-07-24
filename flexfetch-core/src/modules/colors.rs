@@ -8,11 +8,25 @@ impl Module for ColorsModule {
     }
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
-        let mut blocks = Vec::new();
-        for i in 0..16 {
-            let code = if i < 8 { 30 + i } else { 82 + i };
-            blocks.push(format!("\x1b[{}m\u{2588}\u{2588}\x1b[0m", code));
-        }
-        Ok(InfoValue::List(blocks))
+        // Return RGB values as "r,g,b" strings for palette_display filter
+        let rgb_colors: Vec<String> = vec![
+            "0,0,0".into(),       // 30 black
+            "170,0,0".into(),     // 31 red
+            "0,170,0".into(),     // 32 green
+            "170,85,0".into(),    // 33 yellow
+            "0,0,170".into(),     // 34 blue
+            "170,0,170".into(),   // 35 magenta
+            "0,170,170".into(),   // 36 cyan
+            "170,170,170".into(), // 37 white
+            "85,85,85".into(),    // 90 bright black
+            "255,85,85".into(),   // 91 bright red
+            "85,255,85".into(),   // 92 bright green
+            "255,255,85".into(),  // 93 bright yellow
+            "85,85,255".into(),   // 94 bright blue
+            "255,85,255".into(),  // 95 bright magenta
+            "85,255,255".into(),  // 96 bright cyan
+            "255,255,255".into(), // 97 bright white
+        ];
+        Ok(InfoValue::List(rgb_colors))
     }
 }

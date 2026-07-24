@@ -87,10 +87,12 @@ fn palette_display_filter(
     let result: String = colors
         .iter()
         .filter_map(|c| {
-            let arr = c.as_array()?;
-            let r = arr.get(0)?.as_u64()? as u8;
-            let g = arr.get(1)?.as_u64()? as u8;
-            let b = arr.get(2)?.as_u64()? as u8;
+            let s = c.as_str()?;
+            let parts: Vec<u8> = s.split(',').filter_map(|p| p.parse().ok()).collect();
+            if parts.len() != 3 {
+                return None;
+            }
+            let (r, g, b) = (parts[0], parts[1], parts[2]);
             Some(match style {
                 "squares" => format!("\x1b[48;2;{r};{g};{b}m  \x1b[0m"),
                 "dots" => format!("\x1b[38;2;{r};{g};{b}m▪\x1b[0m"),
