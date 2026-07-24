@@ -65,6 +65,7 @@ impl Cache {
                 let result = std::fs::OpenOptions::new()
                     .write(true)
                     .create(true)
+                    .truncate(true)
                     .mode(0o600)
                     .open(&temp_path)
                     .and_then(|mut f| {
