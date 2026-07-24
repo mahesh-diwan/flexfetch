@@ -297,19 +297,6 @@ impl TeraEngine {
             .render(&self.template_name, &ctx)
             .map_err(|e| crate::Error::Template(e.to_string()))?;
 
-        let os_id = info
-            .entries
-            .iter()
-            .find(|(n, _)| *n == "os")
-            .and_then(|(_, v)| {
-                if let InfoValue::Map(m) = v {
-                    m.get("id").cloned()
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_default();
-
         let logo = crate::logo::detect(&os_id);
         let info_lines: Vec<&str> = raw.lines().collect();
         let rendered = crate::logo::render(logo, info_lines.len());

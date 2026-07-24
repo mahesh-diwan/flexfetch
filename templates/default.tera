@@ -1,29 +1,15 @@
-{%- if title %}
-{%- if theme_gradient %}
+{%- if title -%}
+{%- if theme_gradient -%}
 {{ theme_title_gradient }}{{ theme_reset }}
-{%- else %}
+{%- else -%}
 {{ theme_title }}{{ title }}{{ theme_reset }}
 {%- endif %}
 {{ theme_sep }}────────────────────────────{{ theme_reset }}
-{%- endif %}
-{%- if distro_image_logo %}
-{%- if theme_gradient %}
-{{ theme_title_gradient }}{{ theme_reset }}
-{%- else %}
-{{ theme_title }}{{ title }}{{ theme_reset }}
-{%- endif %}
-{{ theme_sep }}────────────────────────────{{ theme_reset }}
-{%- elif title %}
-{%- if theme_gradient %}
-{{ theme_title_gradient }}{{ theme_reset }}
-{%- else %}
-{{ theme_title }}{{ title }}{{ theme_reset }}
-{%- endif %}
-{{ theme_sep }}────────────────────────────{{ theme_reset }}
-{%- endif %}
+{%- endif -%}
+
 {%- if os %}
 {{ theme_section }}{{ box_header_left }}{{ image_logos.os | default(value="") }} System{{ theme_reset }}
-{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ theme_keys }}OS      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ os.pretty_name | default(value=os.name) }}{{ theme_reset }}
+{{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.os | default(value="") }} {{ theme_keys }}OS      {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ os.pretty_name | default(value=os.name) }}{{ theme_reset }}
 {%- endif %}
 {%- if kernel %}
 {{ theme_section }}{{ box_row }}{{ theme_reset }} {{ image_logos.kernel | default(value="") }} {{ theme_keys }}Kernel  {{ theme_reset }}{{ display_separator }}{{ theme_values }}{{ kernel }}{{ theme_reset }}
