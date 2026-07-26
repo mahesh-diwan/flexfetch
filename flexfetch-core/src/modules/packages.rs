@@ -42,7 +42,7 @@ impl Module for PackagesModule {
 
         let mut map = HashMap::new();
         for (name, count) in results {
-            map.insert(name.into(), count);
+            map.insert(name, count);
         }
         Ok(InfoValue::Map(map))
     }

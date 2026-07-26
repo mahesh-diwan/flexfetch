@@ -35,6 +35,12 @@ pub struct SystemInfo {
     pub entries: Vec<(&'static str, InfoValue)>,
 }
 
+impl Default for SystemInfo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SystemInfo {
     pub fn new() -> Self {
         SystemInfo {

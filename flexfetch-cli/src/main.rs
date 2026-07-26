@@ -1,5 +1,5 @@
 use clap::Parser;
-use flexfetch_core::{Config, Context, ModuleRegistry, TeraEngine};
+use flexfetch_core::{get_cache_dir, Config, Context, ModuleRegistry, TeraEngine};
 use std::collections::HashMap;
 use std::io::IsTerminal;
 use std::path::PathBuf;
@@ -98,7 +98,7 @@ fn main() {
     let config_dir = get_config_dir();
     let cache_dir = get_cache_dir();
 
-    let config_path = cli.config.as_ref().map(|s| std::path::Path::new(s));
+    let config_path = cli.config.as_ref().map(std::path::Path::new);
     let mut config = Config::load(config_path).unwrap_or_else(|_| Config::default_for_testing());
 
     let ctx = Context::new(
@@ -168,7 +168,7 @@ fn main() {
             let _ = registry.run_individual(name, &ctx);
             timings.push((name.clone(), t.elapsed()));
         }
-        timings.sort_by(|a, b| b.1.cmp(&a.1));
+        timings.sort_by_key(|&(_, dur)| std::cmp::Reverse(dur));
         let t2 = std::time::Instant::now();
         let info = registry.run_selected(&modules, &ctx, template_content);
         let run_selected_dur = t2.elapsed();
@@ -428,10 +428,6 @@ fn get_config_dir() -> std::path::PathBuf {
             std::path::PathBuf::from(home).join(".config")
         })
         .join("flexfetch")
-}
-
-fn get_cache_dir() -> std::path::PathBuf {
-    std::path::PathBuf::from("/tmp")
 }
 
 fn generate_config() {

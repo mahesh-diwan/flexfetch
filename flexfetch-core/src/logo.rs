@@ -5,7 +5,8 @@ pub struct Logo {
 
 pub fn visible_len(s: &str) -> usize {
     let mut len = 0;
-    let mut chars = s.chars();
+    let mut chars = s.chars().peekable();
+    #[allow(clippy::while_let_on_iterator)]
     while let Some(c) = chars.next() {
         if c == '\x1b' {
             while let Some(next) = chars.next() {

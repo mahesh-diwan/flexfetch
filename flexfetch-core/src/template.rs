@@ -7,6 +7,7 @@ use crate::{InfoValue, SystemInfo};
 use crate::image_logo::{
     get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
 };
+use crate::logo::visible_len;
 
 pub fn frame_wrap(text: &str, style: &str, color: &str) -> String {
     let (tl, tr, bl, br, h, v) = match style {
@@ -14,11 +15,11 @@ pub fn frame_wrap(text: &str, style: &str, color: &str) -> String {
         "decorative" | "single" => ("┌", "┐", "└", "┘", "─", "│"),
         _ => return text.to_string(),
     };
-    let max_w = text.lines().map(|l| l.len()).max().unwrap_or(40);
+    let max_w = text.lines().map(visible_len).max().unwrap_or(40);
     let mut result = String::new();
     result.push_str(&format!("{color}{tl}{}{tr}\x1b[0m\n", h.repeat(max_w)));
     for line in text.lines() {
-        let padding = max_w.saturating_sub(line.len());
+        let padding = max_w.saturating_sub(visible_len(line));
         result.push_str(&format!(
             "{color}{v}\x1b[0m {line}{pad} {color}{v}\x1b[0m\n",
             pad = " ".repeat(padding),
@@ -167,6 +168,45 @@ impl TeraEngine {
                 .map_err(|e| crate::Error::Template(format!("serialize {name}: {e}")))?;
             ctx.insert(*name, &json_val);
         }
+
+        // Add structured placeholders for all modules to avoid Tera "missing variable" errors
+        // when modules are not selected but referenced in template conditionals.
+        // Use empty objects/arrays/strings that are falsy in Tera conditionals.
+        let all_modules = [
+            ("title", serde_json::Value::String(String::new())),
+            ("os", serde_json::Value::Object(serde_json::Map::new())),
+            ("host", serde_json::Value::String(String::new())),
+            ("kernel", serde_json::Value::String(String::new())),
+            ("uptime", serde_json::Value::String(String::new())),
+            ("locale", serde_json::Value::Object(serde_json::Map::new())),
+            (
+                "packages",
+                serde_json::Value::Object(serde_json::Map::new()),
+            ),
+            ("shell", serde_json::Value::String(String::new())),
+            (
+                "terminal",
+                serde_json::Value::Object(serde_json::Map::new()),
+            ),
+            ("de", serde_json::Value::String(String::new())),
+            ("wm", serde_json::Value::Object(serde_json::Map::new())),
+            ("cpu", serde_json::Value::Object(serde_json::Map::new())),
+            ("memory", serde_json::Value::Object(serde_json::Map::new())),
+            ("gpu", serde_json::Value::Array(vec![])),
+            ("disk", serde_json::Value::Array(vec![])),
+            ("network", serde_json::Value::Array(vec![])),
+            ("battery", serde_json::Value::Object(serde_json::Map::new())),
+            ("processes", serde_json::Value::String(String::new())),
+            ("resolution", serde_json::Value::String(String::new())),
+            ("colors", serde_json::Value::Array(vec![])),
+            ("custom", serde_json::Value::Array(vec![])),
+        ];
+        for (module, placeholder) in all_modules {
+            if !info.entries.iter().any(|(k, _)| *k == module) {
+                ctx.insert(module, &placeholder);
+            }
+        }
+
         ctx.insert("display_separator", &config.display.separator);
         ctx.insert("display_key_width", &config.display.key_width);
         ctx.insert("display_palette_style", &config.display.palette_style);
@@ -185,6 +225,24 @@ impl TeraEngine {
         ctx.insert("theme_section", &theme.section);
         ctx.insert("theme_reset", &theme.reset);
         ctx.insert("theme_gradient", &theme.gradient);
+
+        // Add fastfetch-style icons
+        ctx.insert("icon_os", &config.display.icon_os);
+        ctx.insert("icon_kernel", &config.display.icon_kernel);
+        ctx.insert("icon_host", &config.display.icon_host);
+        ctx.insert("icon_uptime", &config.display.icon_uptime);
+        ctx.insert("icon_locale", &config.display.icon_locale);
+        ctx.insert("icon_cpu", &config.display.icon_cpu);
+        ctx.insert("icon_gpu", &config.display.icon_gpu);
+        ctx.insert("icon_memory", &config.display.icon_memory);
+        ctx.insert("icon_swap", &config.display.icon_swap);
+        ctx.insert("icon_disk", &config.display.icon_disk);
+        ctx.insert("icon_network", &config.display.icon_network);
+        ctx.insert("icon_interface", &config.display.icon_interface);
+        ctx.insert("icon_resolution", &config.display.icon_resolution);
+        ctx.insert("icon_battery", &config.display.icon_battery);
+        ctx.insert("icon_processes", &config.display.icon_processes);
+        ctx.insert("icon_end", &config.display.icon_end);
 
         // Compute gradient title if enabled
         let title_text = info
@@ -295,7 +353,7 @@ impl TeraEngine {
         let raw = self
             .tera
             .render(&self.template_name, &ctx)
-            .map_err(|e| crate::Error::Template(e.to_string()))?;
+            .map_err(|e| crate::Error::Template(format!("{:?}", e)))?;
 
         let logo = crate::logo::detect(&os_id);
         let info_lines: Vec<&str> = raw.lines().collect();

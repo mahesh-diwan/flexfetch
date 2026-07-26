@@ -40,7 +40,7 @@ impl Module for ResolutionModule {
                     let stdout = String::from_utf8_lossy(&output.stdout);
                     for line in stdout.lines() {
                         if line.contains('*') {
-                            if let Some(res) = line.trim().split_whitespace().next() {
+                            if let Some(res) = line.split_whitespace().next() {
                                 resolutions.push(res.to_string());
                             }
                         }

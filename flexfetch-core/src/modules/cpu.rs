@@ -1,5 +1,15 @@
 use crate::{Context, InfoValue, Module, Result};
 use std::collections::HashMap;
+use std::sync::OnceLock;
+use std::time::{Duration, Instant};
+
+static CPU_STATS: OnceLock<CpuStats> = OnceLock::new();
+
+struct CpuStats {
+    prev_total: u64,
+    prev_idle: u64,
+    prev_time: Instant,
+}
 
 pub struct CpuModule;
 
@@ -13,6 +23,7 @@ impl Module for CpuModule {
 
         #[cfg(target_os = "linux")]
         {
+            // Read model and cores from /proc/cpuinfo
             if let Ok(content) = std::fs::read_to_string("/proc/cpuinfo") {
                 let mut cores = 0u32;
                 for line in content.lines() {
@@ -36,20 +47,10 @@ impl Module for CpuModule {
                 map.insert("cores".into(), cores.to_string());
             }
 
-            // CPU usage: single read without sleep (fast but no usage percentage)
-            if let Ok(content) = std::fs::read_to_string("/proc/stat") {
-                if let Some(line) = content.lines().next() {
-                    let parts: Vec<&str> = line.split_whitespace().collect();
-                    let total: u64 = parts
-                        .iter()
-                        .skip(1)
-                        .filter_map(|v| v.parse::<u64>().ok())
-                        .sum();
-                    let idle: u64 = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(0);
-                    map.insert("total_ticks".into(), total.to_string());
-                    map.insert("idle_ticks".into(), idle.to_string());
-                    // Usage calculation requires two samples over time - skipped for speed
-                }
+            // CPU usage: read /proc/stat twice with small delay for accurate %
+            let usage = get_cpu_usage();
+            if let Some(pct) = usage {
+                map.insert("usage_pct".into(), format!("{}%", pct));
             }
 
             // CPU temp
@@ -106,5 +107,49 @@ impl Module for CpuModule {
             return Ok(InfoValue::Scalar("unknown".into()));
         }
         Ok(InfoValue::Map(map))
+    }
+}
+
+fn get_cpu_usage() -> Option<u32> {
+    #[cfg(target_os = "linux")]
+    {
+        // Read current stats
+        let content = std::fs::read_to_string("/proc/stat").ok()?;
+        let line = content.lines().next()?;
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        let total: u64 = parts
+            .iter()
+            .skip(1)
+            .filter_map(|v| v.parse::<u64>().ok())
+            .sum();
+        let idle: u64 = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(0);
+
+        let now = Instant::now();
+        let stats = CPU_STATS.get_or_init(|| CpuStats {
+            prev_total: total,
+            prev_idle: idle,
+            prev_time: now,
+        });
+
+        // If we have previous reading and enough time passed
+        if now.duration_since(stats.prev_time) > Duration::from_millis(100) {
+            let total_delta = total.saturating_sub(stats.prev_total);
+            let idle_delta = idle.saturating_sub(stats.prev_idle);
+
+            let usage = total_delta
+                .checked_sub(idle_delta)
+                .and_then(|v| v.checked_mul(100))
+                .and_then(|v| v.checked_div(total_delta));
+            if let Some(usage) = usage {
+                return Some(usage as u32);
+            }
+        }
+
+        // Return cached or approximate
+        None
+    }
+    #[cfg(target_os = "macos")]
+    {
+        None
     }
 }

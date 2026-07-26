@@ -2,7 +2,7 @@ use crate::{Context, InfoValue, Module, SystemInfo};
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
-type ModuleBuilder = fn() -> Box<dyn Module>;
+type ModuleBuilder = Box<dyn Module>;
 
 fn extract_template_modules(template_str: &str) -> HashSet<String> {
     let mut modules = HashSet::new();
@@ -45,49 +45,97 @@ pub struct ModuleRegistry {
 static REGISTRY: OnceLock<ModuleRegistry> = OnceLock::new();
 
 fn get_registry() -> &'static ModuleRegistry {
-    REGISTRY.get_or_init(|| ModuleRegistry::build())
+    REGISTRY.get_or_init(ModuleRegistry::build)
 }
 
 impl ModuleRegistry {
     fn build() -> Self {
-        let mut builders: Vec<(&'static str, ModuleBuilder)> = Vec::new();
-
-        // Only modules with implemented structs are registered.
-        builders.push(("os", || Box::new(crate::modules::os::OsModule)));
-        builders.push(("host", || Box::new(crate::modules::host::HostModule)));
-        builders.push(("kernel", || Box::new(crate::modules::kernel::KernelModule)));
-        builders.push(("uptime", || Box::new(crate::modules::uptime::UptimeModule)));
-        builders.push(("locale", || Box::new(crate::modules::locale::LocaleModule)));
-        builders.push(("colors", || Box::new(crate::modules::colors::ColorsModule)));
-        builders.push(("de", || Box::new(crate::modules::de::DeModule)));
-        builders.push(("packages", || {
-            Box::new(crate::modules::packages::PackagesModule)
-        }));
-        builders.push(("shell", || Box::new(crate::modules::shell::ShellModule)));
-        builders.push(("terminal", || {
-            Box::new(crate::modules::terminal::TerminalModule)
-        }));
-        builders.push(("wm", || Box::new(crate::modules::wm::WmModule)));
-        builders.push(("cpu", || Box::new(crate::modules::cpu::CpuModule)));
-        builders.push(("memory", || Box::new(crate::modules::memory::MemoryModule)));
-        builders.push(("processes", || {
-            Box::new(crate::modules::processes::ProcessesModule)
-        }));
-        builders.push(("battery", || {
-            Box::new(crate::modules::battery::BatteryModule)
-        }));
-        builders.push(("gpu", || Box::new(crate::modules::gpu::GpuModule)));
-        builders.push(("disk", || Box::new(crate::modules::disk::DiskModule)));
-        builders.push(("network", || {
-            Box::new(crate::modules::network::NetworkModule)
-        }));
-        builders.push(("resolution", || {
-            Box::new(crate::modules::resolution::ResolutionModule)
-        }));
-        builders.push(("title", || Box::new(crate::modules::title::TitleModule)));
-        builders.push(("custom", || {
-            Box::new(crate::modules::custom::CustomCommandsModule)
-        }));
+        let builders = vec![
+            (
+                "os",
+                Box::new(crate::modules::os::OsModule) as Box<dyn Module>,
+            ),
+            (
+                "host",
+                Box::new(crate::modules::host::HostModule) as Box<dyn Module>,
+            ),
+            (
+                "kernel",
+                Box::new(crate::modules::kernel::KernelModule) as Box<dyn Module>,
+            ),
+            (
+                "uptime",
+                Box::new(crate::modules::uptime::UptimeModule) as Box<dyn Module>,
+            ),
+            (
+                "locale",
+                Box::new(crate::modules::locale::LocaleModule) as Box<dyn Module>,
+            ),
+            (
+                "colors",
+                Box::new(crate::modules::colors::ColorsModule) as Box<dyn Module>,
+            ),
+            (
+                "de",
+                Box::new(crate::modules::de::DeModule) as Box<dyn Module>,
+            ),
+            (
+                "packages",
+                Box::new(crate::modules::packages::PackagesModule) as Box<dyn Module>,
+            ),
+            (
+                "shell",
+                Box::new(crate::modules::shell::ShellModule) as Box<dyn Module>,
+            ),
+            (
+                "terminal",
+                Box::new(crate::modules::terminal::TerminalModule) as Box<dyn Module>,
+            ),
+            (
+                "wm",
+                Box::new(crate::modules::wm::WmModule) as Box<dyn Module>,
+            ),
+            (
+                "cpu",
+                Box::new(crate::modules::cpu::CpuModule) as Box<dyn Module>,
+            ),
+            (
+                "memory",
+                Box::new(crate::modules::memory::MemoryModule) as Box<dyn Module>,
+            ),
+            (
+                "processes",
+                Box::new(crate::modules::processes::ProcessesModule) as Box<dyn Module>,
+            ),
+            (
+                "battery",
+                Box::new(crate::modules::battery::BatteryModule) as Box<dyn Module>,
+            ),
+            (
+                "gpu",
+                Box::new(crate::modules::gpu::GpuModule) as Box<dyn Module>,
+            ),
+            (
+                "disk",
+                Box::new(crate::modules::disk::DiskModule) as Box<dyn Module>,
+            ),
+            (
+                "network",
+                Box::new(crate::modules::network::NetworkModule) as Box<dyn Module>,
+            ),
+            (
+                "resolution",
+                Box::new(crate::modules::resolution::ResolutionModule) as Box<dyn Module>,
+            ),
+            (
+                "title",
+                Box::new(crate::modules::title::TitleModule) as Box<dyn Module>,
+            ),
+            (
+                "custom",
+                Box::new(crate::modules::custom::CustomCommandsModule) as Box<dyn Module>,
+            ),
+        ];
 
         ModuleRegistry { builders }
     }
@@ -119,8 +167,7 @@ impl ModuleRegistry {
                 self.builders
                     .iter()
                     .find(|(n, _)| n == name)
-                    .map(|(n, builder)| {
-                        let module = builder();
+                    .map(|(n, module)| {
                         let result = module.collect(ctx);
                         (*n, result)
                     })
@@ -146,8 +193,7 @@ impl ModuleRegistry {
         self.builders
             .iter()
             .find(|(n, _)| *n == name)
-            .map(|(_, builder)| {
-                let module = builder();
+            .map(|(_, module)| {
                 module
                     .collect(ctx)
                     .unwrap_or(InfoValue::Scalar("error".into()))

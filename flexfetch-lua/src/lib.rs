@@ -85,10 +85,8 @@ fn lua_value_to_info(val: Value) -> InfoValue {
                 return InfoValue::Scalar(val_str);
             }
             let mut map = HashMap::new();
-            for pair in t.pairs::<Value, Value>() {
-                if let Ok((k, v)) = pair {
-                    map.insert(format_value(&k), format_value(&v));
-                }
+            for pair in t.pairs::<Value, Value>().filter_map(|r| r.ok()) {
+                map.insert(format_value(&pair.0), format_value(&pair.1));
             }
             if map.is_empty() {
                 InfoValue::Scalar("table".into())

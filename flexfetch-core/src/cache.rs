@@ -88,3 +88,13 @@ impl Cache {
         }
     }
 }
+
+pub fn get_cache_dir() -> PathBuf {
+    std::env::var("XDG_CACHE_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
+            PathBuf::from(home).join(".cache")
+        })
+        .join("flexfetch")
+}

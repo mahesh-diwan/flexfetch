@@ -13,7 +13,14 @@ impl Module for CustomCommandsModule {
         let mut rows = Vec::new();
 
         for (key, custom) in &ctx.custom_modules {
-            let output = Command::new("sh").args(["-c", &custom.command]).output();
+            // Split command safely without shell - parse into program + args
+            let parts: Vec<&str> = custom.command.split_whitespace().collect();
+            if parts.is_empty() {
+                continue;
+            }
+            let (program, args) = (parts[0], &parts[1..]);
+
+            let output = Command::new(program).args(args).output();
             match output {
                 Ok(out) => {
                     let value = String::from_utf8_lossy(&out.stdout).trim().to_string();

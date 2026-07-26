@@ -101,14 +101,14 @@ impl ImageLogo {
         match mode {
             LogoMode::Ascii => {
                 // Use ASCII art fallback
-                let logo = detect(
-                    &self
-                        .path
-                        .split('/')
-                        .last()
-                        .unwrap_or("")
-                        .replace(".png", ""),
-                );
+                let name = self
+                    .path
+                    .split('/')
+                    .next_back()
+                    .unwrap_or("")
+                    .strip_suffix(".png")
+                    .unwrap_or("");
+                let logo = detect(name);
                 let lines: Vec<String> = logo.lines.iter().map(|s| s.to_string()).collect();
                 let rendered = render(logo, lines.len());
                 rendered.join("\n")
@@ -117,14 +117,14 @@ impl ImageLogo {
                 match protocol {
                     ImageProtocol::None => {
                         // Fallback to ASCII
-                        let logo = detect(
-                            &self
-                                .path
-                                .split('/')
-                                .last()
-                                .unwrap_or("")
-                                .replace(".png", ""),
-                        );
+                        let name = self
+                            .path
+                            .split('/')
+                            .next_back()
+                            .unwrap_or("")
+                            .strip_suffix(".png")
+                            .unwrap_or("");
+                        let logo = detect(name);
                         let lines: Vec<String> = logo.lines.iter().map(|s| s.to_string()).collect();
                         let rendered = render(logo, lines.len());
                         rendered.join("\n")
@@ -231,11 +231,9 @@ impl ImageLogo {
         let (w, h) = rgb.dimensions();
 
         // 216-color cube palette (6×6×6)
-        let quantize = |r: u8, g: u8, b: u8| -> u8 {
-            ((r / 51) as u8) * 36 + ((g / 51) as u8) * 6 + (b / 51) as u8
-        };
+        let quantize = |r: u8, g: u8, b: u8| -> u8 { (r / 51) * 36 + (g / 51) * 6 + (b / 51) };
 
-        let padded_h = ((h + 5) / 6) * 6;
+        let padded_h = h.div_ceil(6) * 6;
 
         let mut output = String::from("\x1bPq");
 
@@ -270,7 +268,7 @@ impl ImageLogo {
                             }
                         }
                     }
-                    sixels.push((sixel_bits + 63) as u8 as char);
+                    sixels.push((sixel_bits + 63) as char);
                     if sixel_bits != 0 {
                         has_any = true;
                     }
@@ -371,14 +369,32 @@ impl ImageLogo {
             return path.to_string();
         }
 
-        // Try relative to flexfetch-core
-        let core_dir = env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
-        let candidate = Path::new(&core_dir).join(path);
-        if candidate.exists() {
-            return candidate.to_string_lossy().to_string();
+        // Try relative to binary location
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(bin_dir) = exe.parent() {
+                let candidate = bin_dir.join(path);
+                if candidate.exists() {
+                    return candidate.to_string_lossy().to_string();
+                }
+                // Try parent directory (for development)
+                if let Some(parent) = bin_dir.parent() {
+                    let candidate = parent.join(path);
+                    if candidate.exists() {
+                        return candidate.to_string_lossy().to_string();
+                    }
+                }
+            }
         }
 
-        // Try relative to workspace root
+        // Try current working directory
+        if let Ok(cwd) = std::env::current_dir() {
+            let candidate = cwd.join(path);
+            if candidate.exists() {
+                return candidate.to_string_lossy().to_string();
+            }
+        }
+
+        // Try relative to workspace root via env
         if let Ok(workspace) = env::var("FLEXFETCH_WORKSPACE_DIR") {
             let candidate = Path::new(&workspace).join(path);
             if candidate.exists() {

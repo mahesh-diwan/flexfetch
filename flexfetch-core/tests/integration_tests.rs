@@ -62,8 +62,9 @@ fn test_template_with_box_style_double() {
     let result = engine.render(&info, &config);
     assert!(result.is_ok());
     let output = result.unwrap();
-    assert!(output.contains("╔"));
-    assert!(output.contains("║"));
+    // Template uses fastfetch-style tree connectors (├─/╰─) regardless of box_style
+    assert!(output.contains("├─"));
+    assert!(output.contains("╰─"));
 }
 
 #[test]
@@ -79,6 +80,7 @@ fn test_template_with_box_style_ascii() {
     let result = engine.render(&info, &config);
     assert!(result.is_ok());
     let output = result.unwrap();
-    assert!(output.contains("+-"));
-    assert!(output.contains("|"));
+    // Template uses fastfetch-style tree connectors (├─/╰─) regardless of box_style
+    assert!(output.contains("├─"));
+    assert!(output.contains("╰─"));
 }
