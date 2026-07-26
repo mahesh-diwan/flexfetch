@@ -355,9 +355,27 @@ impl TeraEngine {
             .render(&self.template_name, &ctx)
             .map_err(|e| crate::Error::Template(format!("{:?}", e)))?;
 
-        let logo = crate::logo::detect(&os_id);
         let info_lines: Vec<&str> = raw.lines().collect();
-        let rendered = crate::logo::render(logo, info_lines.len());
+        // Try image logo first (block characters work in any truecolor terminal)
+        let rendered = if let Some(img_path) = get_distro_logo_path(&os_id) {
+            let resolved = crate::image_logo::ImageLogo::resolve_path(&img_path);
+            if std::path::Path::new(&resolved).exists() {
+                let logo = crate::image_logo::ImageLogo::new(&resolved).with_size(16, 8);
+                let ansi = logo.render(ImageProtocol::Block, LogoMode::Image);
+                if !ansi.is_empty() {
+                    ansi.lines().map(String::from).collect::<Vec<_>>()
+                } else {
+                    let ascii = crate::logo::detect(&os_id);
+                    crate::logo::render(ascii, info_lines.len())
+                }
+            } else {
+                let ascii = crate::logo::detect(&os_id);
+                crate::logo::render(ascii, info_lines.len())
+            }
+        } else {
+            let ascii = crate::logo::detect(&os_id);
+            crate::logo::render(ascii, info_lines.len())
+        };
         let logow = crate::logo::logo_width(&rendered) + 3;
         let max = cmp::max(rendered.len(), info_lines.len());
         let mut out = String::with_capacity(raw.len() + rendered.len() * 60);

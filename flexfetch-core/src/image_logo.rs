@@ -363,7 +363,7 @@ impl ImageLogo {
         cmd
     }
 
-    fn resolve_path(path: &str) -> String {
+    pub fn resolve_path(path: &str) -> String {
         // First try as-is (absolute path)
         if Path::new(path).exists() {
             return path.to_string();
