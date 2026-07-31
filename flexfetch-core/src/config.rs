@@ -124,6 +124,8 @@ pub struct DisplayConfig {
     pub icon_processes: String,
     #[serde(default = "DisplayConfig::default_icon_end")]
     pub icon_end: String,
+    #[serde(default = "DisplayConfig::default_icon_temp")]
+    pub icon_temp: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -216,6 +218,9 @@ impl DisplayConfig {
     pub fn default_icon_end() -> String {
         "󰘦 ".into() // nf-md-arrow-right-box
     }
+    pub fn default_icon_temp() -> String {
+        "󰏗 ".into() // nf-md-thermometer
+    }
 }
 
 impl Default for DisplayConfig {
@@ -254,6 +259,7 @@ impl Default for DisplayConfig {
             icon_battery: Self::default_icon_battery(),
             icon_processes: Self::default_icon_processes(),
             icon_end: Self::default_icon_end(),
+            icon_temp: Self::default_icon_temp(),
         }
     }
 }
@@ -435,6 +441,7 @@ fn merge_config(base: Config, override_config: Config) -> Config {
             icon_battery: override_config.display.icon_battery,
             icon_processes: override_config.display.icon_processes,
             icon_end: override_config.display.icon_end,
+            icon_temp: override_config.display.icon_temp,
         },
         cache: override_config.cache,
         custom: if !override_config.custom.is_empty() {

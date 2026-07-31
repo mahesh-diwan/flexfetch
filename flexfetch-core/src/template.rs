@@ -197,6 +197,10 @@ impl TeraEngine {
             ("network", serde_json::Value::Array(vec![])),
             ("battery", serde_json::Value::Object(serde_json::Map::new())),
             ("processes", serde_json::Value::String(String::new())),
+            (
+                "temperature",
+                serde_json::Value::Object(serde_json::Map::new()),
+            ),
             ("resolution", serde_json::Value::String(String::new())),
             ("colors", serde_json::Value::Array(vec![])),
             ("custom", serde_json::Value::Array(vec![])),
@@ -243,6 +247,7 @@ impl TeraEngine {
         ctx.insert("icon_battery", &config.display.icon_battery);
         ctx.insert("icon_processes", &config.display.icon_processes);
         ctx.insert("icon_end", &config.display.icon_end);
+        ctx.insert("icon_temp", &config.display.icon_temp);
 
         // Compute gradient title if enabled
         let title_text = info
@@ -285,6 +290,7 @@ impl TeraEngine {
             "network",
             "battery",
             "processes",
+            "temperature",
             "resolution",
             "colors",
             "custom",

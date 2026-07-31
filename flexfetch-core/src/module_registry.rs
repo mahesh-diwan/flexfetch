@@ -28,6 +28,11 @@ fn extract_template_modules(template_str: &str) -> HashSet<String> {
         "custom",
         "processes",
         "title",
+        "bluetooth",
+        "media",
+        "dns",
+        "temperature",
+        "swap",
     ];
     for word in known {
         if template_str.contains(word) {
@@ -134,6 +139,26 @@ impl ModuleRegistry {
             (
                 "custom",
                 Box::new(crate::modules::custom::CustomCommandsModule) as Box<dyn Module>,
+            ),
+            (
+                "bluetooth",
+                Box::new(crate::modules::bluetooth::BluetoothModule) as Box<dyn Module>,
+            ),
+            (
+                "media",
+                Box::new(crate::modules::media::MediaModule) as Box<dyn Module>,
+            ),
+            (
+                "temperature",
+                Box::new(crate::modules::temperature::TemperatureModule) as Box<dyn Module>,
+            ),
+            (
+                "dns",
+                Box::new(crate::modules::dns::DnsModule) as Box<dyn Module>,
+            ),
+            (
+                "swap",
+                Box::new(crate::modules::swap::SwapModule) as Box<dyn Module>,
             ),
         ];
 

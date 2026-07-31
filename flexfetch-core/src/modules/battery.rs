@@ -22,7 +22,9 @@ impl Module for BatteryModule {
                     }
                     let base = entry.path();
                     if let Ok(cap) = std::fs::read_to_string(base.join("capacity")) {
-                        map.insert("percent".into(), format!("{}%", cap.trim()));
+                        let pct_str = cap.trim().to_string();
+                        map.insert("percent_int".into(), pct_str.clone());
+                        map.insert("percent".into(), format!("{}%", pct_str));
                     }
                     if let Ok(status) = std::fs::read_to_string(base.join("status")) {
                         map.insert("status".into(), status.trim().to_string());
