@@ -99,7 +99,7 @@ fetch_tag() {
     if [ -z "$tag" ] && command -v git >/dev/null 2>&1; then
         tag=$(git ls-remote --tags "https://github.com/$REPO.git" 2>/dev/null \
             | sed 's/.*refs\/tags\///' | grep '^v[0-9]' \
-            | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 || true)
+            | sort -V | tail -1 || true)
     fi
 
     echo "$tag"
