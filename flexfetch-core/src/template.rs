@@ -191,6 +191,11 @@ impl TeraEngine {
             ("de", serde_json::Value::String(String::new())),
             ("wm", serde_json::Value::Object(serde_json::Map::new())),
             ("cpu", serde_json::Value::Object(serde_json::Map::new())),
+            (
+                "cpucache",
+                serde_json::Value::Object(serde_json::Map::new()),
+            ),
+            ("cpuusage", serde_json::Value::String(String::new())),
             ("memory", serde_json::Value::Object(serde_json::Map::new())),
             ("gpu", serde_json::Value::Array(vec![])),
             ("disk", serde_json::Value::Array(vec![])),
@@ -202,8 +207,11 @@ impl TeraEngine {
                 serde_json::Value::Object(serde_json::Map::new()),
             ),
             ("resolution", serde_json::Value::String(String::new())),
+            ("display", serde_json::Value::String(String::new())),
             ("colors", serde_json::Value::Array(vec![])),
             ("custom", serde_json::Value::Array(vec![])),
+            ("publicip", serde_json::Value::String(String::new())),
+            ("wifi", serde_json::Value::Object(serde_json::Map::new())),
         ];
         for (module, placeholder) in all_modules {
             if !info.entries.iter().any(|(k, _)| *k == module) {
@@ -284,6 +292,8 @@ impl TeraEngine {
             "wm",
             "packages",
             "cpu",
+            "cpucache",
+            "cpuusage",
             "memory",
             "disk",
             "gpu",
@@ -292,8 +302,11 @@ impl TeraEngine {
             "processes",
             "temperature",
             "resolution",
+            "display",
             "colors",
             "custom",
+            "publicip",
+            "wifi",
         ];
         let mut image_logos = serde_json::Map::new();
         let protocol = ImageProtocol::detect();

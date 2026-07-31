@@ -17,9 +17,12 @@ fn extract_template_modules(template_str: &str) -> HashSet<String> {
         "de",
         "wm",
         "cpu",
+        "cpucache",
+        "cpuusage",
         "memory",
         "gpu",
         "disk",
+        "display",
         "network",
         "battery",
         "locale",
@@ -33,6 +36,8 @@ fn extract_template_modules(template_str: &str) -> HashSet<String> {
         "dns",
         "temperature",
         "swap",
+        "publicip",
+        "wifi",
     ];
     for word in known {
         if template_str.contains(word) {
@@ -159,6 +164,26 @@ impl ModuleRegistry {
             (
                 "swap",
                 Box::new(crate::modules::swap::SwapModule) as Box<dyn Module>,
+            ),
+            (
+                "cpucache",
+                Box::new(crate::modules::cpucache::CpuCacheModule) as Box<dyn Module>,
+            ),
+            (
+                "cpuusage",
+                Box::new(crate::modules::cpuusage::CpuUsageModule) as Box<dyn Module>,
+            ),
+            (
+                "display",
+                Box::new(crate::modules::display::DisplayModule) as Box<dyn Module>,
+            ),
+            (
+                "publicip",
+                Box::new(crate::modules::publicip::PublicIpModule) as Box<dyn Module>,
+            ),
+            (
+                "wifi",
+                Box::new(crate::modules::wifi::WifiModule) as Box<dyn Module>,
             ),
         ];
 

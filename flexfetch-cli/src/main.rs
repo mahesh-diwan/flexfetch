@@ -411,6 +411,39 @@ fn builtin_presets() -> HashMap<String, Vec<String>> {
             "shell".into(),
         ],
     );
+    presets.insert(
+        "ci".into(),
+        vec![
+            "os".into(),
+            "kernel".into(),
+            "cpu".into(),
+            "memory".into(),
+            "disk".into(),
+            "network".into(),
+        ],
+    );
+    presets.insert(
+        "neofetch".into(),
+        vec![
+            "title".into(),
+            "separator".into(),
+            "os".into(),
+            "host".into(),
+            "kernel".into(),
+            "uptime".into(),
+            "packages".into(),
+            "shell".into(),
+            "de".into(),
+            "wm".into(),
+            "terminal".into(),
+            "cpu".into(),
+            "gpu".into(),
+            "memory".into(),
+            "disk".into(),
+            "battery".into(),
+            "colors".into(),
+        ],
+    );
     presets
 }
 
@@ -514,12 +547,15 @@ fn list_modules() {
         "uptime",
         "locale",
         "cpu",
+        "cpucache",
+        "cpuusage",
         "memory",
         "swap",
         "disk",
         "gpu",
         "network",
         "dns",
+        "display",
         "bluetooth",
         "media",
         "battery",
@@ -532,6 +568,8 @@ fn list_modules() {
         "wm",
         "colors",
         "custom",
+        "publicip",
+        "wifi",
     ];
     println!("Built-in modules:");
     for m in builtins {

@@ -25,6 +25,12 @@
 {%- if cpu %}
 ├─{{ icon_cpu }} CPU: {{ cpu.model }} ({{ cpu.cores }} cores) @ {{ cpu.freq_mhz }} MHz{% if cpu.temp %} | {{ cpu.temp }}{% endif %}
 {%- endif %}
+{%- if cpucache and cpucache|length > 0 %}
+├─{{ icon_cpu | default(value="󰍛") }} Cache: {% if cpucache.l1d %}L1d {{ cpucache.l1d }}{% endif %}{% if cpucache.l1i %} L1i {{ cpucache.l1i }}{% endif %}{% if cpucache.l2 %} L2 {{ cpucache.l2 }}{% endif %}{% if cpucache.l3 %} L3 {{ cpucache.l3 }}{% endif %}
+{%- endif %}
+{%- if cpuusage %}
+├─{{ icon_cpu | default(value="󰍛") }} CPU Usage: {{ cpuusage }}
+{%- endif %}
 {%- if gpu and gpu|length > 0 %}
 {%- for device in gpu %}
 ├─{{ icon_gpu }} GPU: {{ device }}
@@ -53,6 +59,15 @@
 
 {%- if resolution %}
 ├─{{ icon_resolution }} Resolution: {{ resolution }}
+{%- endif %}
+{%- if display %}
+├─{{ icon_resolution | default(value="󰍹") }} Display: {{ display }}
+{%- endif %}
+{%- if wifi and wifi.ssid %}
+├─{{ icon_network | default(value="󰤨") }} WiFi: {{ wifi.ssid }}{% if wifi.signal %} {{ wifi.signal }}{% endif %}{% if wifi.frequency %} {{ wifi.frequency }}{% endif %}{% if wifi.security %} [{{ wifi.security }}]{% endif %}
+{%- endif %}
+{%- if publicip and publicip != "unknown" %}
+├─{{ icon_network | default(value="󰖟") }} Public IP: {{ publicip }}
 {%- endif %}
 {%- if battery %}
 {%- if battery.percent %}

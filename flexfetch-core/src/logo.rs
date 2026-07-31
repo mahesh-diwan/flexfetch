@@ -25,10 +25,13 @@ pub fn render(logo: &Logo, target_height: usize) -> Vec<String> {
     let mut out = Vec::with_capacity(target_height);
     for line in logo.lines {
         let mut s = line.to_string();
-        if logo.colors.len() >= 3 {
-            s = s.replace("${1}", logo.colors[0]);
-            s = s.replace("${2}", logo.colors[1]);
-            s = s.replace("${3}", logo.colors[2]);
+        // ponytail: handle both ${N} (our logos) and $N (fastfetch logos)
+        for (i, color) in logo.colors.iter().enumerate() {
+            let n = i + 1;
+            let braced = format!("${{{}}}", n);
+            let plain = format!("${}", n);
+            s = s.replace(&braced, color);
+            s = s.replace(&plain, color);
         }
         out.push(s);
     }
@@ -42,46 +45,63 @@ pub fn logo_width(rendered: &[String]) -> usize {
     rendered.iter().map(|l| visible_len(l)).max().unwrap_or(0)
 }
 
+use crate::fastfetch_logos::{fastfetch_logo, make_logo};
+
 pub fn detect(module_type: &str) -> &'static Logo {
+    // First check our custom high-quality logos
+    if let Some(logo) = detect_custom(module_type) {
+        return logo;
+    }
+    // Then check fastfetch-sourced logos (527+ distros)
+    if let Some(logo_str) = fastfetch_logo(module_type) {
+        return &make_logo(logo_str);
+    }
+    // macOS fallback
+    if cfg!(target_os = "macos") {
+        return &MACOS_LOGO;
+    }
+    &GENERIC_LOGO
+}
+
+fn detect_custom(module_type: &str) -> Option<&'static Logo> {
     match module_type {
-        "arch" | "arcolinux" => &ARCH_LOGO,
-        "cachyos" => &CACHYOS_LOGO,
-        "artix" => &ARTIX_LOGO,
-        "manjaro" => &MANJARO_LOGO,
-        "endeavouros" => &ENDEAVOUROS_LOGO,
-        "garuda" => &GARUDA_LOGO,
-        "debian" | "raspbian" => &DEBIAN_LOGO,
-        "ubuntu" => &UBUNTU_LOGO,
-        "ubuntu-budgie" | "budgie" => &UBUNTU_BUDGIE_LOGO,
-        "ubuntu-mate" | "ubuntumate" => &UBUNTU_MATE_LOGO,
-        "ubuntu-kylin" | "kylin" => &UBUNTU_KYLIN_LOGO,
-        "linuxmint" => &LINUX_MINT_LOGO,
-        "pop" | "popos" | "pop_os" => &POP_OS_LOGO,
-        "elementary" | "elementaryos" => &ELEMENTARY_LOGO,
-        "zorin" | "zorinos" => &ZORIN_LOGO,
-        "fedora" => &FEDORA_LOGO,
-        "nixos" => &NIXOS_LOGO,
-        "gentoo" => &GENTOO_LOGO,
-        "alpine" => &ALPINE_LOGO,
-        "void" => &VOID_LOGO,
-        "centos" => &CENTOS_LOGO,
-        "opensuse" | "opensuse-leap" | "opensuse-tumbleweed" => &OPENSUSE_LOGO,
-        "kali" => &KALI_LOGO,
-        "mx" | "mxlinux" | "mx-linux" => &MX_LINUX_LOGO,
-        "antix" => &ANTIX_LOGO,
-        "pclinuxos" | "pclinux" => &PCLINUXOS_LOGO,
-        "slackware" => &SLACKWARE_LOGO,
-        "puppy" | "puppylinux" | "puppy-linux" => &PUPPY_LOGO,
-        "tinycore" | "tinycorelinux" | "tiny-core" => &TINYCORE_LOGO,
-        "archarm" | "arch-arm" | "archlinuxarm" => &ARCH_ARM_LOGO,
-        "biglinux" => &BIGLINUX_LOGO,
-        "linuxlite" | "linux-lite" | "lite" => &LINUX_LITE_LOGO,
-        "peppermint" => &PEPPERMINT_LOGO,
-        "bodhi" | "bodhilinux" | "bodhi-linux" => &BODHI_LOGO,
-        "trisquel" | "trisquelinux" => &TRISQUEL_LOGO,
-        "pureos" | "pure-os" => &PUREOS_LOGO,
-        _ if cfg!(target_os = "macos") => &MACOS_LOGO,
-        _ => &GENERIC_LOGO,
+        "arch" | "arcolinux" => Some(&ARCH_LOGO),
+        "cachyos" => Some(&CACHYOS_LOGO),
+        "artix" => Some(&ARTIX_LOGO),
+        "manjaro" => Some(&MANJARO_LOGO),
+        "endeavouros" => Some(&ENDEAVOUROS_LOGO),
+        "garuda" => Some(&GARUDA_LOGO),
+        "debian" | "raspbian" => Some(&DEBIAN_LOGO),
+        "ubuntu" => Some(&UBUNTU_LOGO),
+        "ubuntu-budgie" | "budgie" => Some(&UBUNTU_BUDGIE_LOGO),
+        "ubuntu-mate" | "ubuntumate" => Some(&UBUNTU_MATE_LOGO),
+        "ubuntu-kylin" | "kylin" => Some(&UBUNTU_KYLIN_LOGO),
+        "linuxmint" => Some(&LINUX_MINT_LOGO),
+        "pop" | "popos" | "pop_os" => Some(&POP_OS_LOGO),
+        "elementary" | "elementaryos" => Some(&ELEMENTARY_LOGO),
+        "zorin" | "zorinos" => Some(&ZORIN_LOGO),
+        "fedora" => Some(&FEDORA_LOGO),
+        "nixos" => Some(&NIXOS_LOGO),
+        "gentoo" => Some(&GENTOO_LOGO),
+        "alpine" => Some(&ALPINE_LOGO),
+        "void" => Some(&VOID_LOGO),
+        "centos" => Some(&CENTOS_LOGO),
+        "opensuse" | "opensuse-leap" | "opensuse-tumbleweed" => Some(&OPENSUSE_LOGO),
+        "kali" => Some(&KALI_LOGO),
+        "mx" | "mxlinux" | "mx-linux" => Some(&MX_LINUX_LOGO),
+        "antix" => Some(&ANTIX_LOGO),
+        "pclinuxos" | "pclinux" => Some(&PCLINUXOS_LOGO),
+        "slackware" => Some(&SLACKWARE_LOGO),
+        "puppy" | "puppylinux" | "puppy-linux" => Some(&PUPPY_LOGO),
+        "tinycore" | "tinycorelinux" | "tiny-core" => Some(&TINYCORE_LOGO),
+        "archarm" | "arch-arm" | "archlinuxarm" => Some(&ARCH_ARM_LOGO),
+        "biglinux" => Some(&BIGLINUX_LOGO),
+        "linuxlite" | "linux-lite" | "lite" => Some(&LINUX_LITE_LOGO),
+        "peppermint" => Some(&PEPPERMINT_LOGO),
+        "bodhi" | "bodhilinux" | "bodhi-linux" => Some(&BODHI_LOGO),
+        "trisquel" | "trisquelinux" => Some(&TRISQUEL_LOGO),
+        "pureos" | "pure-os" => Some(&PUREOS_LOGO),
+        _ => None,
     }
 }
 
