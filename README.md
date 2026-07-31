@@ -69,18 +69,20 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 
 ## Comparison
 
-|                    | flexfetch              | neofetch       | fastfetch     | pfetch   |
-| ------------------ | ---------------------- | -------------- | ------------- | -------- |
-| **Language**       | Rust                   | Bash           | C             | sh       |
-| **Lua plugins**    | ✅                     | —              | —             | —        |
-| **Tera templates** | ✅                     | —              | —             | —        |
-| **Theme presets**  | ✅ 5 + named overrides | built-in       | JSON5 presets | 3 env    |
-| **Parallel**       | ✅ Rayon               | —              | ✅            | —        |
-| **Output formats** | text, JSON             | text           | text, JSON    | text     |
-| **Config**         | TOML                   | —              | JSON5         | env vars |
-| **ASCII logos**    | 7 + generic            | ~150           | ~200          | small    |
-| **Binary size**    | 5 MB                   | ~1 KB (script) | 2 MB          | 5 KB     |
-| **Runtime deps**   | none                   | Bash + utils   | none          | sh       |
+|                       | flexfetch                      | neofetch       | fastfetch       | pfetch   |
+| --------------------- | ------------------------------ | -------------- | --------------- | -------- |
+| **Language**          | Rust                           | Bash           | C               | sh       |
+| **Lua plugins**       | ✅                             | —              | —               | —        |
+| **Tera templates**    | ✅                             | —              | —               | —        |
+| **Theme presets**     | ✅ 5 + named overrides         | built-in       | JSON5 presets   | 3 env    |
+| **Parallel**          | ✅ Rayon                       | —              | ✅              | —        |
+| **Output formats**    | text, JSON, MD, SVG, HTML, PNG | text           | text, JSON      | text     |
+| **Config**            | TOML                           | —              | JSON5           | env vars |
+| **ASCII logos**       | 38 + image support             | ~150           | ~200            | small    |
+| **Binary size**       | 5 MB                           | ~1 KB (script) | 2 MB            | 5 KB     |
+| **Runtime deps**      | none                           | Bash + utils   | none            | sh       |
+| **Watch mode**        | ✅                             | —              | —               | —        |
+| **Shell completions** | bash, zsh, fish                | —              | bash, zsh, fish | —        |
 
 <br>
 
@@ -218,17 +220,37 @@ Cache is a JSON file at `~/.cache/flexfetch/`. Reduces repeated disk reads. TTL 
 
 ---
 
+## Watch Mode
+
+Refresh output periodically (useful for dashboards):
+
+```bash
+flexfetch --watch              # refresh every 2 seconds
+flexfetch --watch --watch-interval 5  # refresh every 5 seconds
+```
+
+Press `Ctrl+C` to stop.
+
+<br>
+
+---
+
 ## Output Formats
 
-| Format | Use case           |
-| ------ | ------------------ |
-| `text` | Terminal (default) |
-| `json` | Scripts, tooling   |
+| Format     | Use case                     |
+| ---------- | ---------------------------- |
+| `text`     | Terminal (default)           |
+| `json`     | Scripts, tooling             |
+| `markdown` | Documentation, GitHub README |
+| `svg`      | Vector graphics              |
+| `html`     | Web embedding                |
+| `png`      | Screenshots                  |
 
 JSON mode disables ASCII art and themes. Output is structured for parsing:
 
 ```bash
 flexfetch -f json | jq '.os.name'
+flexfetch -f markdown > system-info.md
 ```
 
 <br>
@@ -253,17 +275,19 @@ All modules run in parallel via Rayon and detect from your system automatically.
 
 ## Logo Support
 
-flexfetch detects distro from `/etc/os-release` and renders ASCII art next to info.
+flexfetch detects distro from `/etc/os-release` and renders ASCII art next to info. **38 distros** supported:
 
-| Distro  | Lines | Matches                                               |
-| ------- | ----- | ----------------------------------------------------- |
-| Arch    | 5     | arch, cachyos, endeavouros, arcolinux, artix, manjaro |
-| Debian  | 5     | debian, raspbian                                      |
-| Ubuntu  | 5     | ubuntu, linuxmint, pop, elementary, zorin             |
-| Fedora  | 6     | fedora                                                |
-| NixOS   | 5     | nixos                                                 |
-| macOS   | 6     | auto-detected                                         |
-| Generic | 6     | anything else                                         |
+| Distro    | Matches                                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Arch      | arch, cachyos, endeavouros, arcolinux, artix, manjaro                                                                                |
+| Debian    | debian, raspbian                                                                                                                     |
+| Ubuntu    | ubuntu, linuxmint, pop, elementary, zorin, budgie, mate, kubuntu, xubuntu                                                            |
+| Fedora    | fedora                                                                                                                               |
+| NixOS     | nixos                                                                                                                                |
+| macOS     | auto-detected                                                                                                                        |
+| + 20 more | slackware, Puppy, Tiny Core, MX Linux, antiX, PCLinuxOS, Garuda, BigLinux, Linux Lite, Peppermint, Bodhi, Trisquel, PureOS, Arch ARM |
+
+Image logos render as truecolor block art in terminals with 24-bit color support. Falls back to ASCII if no image file exists.
 
 <br>
 
@@ -275,6 +299,48 @@ flexfetch detects distro from `/etc/os-release` and renders ASCII art next to in
 cargo build --release                     # all features
 cargo build --release --no-default-features  # without Lua
 cargo test
+```
+
+<br>
+
+---
+
+## Shell Completions
+
+Tab completion for bash, zsh, and fish:
+
+```bash
+# Bash
+source completions/flexfetch.bash
+
+# Zsh
+source completions/flexfetch.zsh
+
+# Fish
+source completions/flexfetch.fish
+```
+
+Install permanently:
+
+```bash
+# Bash (Ubuntu/Debian)
+cp completions/flexfetch.bash /etc/bash_completion.d/
+
+# Zsh
+cp completions/flexfetch.zsh /usr/share/zsh/vendor-completions/
+
+# Fish
+cp completions/flexfetch.fish ~/.config/fish/completions/
+```
+
+<br>
+
+---
+
+## Man Page
+
+```bash
+man doc/flexfetch.1
 ```
 
 <br>

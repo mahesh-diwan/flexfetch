@@ -12,3 +12,4 @@ flexfetch-core = { path = "../flexfetch-core", features = ["lua"] }
 clap = { version = "4", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
+ctrlc = "3"

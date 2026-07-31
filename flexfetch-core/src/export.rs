@@ -23,6 +23,13 @@ const ANSI_BRIGHT_COLORS: &[[u8; 3]] = &[
     [255, 255, 255], // 97 bright white
 ];
 
+fn theme_bg_color(config: &Config) -> [u8; 3] {
+    match config.display.theme.as_deref().unwrap_or("") {
+        "solarized-light" | "one-light" | "rose-pine-dawn" | "everforest-light" => [253, 246, 227],
+        _ => [30, 30, 46], // default dark (#1e1e2e)
+    }
+}
+
 #[derive(Clone)]
 struct Span<'a> {
     text: &'a str,
@@ -221,7 +228,8 @@ pub fn export_svg(info: &SystemInfo, config: &Config) -> crate::Result<String> {
     let width = (max_chars as u32) * char_width + 40;
     let height = (line_count as u32) * line_height + 40;
 
-    let bg = "#1e1e2e";
+    let bg_rgb = theme_bg_color(config);
+    let bg = format!("#{:02x}{:02x}{:02x}", bg_rgb[0], bg_rgb[1], bg_rgb[2]);
     let mut svg = String::with_capacity(1024);
     svg.push_str(&format!(
         r#"<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">"#
@@ -248,6 +256,15 @@ pub fn export_html(info: &SystemInfo, config: &Config) -> crate::Result<String> 
     let spans = parse_ansi(&text);
     let lines = spans_per_line(&spans);
 
+    let bg_rgb = theme_bg_color(config);
+    let bg_hex = format!("#{:02x}{:02x}{:02x}", bg_rgb[0], bg_rgb[1], bg_rgb[2]);
+    let brightness = (bg_rgb[0] as u32 + bg_rgb[1] as u32 + bg_rgb[2] as u32) / 3;
+    let fg_hex = if brightness > 128 {
+        "#1e1e2e"
+    } else {
+        "#cdd6f4"
+    };
+
     let mut body = String::with_capacity(text.len() * 2);
     for (i, line_spans) in lines.iter().enumerate() {
         if i > 0 {
@@ -258,10 +275,30 @@ pub fn export_html(info: &SystemInfo, config: &Config) -> crate::Result<String> 
 
     Ok(format!(
         r#"<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>flexfetch</title></head>
-<body style="background:#1e1e2e;color:#cdd6f4;margin:0;padding:20px">
-<pre style="font-family:monospace;font-size:14px;line-height:1.5">{body}</pre>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flexfetch</title>
+<style>
+  *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    background: {bg_hex};
+    color: {fg_hex};
+    font-family: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", Menlo, Monaco, "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 24px;
+    min-height: 100vh;
+  }}
+  pre {{
+    max-width: 90ch;
+    margin: 0 auto;
+  }}
+</style>
+</head>
+<body>
+<pre>{body}</pre>
 </body>
 </html>"#
     ))
@@ -281,8 +318,12 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
     let img_w = (max_chars as u32) * char_w + pad * 2;
     let img_h = (line_count as u32) * char_h + pad * 2;
 
-    let mut img =
-        image::ImageBuffer::from_pixel(img_w, img_h, image::Rgba([0x1eu8, 0x1e, 0x2e, 0xff]));
+    let bg_rgb = theme_bg_color(config);
+    let mut img = image::ImageBuffer::from_pixel(
+        img_w,
+        img_h,
+        image::Rgba([bg_rgb[0], bg_rgb[1], bg_rgb[2], 0xff]),
+    );
 
     let mut cy = pad;
     for line_spans in &lines {
@@ -309,6 +350,35 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
 
     img.save(path)
         .map_err(|e| crate::Error::Template(format!("png save: {e}")))
+}
+
+pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<String> {
+    let engine = crate::template::TeraEngine::new_default();
+    let text = engine.render(info, config)?;
+
+    // Strip all ANSI escape sequences for plain text
+    let mut result = String::with_capacity(text.len());
+    let bytes = text.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == 0x1b && i + 1 < bytes.len() && bytes[i + 1] == b'[' {
+            // Skip CSI sequence: \x1b[...<letter>
+            i += 2;
+            while i < bytes.len() {
+                match bytes[i] {
+                    b'A'..=b'Z' | b'a'..=b'z' => {
+                        i += 1;
+                        break;
+                    }
+                    _ => i += 1,
+                }
+            }
+        } else {
+            result.push(bytes[i] as char);
+            i += 1;
+        }
+    }
+    Ok(result)
 }
 
 #[cfg(test)]

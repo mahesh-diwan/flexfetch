@@ -3,9 +3,10 @@ use flexfetch_core::{get_cache_dir, Config, Context, ModuleRegistry, TeraEngine}
 use std::collections::HashMap;
 use std::io::IsTerminal;
 use std::path::PathBuf;
+use std::time::Duration;
 
 #[derive(Parser)]
-#[command(name = "flexfetch", version, about = "Fast, flexible system info tool")]
+#[command(name = "flexfetch", about = "Fast, flexible system info tool")]
 struct Cli {
     #[arg(short, long)]
     config: Option<String>,
@@ -75,9 +76,26 @@ struct Cli {
 
     #[arg(long)]
     frame: Option<String>,
+
+    #[arg(long)]
+    watch: bool,
+
+    #[arg(long, default_value_t = 2)]
+    watch_interval: u64,
 }
 
 fn main() {
+    // Handle --version before clap to show features
+    if std::env::args().any(|a| a == "--version" || a == "-V") {
+        let features = vec!["lua", "tera", "image-logos", "watch"];
+        println!(
+            "flexfetch {}\nFeatures: {}",
+            env!("CARGO_PKG_VERSION"),
+            features.join(", ")
+        );
+        return;
+    }
+
     let cli = Cli::parse();
 
     if cli.gen_config {
@@ -108,8 +126,8 @@ fn main() {
         config.custom.clone(),
     );
 
-    if let Some(theme) = cli.theme {
-        config.display.theme = Some(theme);
+    if let Some(ref theme) = cli.theme {
+        config.display.theme = Some(theme.clone());
     }
     if cli.no_gradient {
         config.display.gradient_title = false;
@@ -143,7 +161,7 @@ fn main() {
         module_group("dev")
     } else if let Some(ref preset_name) = cli.preset {
         load_preset(preset_name)
-    } else if let Some(m) = cli.modules {
+    } else if let Some(ref m) = cli.modules {
         m.split(':').map(|s| s.to_string()).collect()
     } else {
         config.modules.clone()
@@ -224,6 +242,28 @@ fn main() {
         return;
     }
 
+    if cli.watch {
+        // Watch mode: refresh every N seconds
+        let running = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+        let r = running.clone();
+        let _ = ctrlc::set_handler(move || {
+            r.store(false, std::sync::atomic::Ordering::SeqCst);
+        });
+        while running.load(std::sync::atomic::Ordering::SeqCst) {
+            print!("\x1b[2J\x1b[H");
+            let fresh = registry.run_selected(&modules, &ctx, template_content);
+            render_output(&fresh, &config, &cli);
+            std::io::Write::flush(&mut std::io::stdout()).ok();
+            std::thread::sleep(Duration::from_secs(cli.watch_interval));
+        }
+        println!();
+        return;
+    }
+
+    render_output(&info, &config, &cli);
+}
+
+fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli) {
     match cli.format.as_str() {
         "json" => {
             println!(
@@ -231,12 +271,16 @@ fn main() {
                 serde_json::to_string_pretty(&info.to_json()).unwrap_or_else(|_| "{}".into())
             );
         }
+        "markdown" | "md" => match flexfetch_core::export::export_markdown(info, config) {
+            Ok(md) => print!("{md}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
         _ => {
             let engine = TeraEngine::new_default();
-            match engine.render(&info, &config) {
+            match engine.render(info, config) {
                 Ok(output) => {
                     let out = if config.display.frame != "none" {
-                        let theme = flexfetch_core::theme::resolve(&config);
+                        let theme = flexfetch_core::theme::resolve(config);
                         flexfetch_core::template::frame_wrap(
                             &output,
                             &config.display.frame,
@@ -263,6 +307,7 @@ fn handle_export(
         "svg" => std::path::Path::new("flexfetch.svg"),
         "html" => std::path::Path::new("flexfetch.html"),
         "png" => std::path::Path::new("flexfetch.png"),
+        "markdown" | "md" => std::path::Path::new("flexfetch.md"),
         _ => std::path::Path::new("flexfetch.out"),
     });
     match format {
@@ -290,8 +335,18 @@ fn handle_export(
             Ok(()) => println!("wrote {path:?}"),
             Err(e) => eprintln!("export error: {e}"),
         },
+        "markdown" | "md" => match flexfetch_core::export::export_markdown(info, config) {
+            Ok(md) => {
+                if let Err(e) = std::fs::write(path, &md) {
+                    eprintln!("write error: {e}");
+                } else {
+                    println!("wrote {path:?}");
+                }
+            }
+            Err(e) => eprintln!("export error: {e}"),
+        },
         _ => {
-            eprintln!("unknown export format: {format} (use svg, html, png)");
+            eprintln!("unknown export format: {format} (use svg, html, png, markdown)");
             return false;
         }
     }

@@ -44,12 +44,21 @@ pub fn logo_width(rendered: &[String]) -> usize {
 
 pub fn detect(module_type: &str) -> &'static Logo {
     match module_type {
-        // Legacy OS detection for backward compatibility
-        "arch" | "cachyos" | "arcolinux" | "artix" => &ARCH_LOGO,
+        "arch" | "arcolinux" => &ARCH_LOGO,
+        "cachyos" => &CACHYOS_LOGO,
+        "artix" => &ARTIX_LOGO,
         "manjaro" => &MANJARO_LOGO,
         "endeavouros" => &ENDEAVOUROS_LOGO,
+        "garuda" => &GARUDA_LOGO,
         "debian" | "raspbian" => &DEBIAN_LOGO,
-        "ubuntu" | "linuxmint" | "pop" | "elementary" | "zorin" => &UBUNTU_LOGO,
+        "ubuntu" => &UBUNTU_LOGO,
+        "ubuntu-budgie" | "budgie" => &UBUNTU_BUDGIE_LOGO,
+        "ubuntu-mate" | "ubuntumate" => &UBUNTU_MATE_LOGO,
+        "ubuntu-kylin" | "kylin" => &UBUNTU_KYLIN_LOGO,
+        "linuxmint" => &LINUX_MINT_LOGO,
+        "pop" | "popos" | "pop_os" => &POP_OS_LOGO,
+        "elementary" | "elementaryos" => &ELEMENTARY_LOGO,
+        "zorin" | "zorinos" => &ZORIN_LOGO,
         "fedora" => &FEDORA_LOGO,
         "nixos" => &NIXOS_LOGO,
         "gentoo" => &GENTOO_LOGO,
@@ -58,6 +67,19 @@ pub fn detect(module_type: &str) -> &'static Logo {
         "centos" => &CENTOS_LOGO,
         "opensuse" | "opensuse-leap" | "opensuse-tumbleweed" => &OPENSUSE_LOGO,
         "kali" => &KALI_LOGO,
+        "mx" | "mxlinux" | "mx-linux" => &MX_LINUX_LOGO,
+        "antix" => &ANTIX_LOGO,
+        "pclinuxos" | "pclinux" => &PCLINUXOS_LOGO,
+        "slackware" => &SLACKWARE_LOGO,
+        "puppy" | "puppylinux" | "puppy-linux" => &PUPPY_LOGO,
+        "tinycore" | "tinycorelinux" | "tiny-core" => &TINYCORE_LOGO,
+        "archarm" | "arch-arm" | "archlinuxarm" => &ARCH_ARM_LOGO,
+        "biglinux" => &BIGLINUX_LOGO,
+        "linuxlite" | "linux-lite" | "lite" => &LINUX_LITE_LOGO,
+        "peppermint" => &PEPPERMINT_LOGO,
+        "bodhi" | "bodhilinux" | "bodhi-linux" => &BODHI_LOGO,
+        "trisquel" | "trisquelinux" => &TRISQUEL_LOGO,
+        "pureos" | "pure-os" => &PUREOS_LOGO,
         _ if cfg!(target_os = "macos") => &MACOS_LOGO,
         _ => &GENERIC_LOGO,
     }
@@ -86,6 +108,7 @@ const RED: &str = "\x1b[31m";
 const GREEN: &str = "\x1b[32m";
 const BLUE: &str = "\x1b[34m";
 const MAGENTA: &str = "\x1b[35m";
+const YELLOW: &str = "\x1b[33m";
 
 const GENERIC_LOGO: Logo = Logo {
     lines: &[
@@ -246,6 +269,72 @@ const UBUNTU_LOGO: Logo = Logo {
         "",
     ],
     colors: &[RED, RESET, WHITE],
+};
+
+const UBUNTU_BUDGIE_LOGO: Logo = Logo {
+    lines: &[
+        "                  ${1}     ${2}",
+        "               ${1}(  _ _  )${2}   ",
+        "              ${1}/ ( o o ) \\${2}  ",
+        "             ${1}/ /  ===  \\ \\${2} ",
+        "            ${1}/ / /\\   /\\ \\ \\${2}",
+        "           ${1}/ / /  \\ /  \\ \\ \\${2}",
+        "          ${1}/_/ /    V    \\ \\_\\${2}",
+        "          ${1}  / /\\       /\\ \\${2} ",
+        "         ${1} / /  \\_____/  \\ \\${2}",
+        "        ${1}/_/             \\_\\${2}",
+        "        ${1}| B U D G I E     |${2}",
+        "        ${1}|_________________|${2}",
+        "         ${1}/                 \\${2}",
+        "        ${1}/                   \\${2}",
+        "       ${1}/_____________________\\${2}",
+        "",
+    ],
+    colors: &[RED, RESET, WHITE],
+};
+
+const UBUNTU_MATE_LOGO: Logo = Logo {
+    lines: &[
+        "                  ${1}     ${2}",
+        "               ${1}(  _ _  )${2}   ",
+        "              ${1}/ ( o o ) \\${2}  ",
+        "             ${1}/ /  ===  \\ \\${2} ",
+        "            ${1}/ / /\\   /\\ \\ \\${2}",
+        "           ${1}/ / /  \\ /  \\ \\ \\${2}",
+        "          ${1}/_/ /    V    \\ \\_\\${2}",
+        "          ${1}  / /\\       /\\ \\${2} ",
+        "         ${1} / /  \\_____/  \\ \\${2}",
+        "        ${1}/_/             \\_\\${2}",
+        "        ${1}| M A T E         |${2}",
+        "        ${1}|_________________|${2}",
+        "         ${1}/                 \\${2}",
+        "        ${1}/                   \\${2}",
+        "       ${1}/_____________________\\${2}",
+        "",
+    ],
+    colors: &[GREEN, RESET, WHITE],
+};
+
+const UBUNTU_KYLIN_LOGO: Logo = Logo {
+    lines: &[
+        "                  ${1}     ${2}",
+        "               ${1}(  _ _  )${2}   ",
+        "              ${1}/ ( o o ) \\${2}  ",
+        "             ${1}/ /  ===  \\ \\${2} ",
+        "            ${1}/ / /\\   /\\ \\ \\${2}",
+        "           ${1}/ / /  \\ /  \\ \\ \\${2}",
+        "          ${1}/_/ /    V    \\ \\_\\${2}",
+        "          ${1}  / /\\       /\\ \\${2} ",
+        "         ${1} / /  \\_____/  \\ \\${2}",
+        "        ${1}/_/             \\_\\${2}",
+        "        ${1}| K Y L I N       |${2}",
+        "        ${1}|_________________|${2}",
+        "         ${1}/                 \\${2}",
+        "        ${1}/                   \\${2}",
+        "       ${1}/_____________________\\${2}",
+        "",
+    ],
+    colors: &[CYAN, RESET, WHITE],
 };
 
 const FEDORA_LOGO: Logo = Logo {
@@ -420,6 +509,292 @@ const KALI_LOGO: Logo = Logo {
         "",
     ],
     colors: &[BLUE, RESET, WHITE],
+};
+
+const LINUX_MINT_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1}        ${2}",
+        "           ${1}  .--.  ${2}",
+        "          ${1} /    \\ ${2}",
+        "         ${1}| MINT |${2} ",
+        "         ${1} \\    / ${2}",
+        "          ${1} '--'  ${2}",
+        "        ${1} L  I  N  U  X${2}",
+        "        ${1} M  I  N  T  ${2}",
+        "        ${1}____________${2}",
+    ],
+    colors: &[GREEN, RESET, WHITE],
+};
+
+const POP_OS_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  ______${2}",
+        "          ${1} /      \\${2}",
+        "         ${1}| POP_OS |${2}",
+        "         ${1}|   POP  |${2}",
+        "          ${1} \\____/ ${2}",
+        "           ${1}  ||  ${2}",
+        "           ${1}  ||  ${2}",
+        "         ${1} P O P ! _ O S${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[CYAN, RESET, WHITE],
+};
+
+const ELEMENTARY_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  .--. ${2}",
+        "          ${1} /    \\${2}",
+        "         ${1}| e e  |${2}",
+        "         ${1}|  __  |${2}",
+        "          ${1}\\ __/ ${2}",
+        "           ${1}'--' ${2}",
+        "        ${1} E L E M E N T A R Y${2}",
+        "        ${1}____________________${2}",
+    ],
+    colors: &[WHITE, RESET, CYAN],
+};
+
+const ZORIN_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1}  ____  ${2}",
+        "           ${1} / Z  \\ ${2}",
+        "          ${1}| O R |${2} ",
+        "          ${1}| I N |${2} ",
+        "           ${1} \\____/ ${2}",
+        "            ${1} |  | ${2}",
+        "        ${1} Z O R I N   O S${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[BLUE, RESET, WHITE],
+};
+
+const CACHYOS_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1}   /\\   ${2}",
+        "          ${1}  /  \\  ${2}",
+        "         ${1} / /\\ \\ ${2}",
+        "        ${1}/ /  \\ \\${2}",
+        "        ${1}\\ \\ CACHY / /${2}",
+        "         ${1}\\ \\  / /${2}",
+        "          ${1}\\ \\/ / ${2}",
+        "           ${1} \\/  ${2}",
+        "        ${1} C A C H Y O S${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[CYAN, RESET, WHITE],
+};
+
+const ARTIX_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1}   /\\   ${2}",
+        "          ${1}  /  \\  ${2}",
+        "         ${1} / /\\ \\ ${2}",
+        "        ${1}/ /  \\ \\${2}",
+        "        ${1}\\ \\ ARTIX / /${2}",
+        "         ${1}\\ \\  / /${2}",
+        "          ${1}\\ \\/ / ${2}",
+        "           ${1} \\/  ${2}",
+        "        ${1} A R T I X${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[RED, RESET, WHITE],
+};
+
+const GARUDA_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1}    |\\  ${2}",
+        "           ${1} /|  | \\ ${2}",
+        "          ${1}/ |G |  \\${2}",
+        "         ${1}  | A  R |${2}",
+        "          ${1}\\| U  D|/${2}",
+        "           ${1} | A | ${2}",
+        "            ${1}/|   |\\${2}",
+        "           ${1}/ |   | \\${2}",
+        "        ${1} G A R U D A${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[MAGENTA, RESET, WHITE],
+};
+
+const MX_LINUX_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  _____  ${2}",
+        "          ${1} | MX  | ${2}",
+        "          ${1} |__ __| ${2}",
+        "          ${1}  |  |  ${2}",
+        "          ${1}  |__|  ${2}",
+        "        ${1} M X   L I N U X${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[WHITE, RESET, CYAN],
+};
+
+const ANTIX_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  .-. ${2}",
+        "          ${1} ( a )${2}",
+        "          ${1}  '-' ${2}",
+        "          ${1} /   \\${2}",
+        "         ${1}/  X  \\${2}",
+        "        ${1}/ /   \\ \\${2}",
+        "        ${1}a n t i X${2}",
+        "        ${1}____________${2}",
+    ],
+    colors: &[CYAN, RESET, WHITE],
+};
+
+const PCLINUXOS_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  _____  ${2}",
+        "          ${1} | P C | ${2}",
+        "          ${1} |_____| ${2}",
+        "          ${1}  |   | ${2}",
+        "          ${1}  |___| ${2}",
+        "        ${1} P C L I N U X O S${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[GREEN, RESET, WHITE],
+};
+
+const SLACKWARE_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1} /-------\\ ${2}",
+        "           ${1} |  SLK  |${2} ",
+        "          ${1} |-------|${2}  ",
+        "          ${1} |  /\\ |${2}   ",
+        "          ${1} | / \\|${2}    ",
+        "          ${1} |/   \\${2}    ",
+        "        ${1} S L A C K W A R E${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[BLUE, RESET, WHITE],
+};
+
+const PUPPY_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  /\\_/\\ ${2}",
+        "          ${1} ( o.o )${2}",
+        "          ${1}  > ^ < ${2}",
+        "          ${1} /|   |\\${2}",
+        "         ${1}/ | P | \\${2}",
+        "           ${1}|_____|${2}",
+        "        ${1} P U P P Y   L I N U X${2}",
+        "        ${1}______________________${2}",
+    ],
+    colors: &[WHITE, RESET, CYAN],
+};
+
+const TINYCORE_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1}  ____  ${2}",
+        "           ${1} | TC | ${2}",
+        "           ${1} |____| ${2}",
+        "            ${1}  ||  ${2}",
+        "            ${1}  ||  ${2}",
+        "        ${1} T I N Y   C O R E${2}",
+        "        ${1}____________________${2}",
+    ],
+    colors: &[WHITE, RESET, GREEN],
+};
+
+const ARCH_ARM_LOGO: Logo = Logo {
+    lines: &[
+        "            ${1}   /\\   ${2}",
+        "          ${1}  /  \\  ${2}",
+        "         ${1} / /\\ \\ ${2}",
+        "        ${1}/ /  \\ \\${2}",
+        "        ${1}\\ \\ ARM / /${2}",
+        "         ${1}\\ \\  / /${2}",
+        "          ${1}\\ \\/ / ${2}",
+        "           ${1} \\/  ${2}",
+        "        ${1} A R C H   A R M${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[CYAN, RESET, WHITE],
+};
+
+const BIGLINUX_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  ____  ${2}",
+        "          ${1} | B  | ${2}",
+        "          ${1} | I  | ${2}",
+        "          ${1} | G  | ${2}",
+        "          ${1} |____| ${2}",
+        "        ${1} B I G   L I N U X${2}",
+        "        ${1}__________________${2}",
+    ],
+    colors: &[GREEN, RESET, WHITE],
+};
+
+const LINUX_LITE_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  ____  ${2}",
+        "          ${1} |    | ${2}",
+        "          ${1} | L  | ${2}",
+        "          ${1} |____| ${2}",
+        "          ${1}  |  | ${2}",
+        "          ${1}  |__| ${2}",
+        "        ${1} L I N U X   L I T E${2}",
+        "        ${1}____________________${2}",
+    ],
+    colors: &[WHITE, RESET, YELLOW],
+};
+
+const PEPPERMINT_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  .-. ${2}",
+        "          ${1} ( P )${2}",
+        "          ${1}  '-' ${2}",
+        "          ${1} /   \\${2}",
+        "         ${1}/     \\${2}",
+        "        ${1}/  P P \\${2}",
+        "        ${1}p e p p e r m i n t${2}",
+        "        ${1}____________${2}",
+    ],
+    colors: &[RED, RESET, WHITE],
+};
+
+const BODHI_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  .--. ${2}",
+        "          ${1} ( B  )${2}",
+        "          ${1}  '--' ${2}",
+        "          ${1} /    \\${2}",
+        "         ${1}/  OD  \\${2}",
+        "        ${1}/   HI   \\${2}",
+        "        ${1}b o d h i${2}",
+        "        ${1}____________${2}",
+    ],
+    colors: &[GREEN, RESET, WHITE],
+};
+
+const TRISQUEL_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  .--. ${2}",
+        "          ${1} / T  \\${2}",
+        "         ${1}| R   |${2}",
+        "         ${1}| I   |${2}",
+        "          ${1} \\ S / ${2}",
+        "           ${1}  '-' ${2}",
+        "        ${1} T R I S Q U E L${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[BLUE, RESET, WHITE],
+};
+
+const PUREOS_LOGO: Logo = Logo {
+    lines: &[
+        "           ${1}  .--. ${2}",
+        "          ${1} / P  \\${2}",
+        "         ${1}| U   |${2}",
+        "         ${1}| R   |${2}",
+        "          ${1} \\ E / ${2}",
+        "           ${1}  '-' ${2}",
+        "        ${1} P U R E   O S${2}",
+        "        ${1}________________${2}",
+    ],
+    colors: &[CYAN, RESET, WHITE],
 };
 
 const MACOS_LOGO: Logo = Logo {

@@ -1,0 +1,130 @@
+.TH FLEXFETCH 1 "July 2026" "flexfetch 0.7.0" "User Commands"
+.SH NAME
+flexfetch \- fast, flexible system information tool
+.SH SYNOPSIS
+.B flexfetch
+.RI [ OPTIONS ]
+.SH DESCRIPTION
+.B flexfetch
+displays system information with customizable themes and output formats.
+It collects data about the operating system, hardware, and environment,
+then renders it through configurable templates.
+.PP
+Modules can be selected individually, via presets, or via module groups.
+Output can be piped, exported to SVG/HTML/PNG, or displayed with themed
+formatting.
+.SH OPTIONS
+.TP
+.BR \-c ", " \-\-config " " \fIPATH\fR
+Path to configuration file.
+.TP
+.BR \-m ", " \-\-modules " " \fIMODULES\fR
+Colon-separated list of modules to display.
+.TP
+.BR \-t ", " \-\-template " " \fIPATH\fR
+Path to custom Tera template file.
+.TP
+.BR \-f ", " \-\-format " " \fIFORMAT\fR
+Output format: \fBtext\fR (default), \fBjson\fR, \fBsvg\fR, \fBhtml\fR, \fBpng\fR.
+.TP
+.BI \-\-theme " " \fINAME\fR
+Apply a color theme.
+.TP
+.B \-\-debug
+Enable debug output.
+.TP
+.B \-\-gen-config
+Generate default configuration file at ~/.config/flexfetch/config.toml.
+.TP
+.B \-\-list-modules
+List all available modules.
+.TP
+.B \-\-list-presets
+List all available presets (built-in and user-defined).
+.TP
+.B \-\-benchmark
+Run a performance benchmark of each module.
+.TP
+.B \-\-pipe
+Force pipe mode (no colors, no boxes).
+.TP
+.B \-\-minimal
+Show minimal set: os, kernel, uptime.
+.TP
+.B \-\-full
+Show all default modules.
+.TP
+.B \-\-dev
+Show developer set: os, cpu, memory, disk, shell, terminal.
+.TP
+.BI \-\-preset " " \fINAME\fR
+Use a named preset. Built-in: default, minimal, full, dev, server, laptop.
+.TP
+.BI \-\-export " " \fIFORMAT\fR
+Export output to file (svg, html, png).
+.TP
+.BR \-o ", " \-\-output " " \fIPATH\fR
+Output file path (used with --export).
+.TP
+.B \-\-no-gradient
+Disable gradient title rendering.
+.TP
+.B \-\-no-progress
+Disable progress bar rendering.
+.TP
+.BI \-\-box-style " " \fISTYLE\fR
+Box rendering style: rounded, sharp, double, heavy.
+.TP
+.B \-\-pixel-logo
+Enable pixel art logo.
+.TP
+.BI \-\-palette-style " " \fISTYLE\fR
+Color palette style: gradient, solid, ansi.
+.TP
+.BI \-\-frame " " \fISTYLE\fR
+Frame style: none, single, double, rounded.
+.TP
+.BR \-V ", " \-\-version
+Show version information.
+.TP
+.BR \-h ", " \-\-help
+Show help message.
+.SH CONFIGURATION
+Configuration is loaded from ~/.config/flexfetch/config.toml.
+Use \fBflexfetch --gen-config\fR to create a default configuration.
+.PP
+Presets are stored in ~/.config/flexfetch/presets/ as .toml files.
+.SH EXAMPLES
+Display default modules:
+.PP
+.RS 4
+flexfetch
+.RE
+.PP
+Show only CPU and memory:
+.PP
+.RS 4
+flexfetch -m cpu:memory
+.RE
+.PP
+Export to SVG:
+.PP
+.RS 4
+flexfetch --export svg -o system.svg
+.RE
+.PP
+Use server preset:
+.PP
+.RS 4
+flexfetch --preset server
+.RE
+.PP
+Pipe-friendly output:
+.PP
+.RS 4
+flexfetch --pipe | head -20
+.RE
+.SH AUTHORS
+Written by Mahesh Diwan and contributors.
+.SH VERSION
+flexfetch 0.7.0
