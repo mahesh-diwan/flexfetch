@@ -31,7 +31,7 @@
 {%- endfor %}
 {%- endif %}
 {%- if memory %}
-├─{{ icon_memory }} Memory: {{ memory.used }} / {{ memory.total }} ({{ memory.percent }}) {{ memory.percent_int | default(value="0") | progress_bar(width=10) }}
+├─{{ icon_memory }} Memory: {{ memory.used }} / {{ memory.total }} ({{ memory.percent }})
 {%- if memory.swap_percent %}
 ├─{{ icon_swap }} Swap: {{ memory.swap_used }} / {{ memory.swap_total }} ({{ memory.swap_percent }})
 {%- endif %}
@@ -40,13 +40,9 @@
 ├─{{ icon_swap }} Swap: {{ memory.swap_used }} / {{ memory.swap_total }} ({{ memory.swap_percent }})
 {%- endif %}
 {%- endif %}
-{%- if disk %}
 {%- for mount in disk %}
 ├─{{ icon_disk }} {{ mount }}
 {%- endfor %}
-{%- else %}
-├─{{ icon_disk }} Disk: N/A
-{%- endif %}
 
 {%- if network %}
 ├─{{ icon_network }} Network:
@@ -60,7 +56,7 @@
 {%- endif %}
 {%- if battery %}
 {%- if battery.percent %}
-├─{{ icon_battery }} Battery: {{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %} {{ battery.percent_int | default(value="0") | progress_bar(width=10) }}
+├─{{ icon_battery }} Battery: {{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}
 {%- else %}
 ├─{{ icon_battery }} Battery: {{ battery }}
 {%- endif %}
@@ -75,10 +71,8 @@
 {%- elif bluetooth %}
 ├─{{ icon_bluetooth | default(value="󰂯") }} Bluetooth: {{ bluetooth }}
 {%- endif %}
-{%- if media and media.title %}
-├─{{ icon_media | default(value="󰎆") }} Media: {{ media.artist | default(value="") }}{% if media.title %} — {{ media.title }}{% endif %}{% if media.status %} [{{ media.status }}]{% endif %}
-{%- elif media %}
-├─{{ icon_media | default(value="󰎆") }} Media: {{ media }}
+{%- if media and media.player %}
+├─{{ icon_media | default(value="󰎆") }} Media: {% if media.artist %}{{ media.artist }}{% if media.title %} — {{ media.title }}{% endif %}{% elif media.title %}{{ media.title }}{% else %}{{ media.player }}{% endif %}{% if media.status %} [{{ media.status }}]{% endif %}
 {%- endif %}
 {%- if processes %}
 ╰─{{ icon_processes }} Processes: {{ processes }}

@@ -87,7 +87,7 @@ struct Cli {
 fn main() {
     // Handle --version before clap to show features
     if std::env::args().any(|a| a == "--version" || a == "-V") {
-        let features = vec!["lua", "tera", "image-logos", "watch"];
+        let features = ["lua", "tera", "image-logos", "watch"];
         println!(
             "flexfetch {}\nFeatures: {}",
             env!("CARGO_PKG_VERSION"),

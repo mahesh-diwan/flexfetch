@@ -74,14 +74,14 @@ impl Module for TemperatureModule {
                     let trimmed = line.trim();
                     if trimmed.contains("temp1:") && !map.contains_key("cpu") {
                         if let Some(val) = trimmed.split("temp1:").nth(1) {
-                            let val = val.trim().split_whitespace().next().unwrap_or("");
+                            let val = val.split_whitespace().next().unwrap_or("");
                             if !val.is_empty() {
                                 map.insert("cpu".into(), format!("{}°C", val));
                             }
                         }
                     } else if trimmed.contains("fan1:") && !map.contains_key("fan") {
                         if let Some(val) = trimmed.split("fan1:").nth(1) {
-                            let val = val.trim().split_whitespace().next().unwrap_or("");
+                            let val = val.split_whitespace().next().unwrap_or("");
                             if !val.is_empty() {
                                 map.insert("fan".into(), format!("{} RPM", val));
                             }
