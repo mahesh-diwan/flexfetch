@@ -176,3 +176,25 @@ jobs:
               print(f'::error::cold start {mean*1000:.2f} ms exceeds the {limit*1000:.0f} ms gate')
               raise SystemExit(1)
           EOF
+
+  # Phase 5.1: validate the Nix flake (packages.default/full/minimal + Home
+  # Manager module) on every push/PR. The dev box has no nix, so CI is where the
+  # flake is actually built; cargo tests/clippy run in the other jobs above.
+  nix-flake:
+    name: nix-flake
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v16
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
+
+      - name: Build default package (release config)
+        run: nix build .#default --no-link
+
+      - name: Build minimal package
+        run: nix build .#minimal --no-link
+
+      - name: Check the flake evaluates (incl. Home Manager module)
+        run: nix flake check

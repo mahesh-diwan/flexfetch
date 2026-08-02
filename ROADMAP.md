@@ -362,6 +362,91 @@ runners flake rather than deleting the gate).
 
 ---
 
+## Phase 5 — Ecosystem (stored Aug 2026, not yet started)
+
+> Goal: turn flexfetch from a tool into an **ecosystem** — distribution channels,
+> intelligence, and community extension points. All tasks ⬜ pending unless marked
+> otherwise. The full original plan text is in the chat history; this section is the
+> canonical index + status tracker.
+
+### Pillar F — Distribution & lock-in
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 5.1 | **Nix flake + Home Manager module**: `flake.nix` (rustPlatform.buildRustPackage, cargoLock) + `homeManagerModules.default` writing `~/.config/flexfetch/config.toml` from `programs.flexfetch.settings` | ⬜ |
+| 5.2 | **GitHub Action (`flexfetch-action`)**: composite action running flexfetch in CI with a `github` output format (::group:: annotations); separate marketplace repo | ⬜ |
+| 5.3 | **Tmux integration**: `--tmux-config` snippet + tiny `flexfetch-tmux` helper binary showing the fetch in idle panes | ⬜ |
+
+### Pillar G — Intelligence & context
+
+| Task | What | Feature gate | Status |
+| ---- | ---- | ------------ | ------ |
+| 5.4 | **Wallpaper auto-theming** (`--auto-theme`): color-thief dominant colors → on-the-fly theme, cached to `/tmp` by wallpaper mtime | `auto-theme` (image) | ⬜ |
+| 5.5 | **SQLite metrics history** (`history.db`): snapshots table, `--history-graph cpu|memory --hours N` ASCII sparkline, `--history-export csv`, 90-day prune | `history` (rusqlite) | ⬜ |
+| 5.6 | **Critical health notifications** (`--daemon`): notify-rust/mac-notification-sys on threshold breach (cpu/mem/disk/temp), 60 s poll | `notifications` | ⬜ |
+
+### Pillar H — Community & extensibility
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 5.7 | **Plugin registry**: `flexfetch plugin search|install|list|update` against a hosted `registry.toml` with checksum + min-version checks | ⬜ |
+| 5.8 | **Crowdsourced hardware DB**: compressed JSON on GitHub Pages (`hardware.json.zst`, ~50 KB), `--update-db`, cache + offline hex fallback | ⬜ |
+| 5.9 | **AUR PKGBUILD + Homebrew tap**: native package-manager installs | ⬜ |
+
+### Pillar I — Unfair advantages
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 5.10 | **ASCII cinema** (`--live --record session.cast`): asciinema v2-format recording of the live dashboard | ⬜ |
+| 5.11 | **Container image**: static musl → scratch `~1 MB` image, GHCR publishing in CI (`ghcr.io/mahesh-diwan/flexfetch`) | ⬜ |
+
+### Execution priority
+
+| Week | Focus | Tasks |
+| ---- | ----- | ----- |
+| 9 | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container) |
+| 10 | Integration | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB) |
+| 11 | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) |
+| 12 | Community | 5.7 (Plugin Registry), 5.10 (ASCII Cinema) |
+
+**Immediate next step: Task 5.1 (Nix Flake) + Task 5.9 (AUR/Homebrew)** — unlock the
+hardest-to-reach users (NixOS and Arch) who are also the most likely evangelists.
+
+### Task 5.1 — Nix flake + Home Manager module — 🟡 (Aug 2026, first batch)
+`flake.nix` at repo root: `rustPlatform.buildRustPackage` with `cargoLock.lockFile =
+./Cargo.lock`, version pulled from `Cargo.toml`'s `[workspace.package]`; exposes
+`packages.default` (release config: `--no-default-features --features
+live,image-logos,completions`), `packages.full` (default features, incl. Lua) and
+`packages.minimal`; plus a single system-agnostic `homeManagerModules.default`
+writing the user config from `programs.flexfetch.settings` via
+`lib.generators.toTOML`. CI validates with `DeterminateSystems/nix-installer-action`
+(`nix build .#default` + `.#minimal` + `nix flake check`).
+
+Pending: **generate + commit `flake.lock`** (no nix on the dev box, so CI generates
+it on the fly — builds aren't pinned until it's committed; run `nix flake lock` on
+a nix machine once).
+
+### Task 5.9 — AUR PKGBUILD + Homebrew tap — 🟡 (Aug 2026, first batch)
+`packaging/PKGBUILD` (arch: x86_64 aarch64; source tarball checksum pinned;
+install: binary + man page + completions — note: **no** `assets/themes`/`assets/logos`
+dirs exist, themes are embedded consts, so those install lines from the plan were
+dropped) and `packaging/flexfetch.rb` (Homebrew formula: `cargo build` the release
+config, install bin + man + completions). Publishing to AUR (`git push` to
+aur.archlinux.org) and the `homebrew-flexfetch` tap repo are separate repo actions;
+the files ship in-repo so the packages can be cut from any release.
+
+### Task 5.11 — Container image + GHCR — 🟡 (Aug 2026, first batch)
+`Dockerfile` builds the **minimal** static musl binary (`--no-default-features`,
+no TUI needed in a container) into a `scratch` image; `release.yml` gains a `docker`
+job (tag-push gated) that builds + pushes `ghcr.io/mahesh-diwan/flexfetch:{tag}`
+and `:latest` on tag pushes, multi-arch amd64+arm64 via QEMU. Locally validated:
+builds + runs, 2.67 MB image. Usage:
+`docker run --rm -it ghcr.io/mahesh-diwan/flexfetch`. Note: the arm64 variant
+compiles the Rust tree under QEMU emulation on the release job (slower); if release
+latency matters, cross-compile with cargo-zigbuild in the Dockerfile instead.
+
+---
+
 ## Rejected / decisions (do not re-propose without new justification)
 
 | Idea | Why rejected |
