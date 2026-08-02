@@ -1,47 +1,138 @@
 #compdef flexfetch
 
+autoload -U is-at-least
+
 _flexfetch() {
-    _arguments \
-        '(-c --config)'{-c,--config}'[config file path]:file:_files' \
-        '(-m --modules)'{-m,--modules}'[module list, colon-separated]:modules:_flexfetch_modules' \
-        '(-t --template)'{-t,--template}'[template file path]:file:_files' \
-        '(-f --format)'{-f,--format}'[output format]:format:(text json svg html png)' \
-        '--theme[theme name]:theme:' \
-        '--debug[enable debug output]' \
-        '--gen-config[generate default config]' \
-        '--list-modules[list available modules]' \
-        '--list-presets[list available presets]' \
-        '--benchmark[run benchmark]' \
-        '--pipe[force pipe mode]' \
-        '--minimal[minimal module set]' \
-        '--full[all default modules]' \
-        '--dev[developer module set]' \
-        '--preset[use named preset]:preset:_flexfetch_presets' \
-        '--export[export to file]:format:(svg html png)' \
-        '(-o --output)'{-o,--output}'[output file path]:file:_files' \
-        '--no-gradient[disable gradient title]' \
-        '--no-progress[disable progress bars]' \
-        '--box-style[box rendering style]:style:(rounded sharp double heavy)' \
-        '--pixel-logo[enable pixel art logo]' \
-        '--palette-style[color palette style]:style:(gradient solid ansi)' \
-        '--frame[frame style]:style:(none single double rounded)' \
-        '(-V --version)'{-V,--version}'[show version]' \
-        '(-h --help)'{-h,--help}'[show help]' && ret=0
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" : \
+'-c+[]:CONFIG:_default' \
+'--config=[]:CONFIG:_default' \
+'-m+[]:MODULES:_default' \
+'--modules=[]:MODULES:_default' \
+'-t+[]:TEMPLATE:_default' \
+'--template=[]:TEMPLATE:_default' \
+'-f+[]:FORMAT:_default' \
+'--format=[]:FORMAT:_default' \
+'--theme=[]:THEME:_default' \
+'--benchmark=[Micro-benchmark\: \`--benchmark\` (per-module timing) or \`--benchmark N\` (run each module N times, report min/avg/total)]::BENCHMARK:_default' \
+'--preset=[]:PRESET:_default' \
+'--export=[]:EXPORT:_default' \
+'-o+[]:OUTPUT:_files' \
+'--output=[]:OUTPUT:_files' \
+'--box-style=[]:BOX_STYLE:_default' \
+'--palette-style=[]:PALETTE_STYLE:_default' \
+'--frame=[]:FRAME:_default' \
+'--watch-interval=[]:WATCH_INTERVAL:_default' \
+'*--ssh=[Fetch remote system info via SSH (repeatable, parallel)]:SSH:_default' \
+'--debug[]' \
+'--gen-config[]' \
+'--list-modules[]' \
+'--list-presets[]' \
+'--pipe[]' \
+'--minimal[]' \
+'--full[]' \
+'--dev[]' \
+'--no-gradient[]' \
+'--no-progress[]' \
+'--pixel-logo[]' \
+'--watch[]' \
+'--live[Live dashboard\: real-time CPU/memory gauges, top processes, network rates]' \
+'--smart[Smart fetch\: add \$PWD context (git branch/status, project type, container/venv/SSH)]' \
+'--health[Add the system health module (score 0-100\: disk/swap/load/battery)]' \
+'--prompt[Single-line prompt string (e.g. \`🐧 arch | CPU 12% | RAM 3.2G\`)]' \
+'--motd[Plain-text banner (ANSI colors stripped) for MOTD/startup]' \
+'--wizard[Interactive config wizard (writes ~/.config/flexfetch/config.toml)]' \
+'-h[Print help]' \
+'--help[Print help]' \
+":: :_flexfetch_commands" \
+"*::: :->flexfetch" \
+&& ret=0
+    case $state in
+    (flexfetch)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:flexfetch-command-$line[1]:"
+        case $line[1] in
+            (completions)
+_arguments "${_arguments_options[@]}" : \
+'-h[Print help]' \
+'--help[Print help]' \
+':shell:(bash elvish fish powershell zsh)' \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" : \
+":: :_flexfetch__subcmd__help_commands" \
+"*::: :->help" \
+&& ret=0
+
+    case $state in
+    (help)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:flexfetch-help-command-$line[1]:"
+        case $line[1] in
+            (completions)
+_arguments "${_arguments_options[@]}" : \
+&& ret=0
+;;
+(help)
+_arguments "${_arguments_options[@]}" : \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+        esac
+    ;;
+esac
 }
 
-_flexfetch_modules() {
-    local modules=(
-        os host kernel uptime locale cpu memory disk gpu network
-        battery processes packages shell terminal de wm colors custom
+(( $+functions[_flexfetch_commands] )) ||
+_flexfetch_commands() {
+    local commands; commands=(
+'completions:Generate shell completions for the given shell' \
+'help:Print this message or the help of the given subcommand(s)' \
     )
-    _values -s ':' modules[@]
+    _describe -t commands 'flexfetch commands' commands "$@"
 }
-
-_flexfetch_presets() {
-    local presets=(
-        default minimal full dev server laptop
+(( $+functions[_flexfetch__subcmd__completions_commands] )) ||
+_flexfetch__subcmd__completions_commands() {
+    local commands; commands=()
+    _describe -t commands 'flexfetch completions commands' commands "$@"
+}
+(( $+functions[_flexfetch__subcmd__help_commands] )) ||
+_flexfetch__subcmd__help_commands() {
+    local commands; commands=(
+'completions:Generate shell completions for the given shell' \
+'help:Print this message or the help of the given subcommand(s)' \
     )
-    _describe 'preset' presets
+    _describe -t commands 'flexfetch help commands' commands "$@"
+}
+(( $+functions[_flexfetch__subcmd__help__subcmd__completions_commands] )) ||
+_flexfetch__subcmd__help__subcmd__completions_commands() {
+    local commands; commands=()
+    _describe -t commands 'flexfetch help completions commands' commands "$@"
+}
+(( $+functions[_flexfetch__subcmd__help__subcmd__help_commands] )) ||
+_flexfetch__subcmd__help__subcmd__help_commands() {
+    local commands; commands=()
+    _describe -t commands 'flexfetch help help commands' commands "$@"
 }
 
-_flexfetch "$@"
+if [ "$funcstack[1]" = "_flexfetch" ]; then
+    _flexfetch "$@"
+else
+    compdef _flexfetch flexfetch
+fi

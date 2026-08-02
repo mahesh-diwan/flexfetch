@@ -25,7 +25,9 @@ fn test_config_default() {
 #[test]
 fn test_module_registry_exists() {
     let registry = ModuleRegistry::get();
-    let modules = vec!["os", "cpu", "memory", "colors", "disk", "network"];
+    let modules = vec![
+        "os", "cpu", "memory", "colors", "disk", "network", "git", "project", "context",
+    ];
     for module in modules {
         let result = registry.run_individual(module, &create_test_context());
         assert!(result.is_some(), "Module {} should return a value", module);

@@ -38,6 +38,10 @@ fn extract_template_modules(template_str: &str) -> HashSet<String> {
         "swap",
         "publicip",
         "wifi",
+        "git",
+        "project",
+        "context",
+        "health",
     ];
     for word in known {
         if template_str.contains(word) {
@@ -185,6 +189,22 @@ impl ModuleRegistry {
                 "wifi",
                 Box::new(crate::modules::wifi::WifiModule) as Box<dyn Module>,
             ),
+            (
+                "git",
+                Box::new(crate::modules::git::GitModule) as Box<dyn Module>,
+            ),
+            (
+                "project",
+                Box::new(crate::modules::project::ProjectModule) as Box<dyn Module>,
+            ),
+            (
+                "context",
+                Box::new(crate::modules::context::ContextModule) as Box<dyn Module>,
+            ),
+            (
+                "health",
+                Box::new(crate::modules::health::HealthModule) as Box<dyn Module>,
+            ),
         ];
 
         ModuleRegistry { builders }
@@ -200,29 +220,35 @@ impl ModuleRegistry {
         ctx: &Context,
         template_content: &str,
     ) -> SystemInfo {
-        use rayon::prelude::*;
         let mut info = SystemInfo::new();
 
         let template_modules = extract_template_modules(template_content);
 
-        let entries: Vec<_> = selected
-            .par_iter()
-            .filter_map(|name| {
-                if name == "separator" {
-                    return None;
-                }
-                if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
-                    return None;
-                }
-                self.builders
-                    .iter()
-                    .find(|(n, _)| n == name)
-                    .map(|(n, module)| {
-                        let result = module.collect(ctx);
-                        (*n, result)
-                    })
-            })
-            .collect();
+        // Parallel collection (rayon) when the `parallel` feature is on; the
+        // minimal build falls back to a plain sequential loop (see ROADMAP 0.2).
+        let entry = |name: &String| {
+            if name == "separator" {
+                return None;
+            }
+            if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
+                return None;
+            }
+            self.builders
+                .iter()
+                .find(|(n, _)| n == name)
+                .map(|(n, module)| {
+                    let result = module.collect(ctx);
+                    (*n, result)
+                })
+        };
+
+        #[cfg(feature = "parallel")]
+        let entries: Vec<_> = {
+            use rayon::prelude::*;
+            selected.par_iter().filter_map(entry).collect()
+        };
+        #[cfg(not(feature = "parallel"))]
+        let entries: Vec<_> = selected.iter().filter_map(entry).collect();
 
         for (name, result) in entries {
             match result {

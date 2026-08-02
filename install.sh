@@ -66,13 +66,29 @@ cleanup() {
 }
 trap cleanup INT TERM
 
-# Detect arch
-ARCH=$(uname -m)
-case "$ARCH" in
-x86_64)  ARCH_ALIAS="amd64" ;;
-aarch64) ARCH_ALIAS="aarch64" ;;
-armv7l)  ARCH_ALIAS="armv7" ;;
+# Detect OS and arch (artifact names: flexfetch-<os>-<arch>.tar.gz)
+OS_ALIAS="linux"
+case "$(uname -s)" in
+Linux)  OS_ALIAS="linux" ;;
+Darwin) OS_ALIAS="macos" ;;
 *)
+    echo "Error: unsupported OS: $(uname -s) (only Linux and macOS are supported)"
+    exit 1
+    ;;
+esac
+
+ARCH=$(uname -m)
+case "$OS_ALIAS:$ARCH" in
+linux:x86_64)  ARCH_ALIAS="amd64" ;;
+linux:aarch64) ARCH_ALIAS="aarch64" ;;
+linux:armv7l)  ARCH_ALIAS="armv7" ;;
+linux:*)
+    echo "Error: unsupported architecture: $ARCH"
+    exit 1
+    ;;
+macos:x86_64)  ARCH_ALIAS="x86_64" ;;
+macos:arm64)   ARCH_ALIAS="aarch64" ;;
+macos:*)
     echo "Error: unsupported architecture: $ARCH"
     exit 1
     ;;
@@ -130,7 +146,7 @@ else
     echo "Installing $BIN $TAG..."
 fi
 
-URL="https://github.com/$REPO/releases/download/$TAG/flexfetch-linux-${ARCH_ALIAS}.tar.gz"
+URL="https://github.com/$REPO/releases/download/$TAG/flexfetch-${OS_ALIAS}-${ARCH_ALIAS}.tar.gz"
 
 TMPDIR=$(mktemp -d)
 

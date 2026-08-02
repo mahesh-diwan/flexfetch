@@ -9615,20 +9615,6 @@ zzzzzz //   OOOOOOO  SSSSSSS",
 
 use crate::logo::Logo;
 
-/// Default fastfetch color palette (matches fastfetch's default logo colors)
-const FF_COLORS: [&'static str; 9] = [
-    "\x1b[38;2;23;147;209m",  // $1 - blue
-    "\x1b[38;2;255;255;255m", // $2 - white
-    "\x1b[38;2;38;139;210m",  // $3 - lighter blue
-    "\x1b[38;2;13;189;196m",  // $4 - cyan
-    "\x1b[38;2;23;147;209m",  // $5 - blue
-    "\x1b[38;2;255;255;255m", // $6 - white
-    "\x1b[38;2;38;139;210m",  // $7 - lighter blue
-    "\x1b[38;2;13;189;196m",  // $8 - cyan
-    "\x1b[38;2;23;147;209m",  // $9 - blue
-];
-const RESET: &str = "\x1b[0m";
-
 /// Convert a fastfetch logo string (with $1-$9 placeholders) to a Logo struct.
 /// The fastfetch logo string uses $N for colors, we convert to Logo format.
 pub fn make_logo(s: &'static str) -> &'static Logo {

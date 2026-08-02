@@ -1,2 +1,4 @@
 /target
 Cargo.lock
+# mdBook build output (book/book.toml sets build-dir = target)
+book/target

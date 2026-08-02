@@ -1,0 +1,14 @@
+[book]
+title = "flexfetch"
+description = "Fast, flexible system info tool — documentation"
+authors = ["mahesh-diwan"]
+language = "en"
+
+[build]
+build-dir = "target"
+
+[output.html]
+default-theme = "dark"
+preferred-dark-theme = "dark"
+git-repository-url = "https://github.com/mahesh-diwan/flexfetch"
+edit-url-template = "https://github.com/mahesh-diwan/flexfetch/edit/main/book/src/{path}"

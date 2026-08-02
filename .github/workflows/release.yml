@@ -2,37 +2,122 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Manual trigger: lets maintainers exercise the full 5-target matrix without tagging
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux (statically linked musl) — artifact names match install.sh.
+          # Cross-compiled with cargo-zigbuild: pure Rust compiles fine, but linking
+          # ARM objects needs a cross linker (zig provides cc/ld for any arch).
+          - name: linux-amd64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            artifact: flexfetch-linux-amd64.tar.gz
+            use_zig: true
+          - name: linux-aarch64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            artifact: flexfetch-linux-aarch64.tar.gz
+            use_zig: true
+          - name: linux-armv7
+            os: ubuntu-latest
+            target: armv7-unknown-linux-musleabihf
+            artifact: flexfetch-linux-armv7.tar.gz
+            use_zig: true
+          # macOS: single arm64 runner (macos-latest) — aarch64 builds natively,
+          # x86_64 cross-compiles via rustup target (macOS clang links both arches).
+          - name: macos-aarch64
+            os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: flexfetch-macos-aarch64.tar.gz
+            use_zig: false
+          - name: macos-x86_64
+            os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: flexfetch-macos-x86_64.tar.gz
+            use_zig: false
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Install Lua 5.4 (mlua dependency)
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq lua5.4-dev
-      - name: Build release binary
-        run: cargo build --release -p flexfetch-cli
-      - name: Set arch
+          key: cargo-registry-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # Built with --no-default-features --features live,image-logos,completions: the
+      # release excludes `lua` (mlua is dead code in flexfetch-core/cli — never called,
+      # LTO strips it — and dropping it keeps the tree pure Rust, no C code to compile)
+      # and `tera`/`parallel` (the plain renderer + sequential loops keep the shipped
+      # binary ~2 MB — see ROADMAP 0.2 diet) but INCLUDES the `live` dashboard
+      # (ratatui + crossterm are pure Rust, so the musl cross-compile is unaffected; zig
+      # is only needed as the cross linker), `image-logos` (image logos + PNG export),
+      # and `completions` (so `flexfetch completions bash` works in installed binaries).
+
+      - name: Install Zig (cross linker for musl)
+        if: matrix.use_zig
+        uses: mlugg/setup-zig@v1
+
+      - name: Install cargo-zigbuild
+        if: matrix.use_zig
+        uses: taiki-e/install-action@cargo-zigbuild
+
+      - name: Build (musl via zigbuild)
+        if: matrix.use_zig
+        run: cargo zigbuild --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions
+
+      - name: Build (native/cross via system clang)
+        if: ${{ !matrix.use_zig }}
+        run: cargo build --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions
+
+      # Size gate (Linux only, uncompressed binary): regression guard, not a diet
+      # target. After the tera/rayon gating (ROADMAP 0.2) the release build
+      # (live+image-logos+completions, no tera/parallel) is ~2 MB, minimal is
+      # ~1.5 MB, and the full default build is ~6.3 MB. 4 MB catches regressions
+      # back toward the old 8.8 MB binary while leaving headroom for the live +
+      # image-logos features. Runs before UPX so it measures the real artifact.
+      - name: Size gate
+        if: startsWith(matrix.name, 'linux')
         run: |
-          case "${{ runner.arch }}" in
-            X64) echo "ARCH=amd64" >> $GITHUB_ENV ;;
-            ARM64) echo "ARCH=aarch64" >> $GITHUB_ENV ;;
-            *) echo "ARCH=${{ runner.arch }}" >> $GITHUB_ENV ;;
-          esac
-      - name: Create tarball
+          SIZE=$(wc -c < target/${{ matrix.target }}/release/flexfetch)
+          echo "binary size: $SIZE bytes"
+          if [ "$SIZE" -gt 4194304 ]; then
+            echo "::error::binary too large ($SIZE bytes > 4 MB limit)"
+            exit 1
+          fi
+
+      # UPX compress the musl/static binaries only (UPX breaks macOS code signatures).
+      # Purely an optimization — never fails the release.
+      - name: Compress with UPX
+        if: matrix.use_zig
+        uses: svenstaro/upx-action@v2
+        with:
+          file: target/${{ matrix.target }}/release/flexfetch
+          args: --best --lzma
+        continue-on-error: true
+
+      - name: Package tarball
         run: |
           mkdir -p dist
-          cp target/release/flexfetch dist/
-          cd dist && tar czf flexfetch-linux-${{ env.ARCH }}.tar.gz flexfetch
+          cp target/${{ matrix.target }}/release/flexfetch dist/flexfetch
+          cd dist && tar czf ${{ matrix.artifact }} flexfetch
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:

@@ -54,7 +54,7 @@ pub fn detect(module_type: &str) -> &'static Logo {
     }
     // Then check fastfetch-sourced logos (527+ distros)
     if let Some(logo_str) = fastfetch_logo(module_type) {
-        return &make_logo(logo_str);
+        return make_logo(logo_str);
     }
     // macOS fallback
     if cfg!(target_os = "macos") {

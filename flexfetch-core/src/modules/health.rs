@@ -1,0 +1,128 @@
+use crate::{Context, InfoValue, Module, Result};
+use std::collections::HashMap;
+
+pub struct HealthModule;
+
+fn read_u64_file(path: &str) -> Option<u64> {
+    std::fs::read_to_string(path)
+        .ok()?
+        .trim()
+        .parse::<u64>()
+        .ok()
+}
+
+/// Disk usage % for the root filesystem (via `df -P /`).
+fn disk_usage_percent() -> Option<u8> {
+    let out = std::process::Command::new("df")
+        .args(["-P", "/"])
+        .output()
+        .ok()?;
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let line = stdout.lines().nth(1)?;
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    let pct = parts.get(4)?.trim_end_matches('%').parse::<u8>().ok()?;
+    Some(pct.min(100))
+}
+
+/// Swap usage % from /proc/meminfo (None when no swap).
+fn swap_percent() -> Option<u8> {
+    let content = std::fs::read_to_string("/proc/meminfo").ok()?;
+    let mut total = 0u64;
+    let mut free = 0u64;
+    for line in content.lines() {
+        if let Some((k, v)) = line.split_once(':') {
+            let num: u64 = v.trim().trim_end_matches(" kB").parse().ok()?;
+            match k.trim() {
+                "SwapTotal" => total = num,
+                "SwapFree" => free = num,
+                _ => {}
+            }
+        }
+    }
+    if total == 0 {
+        return None;
+    }
+    Some(((total.saturating_sub(free)) * 100 / total).min(100) as u8)
+}
+
+/// 1-minute load average normalized per logical core (1.0 = saturated).
+fn load_per_core() -> Option<f64> {
+    let content = std::fs::read_to_string("/proc/loadavg").ok()?;
+    let load: f64 = content.split_whitespace().next()?.parse().ok()?;
+    let cores = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(1);
+    Some(load / cores as f64)
+}
+
+/// Battery % (100 when charging/full so it never penalizes a plugged-in machine).
+fn battery_percent() -> Option<u8> {
+    let entries = std::fs::read_dir("/sys/class/power_supply").ok()?;
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with("BAT") {
+            let status = std::fs::read_to_string(entry.path().join("status")).unwrap_or_default();
+            let pct: u8 =
+                read_u64_file(&entry.path().join("capacity").to_string_lossy())?.min(100) as u8;
+            let charging = matches!(status.trim(), "Charging" | "Full");
+            return Some(if charging { 100 } else { pct });
+        }
+    }
+    None
+}
+
+impl Module for HealthModule {
+    fn name(&self) -> &'static str {
+        "health"
+    }
+
+    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+        let mut map = HashMap::new();
+        let mut score: i32 = 100;
+        let mut notes: Vec<String> = Vec::new();
+
+        if let Some(pct) = disk_usage_percent() {
+            map.insert("disk_pct".into(), format!("{pct}%"));
+            if pct > 90 {
+                score -= (pct - 90) as i32 * 2;
+                notes.push(format!("disk {pct}%"));
+            }
+        }
+        if let Some(pct) = swap_percent() {
+            map.insert("swap_pct".into(), format!("{pct}%"));
+            if pct > 50 {
+                score -= (pct - 50) as i32 / 2;
+                notes.push(format!("swap {pct}%"));
+            }
+        }
+        if let Some(lpc) = load_per_core() {
+            map.insert("load".into(), format!("{lpc:.2}"));
+            if lpc > 1.0 {
+                score -= ((lpc - 1.0) * 20.0) as i32;
+                notes.push(format!("load {lpc:.2}/core"));
+            }
+        }
+        if let Some(pct) = battery_percent() {
+            map.insert("battery_pct".into(), format!("{pct}%"));
+            if pct < 80 {
+                score -= (80 - pct) as i32 / 2;
+                notes.push(format!("battery {pct}%"));
+            }
+        }
+
+        let score = score.clamp(0, 100) as u8;
+        let grade = match score {
+            90..=100 => "Excellent",
+            75..=89 => "Good",
+            50..=74 => "Fair",
+            _ => "Poor",
+        };
+        map.insert("score".into(), score.to_string());
+        map.insert("grade".into(), grade.to_string());
+        if !notes.is_empty() {
+            map.insert("notes".into(), notes.join(", "));
+        }
+
+        Ok(InfoValue::Map(map))
+    }
+}

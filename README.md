@@ -28,7 +28,9 @@
 curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh
 ```
 
-Installs latest binary (~5 MB, statically linked) from [GitHub Releases](https://github.com/mahesh-diwan/flexfetch/releases). Requires `curl` + `sudo`. Works on Linux and macOS.
+Installs latest binary (~2 MB, statically linked) from [GitHub Releases](https://github.com/mahesh-diwan/flexfetch/releases). Requires `curl` + `sudo`. Works on Linux and macOS.
+
+📖 **Full documentation:** [mdBook docs site](https://mahesh-diwan.github.io/flexfetch/) — modules, templates, plugins, CLI reference, feature flags.
 
 **From source** (includes Lua plugin support):
 
@@ -60,10 +62,10 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 
 |     | Feature             | What it means                                                                                                                      |
 | --- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 🔌  | **Lua plugins**     | Write info modules in Lua. Drop a `.lua` file in `~/.config/flexfetch/plugins/` and it appears in output. No compilation. No Bash. |
+| 🔌  | **Lua plugins**     | Write info modules in Lua. Drop a `.lua` file in `~/.config/flexfetch/plugins/` and it appears in output. No compilation. No Bash. *(Source builds include Lua; prebuilt binaries exclude it.)* |
 | 📝  | **Tera templates**  | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info with right-aligned keys. |
 | 🎭  | **5 theme presets** | Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night. Switch with `--theme`. Per-field overrides with named colors.                     |
-| ⚡  | **Rust + Rayon**    | Parallel detection. Static binary, zero runtime deps. ~5 MB. No Python, no Node, no Bash.                                          |
+| ⚡  | **Rust + Rayon**    | Parallel detection. Static binary, zero runtime deps. ~1.5 MB minimal / ~6 MB full. No Python, no Node, no Bash.                     |
 
 <br>
 
@@ -79,7 +81,7 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 | **Output formats**    | text, JSON, MD, SVG, HTML, PNG | text           | text, JSON      | text     |
 | **Config**            | TOML                           | —              | JSON5           | env vars |
 | **ASCII logos**       | 38 + image support             | ~150           | ~200            | small    |
-| **Binary size**       | 5 MB                           | ~1 KB (script) | 2 MB            | 5 KB     |
+| **Binary size**       | 1.5–6 MB (by features)         | ~1 KB (script) | 2 MB            | 5 KB     |
 | **Runtime deps**      | none                           | Bash + utils   | none            | sh       |
 | **Watch mode**        | ✅                             | —              | —               | —        |
 | **Shell completions** | bash, zsh, fish                | —              | bash, zsh, fish | —        |
@@ -150,7 +152,7 @@ return {
 | `ctx.run_command(cmd)` | string  | Execute shell command    |
 | `ctx.get_env(key)`     | string  | Get environment variable |
 
-List plugins: `flexfetch --list-plugins`. Disable Lua at build time: `cargo build --release --no-default-features`.
+List plugins: `flexfetch --list-plugins`. Shrink the binary at build time with `cargo build --release -p flexfetch-cli --no-default-features` — this drops Lua, the live dashboard, image logos, the Tera template engine (plain `├─` fallback renderer), and Rayon (sequential collection) for a **~1.5 MB** minimal binary. Note: prebuilt binaries from `install.sh`/Releases are built without Lua and without tera/rayon but WITH the live dashboard, image logos, and shell-completion generation; source builds (`cargo install --git`) include everything by default (default builds compile vendored Lua, so a C compiler is required).
 
 Built with [mlua](https://github.com/khvzak/mlua) 0.10 (Lua 5.4).
 
@@ -229,7 +231,122 @@ flexfetch --watch              # refresh every 2 seconds
 flexfetch --watch --watch-interval 5  # refresh every 5 seconds
 ```
 
-Press `Ctrl+C` to stop.
+Press `Ctrl+C` to stop. Both `--watch` and `--live` hot-reload the config file:
+edit `~/.config/flexfetch/config.toml` and the change is picked up on the next
+refresh (mtime-based, no external watcher).
+
+<br>
+
+---
+
+## Smart Fetch
+
+Show context-relevant info based on the current directory:
+
+```bash
+flexfetch --smart
+```
+
+Adds three modules to the normal output (dedup'd — works with any preset or `--modules`):
+
+| Module    | Shows                                                                  |
+| --------- | ---------------------------------------------------------------------- |
+| `git`     | Branch, ahead/behind vs upstream, dirty file count (via the `git` CLI)  |
+| `project` | Project type from manifests (`Cargo.toml`, `package.json`, `go.mod`, …) |
+| `context` | Container, Python virtualenv, SSH session                               |
+
+Empty results are omitted, so nothing extra renders outside a project/container.
+
+<br>
+
+---
+
+## Health Score
+
+A 0–100 system health score from disk usage, swap, load, and battery:
+
+```bash
+flexfetch --health
+```
+
+```
+├─󰐗 Health: 92/100 (Excellent) — disk 87%
+```
+
+Score starts at 100 and deducts for disk >90%, swap >50%, load >1/core, or
+battery <80%. A grade (Excellent/Good/Fair/Poor) and the contributing notes are
+shown. It's also a regular module — add `health` to your module list or presets.
+
+<br>
+
+---
+
+## Shell Prompt & MOTD
+
+```bash
+flexfetch --prompt            # cachyos | CPU 12% | RAM 3.2 GiB/15.3 GiB
+PS1="$(flexfetch --prompt) $ "
+flexfetch --motd              # plain-text banner (ANSI stripped)
+```
+
+`--prompt` prints a single ANSI-free line (OS | CPU | RAM) for shell prompts.
+`--motd` renders the normal output with all ANSI colors stripped — drop it in
+`/etc/motd` or your shell startup.
+
+<br>
+
+---
+
+## Remote Fetch over SSH
+
+```bash
+flexfetch --ssh server1 --ssh server2        # parallel, per-host headers
+flexfetch --ssh host "--modules os:kernel"   # JSON round-trip over ssh
+```
+
+Runs `flexfetch --format json` on each remote host and renders it locally. If a
+host lacks flexfetch, flexfetch falls back to scp'ing the current binary and
+running it from `/tmp`. Hosts are fetched in parallel (one thread each).
+
+<br>
+
+---
+
+## Config Wizard
+
+```bash
+flexfetch --wizard
+```
+
+Interactive 4-step wizard (ratatui): module checklist, theme picker with live
+preview, layout (box style + frame), then writes `~/.config/flexfetch/config.toml`.
+
+- `↑/↓` move · `space` toggle · `a` select all · `enter` next · `q`/`Esc` quit
+
+<br>
+
+---
+
+## Live Dashboard
+
+Real-time system monitor — CPU and memory gauges with 60-sample sparklines, top
+processes by CPU, and per-interface network throughput:
+
+```bash
+flexfetch --live
+```
+
+- `q` / `Esc` — quit
+- `Space` — refresh immediately (rates and CPU% are computed from actual elapsed
+  time, so a manual refresh is always accurate)
+
+Data sources are Linux `/proc` + `/sys` (CPU ticks, per-process `stat`/`statm`,
+interface byte counters); the memory gauge reuses the existing `memory` collector.
+The dashboard is gated behind the `live` feature (default on) — `--no-default-features`
+drops ratatui/crossterm entirely for the minimal binary. Similarly, image logos
+(sixel/block) and `--export png` are gated behind the `image-logos` feature (default
+on); without it, image logos fall back to ASCII (kitty/iTerm2 still work) and PNG
+export prints a clear "requires the image-logos feature" message.
 
 <br>
 
@@ -268,6 +385,8 @@ All modules run in parallel via Rayon and detect from your system automatically.
 | `colors`                                                                                                       | ✅     |
 | `custom`                                                                                                       | ✅     |
 | `title`, `separator`                                                                                           | 📐     |
+| `health` (disk/swap/load/battery score)                                                                         | ✅     |
+| `git`, `project`, `context` (via `--smart`)                                                                     | ✅     |
 
 <br>
 
@@ -296,10 +415,17 @@ Image logos render as truecolor block art in terminals with 24-bit color support
 ## Building
 
 ```bash
-cargo build --release                     # all features
-cargo build --release --no-default-features  # without Lua
+cargo build --release                     # all features (lua, live, image-logos, tera, parallel, completions)
+cargo build --release --no-default-features  # minimal ~1.5 MB: no Lua, no TUI, no image crate, no tera/rayon
+# opt in selectively, e.g.:
+cargo build --release --no-default-features --features live,image-logos,completions  # what releases ship
 cargo test
 ```
+
+Without the `image-logos` feature, sixel/block image logos degrade to ASCII and
+`--export png` is unavailable (clear error) — kitty/iTerm2 image protocols still
+work since they only base64 the raw bytes. This is what lets the minimal build drop
+the `image` crate entirely.
 
 <br>
 
@@ -307,7 +433,16 @@ cargo test
 
 ## Shell Completions
 
-Tab completion for bash, zsh, and fish:
+Tab completion for bash, zsh, and fish. Regenerate fresh copies from the
+installed binary (the `completions` subcommand ships in default builds):
+
+```bash
+flexfetch completions bash > completions/flexfetch.bash
+flexfetch completions zsh  > completions/flexfetch.zsh
+flexfetch completions fish > completions/flexfetch.fish
+```
+
+Or use the pre-generated files in the repo `completions/` directory:
 
 ```bash
 # Bash

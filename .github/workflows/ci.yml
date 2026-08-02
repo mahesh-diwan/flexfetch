@@ -1,0 +1,105 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same branch/PR to save runner minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Default features include `lua` (vendored mlua), which compiles bundled
+      # Lua C code — ubuntu-latest ships gcc, so no extra setup is needed.
+      - name: Run tests
+        run: cargo test --workspace
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Run clippy (warnings are errors)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  fmt:
+    name: fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  # Guards the documented minimal build path (README: cargo build --release
+  # --no-default-features) so it keeps compiling without the lua/live/image-logos
+  # features — this is also what drops the `image` crate entirely (the diet).
+  minimal-build:
+    name: minimal-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Build minimal (no default features)
+        run: cargo build --release -p flexfetch-cli --no-default-features
+
+      # The feature-off path for flexfetch-core is never exercised by the `test`
+      # job (it runs with default features = image on), so run core's tests with
+      # --no-default-features here to cover the image-less stubs and fallbacks,
+      # and clippy the minimal CLI build so feature-off-only warnings are caught.
+      - name: Test core without default features
+        run: cargo test -p flexfetch-core --no-default-features
+
+      - name: Clippy minimal (no default features)
+        run: cargo clippy -p flexfetch-cli --no-default-features -- -D warnings
+
+      # Core's feature-off path (image-less stubs + fallbacks) is clippy'd here too,
+      # not just tested, so a future warning in the image-off config is caught in CI.
+      - name: Clippy core minimal (no default features)
+        run: cargo clippy -p flexfetch-core --no-default-features --all-targets -- -D warnings

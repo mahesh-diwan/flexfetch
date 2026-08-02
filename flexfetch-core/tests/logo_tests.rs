@@ -3,19 +3,19 @@ use flexfetch_core::logo::{detect, pixel_logo, visible_len};
 #[test]
 fn test_detect_arch() {
     let logo = detect("arch");
-    assert!(logo.lines.len() > 0);
+    assert!(!logo.lines.is_empty());
 }
 
 #[test]
 fn test_detect_ubuntu() {
     let logo = detect("ubuntu");
-    assert!(logo.lines.len() > 0);
+    assert!(!logo.lines.is_empty());
 }
 
 #[test]
 fn test_detect_unknown() {
     let logo = detect("unknown_distro");
-    assert!(logo.lines.len() > 0);
+    assert!(!logo.lines.is_empty());
 }
 
 #[test]

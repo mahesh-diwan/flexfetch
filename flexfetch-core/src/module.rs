@@ -1,8 +1,38 @@
 use crate::Context;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Serialize)]
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn json_round_trip_preserves_entries() {
+        // The `--ssh` remote-fetch path depends entirely on
+        // to_json -> from_json round-tripping all InfoValue shapes.
+        let mut info = SystemInfo::new();
+        info.add("scalar", InfoValue::Scalar("value".into()));
+        let mut map = HashMap::new();
+        map.insert("key".into(), "val".into());
+        info.add("map", InfoValue::Map(map));
+        info.add("list", InfoValue::List(vec!["a".into(), "b".into()]));
+        let mut row = HashMap::new();
+        row.insert("col".into(), "cell".into());
+        info.add("table", InfoValue::Table(vec![row]));
+
+        let json = info.to_json();
+        let back = SystemInfo::from_json(&json).expect("from_json should succeed");
+        assert_eq!(back.to_json(), json, "round trip must be lossless");
+        assert_eq!(back.entries.len(), 4);
+    }
+
+    #[test]
+    fn from_json_rejects_non_object() {
+        assert!(SystemInfo::from_json(&serde_json::json!([])).is_err());
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum InfoValue {
     Scalar(String),
@@ -61,5 +91,25 @@ impl SystemInfo {
             );
         }
         serde_json::Value::Object(map)
+    }
+
+    /// Rebuild a `SystemInfo` from the JSON produced by `to_json` (e.g. parsed
+    /// from a remote `flexfetch --format json` run over SSH).
+    pub fn from_json(value: &serde_json::Value) -> crate::Result<Self> {
+        let obj = value
+            .as_object()
+            .ok_or_else(|| crate::Error::Template("remote output is not a JSON object".into()))?;
+        let mut info = SystemInfo::new();
+        for (name, val) in obj {
+            let parsed = serde_json::from_value::<InfoValue>(val.clone()).map_err(|e| {
+                crate::Error::Template(format!("parse remote value for '{name}': {e}"))
+            })?;
+            // Box the name to a leaked 'static string: the registry keys are
+            // 'static but remote module names are dynamic. A few leaked strings
+            // per fetch is negligible for a CLI process.
+            let leaked: &'static str = Box::leak(name.clone().into_boxed_str());
+            info.add(leaked, parsed);
+        }
+        Ok(info)
     }
 }

@@ -204,6 +204,7 @@ impl ImageLogo {
         cmd
     }
 
+    #[cfg(feature = "image-logos")]
     fn render_sixel_protocol(path: &str, width: Option<u32>, height: Option<u32>) -> String {
         // Sixel: ESC P q <defs> <row data> ESC \
         // Each char = 6 vertical pixels (bit 0 = top), value = bits + 63
@@ -291,6 +292,14 @@ impl ImageLogo {
         output
     }
 
+    // Without the `image-logos` feature there is no decoder, so image protocols
+    // degrade to an empty string and callers fall back to ASCII art.
+    #[cfg(not(feature = "image-logos"))]
+    fn render_sixel_protocol(_path: &str, _width: Option<u32>, _height: Option<u32>) -> String {
+        String::new()
+    }
+
+    #[cfg(feature = "image-logos")]
     fn render_block_fallback(path: &str, width: Option<u32>, height: Option<u32>) -> String {
         // Unicode block art using ▀▄█ with ANSI truecolor
         let img = match image::open(path) {
@@ -345,6 +354,13 @@ impl ImageLogo {
         }
 
         lines.join("\n")
+    }
+
+    // Without the `image-logos` feature there is no decoder, so image protocols
+    // degrade to an empty string and callers fall back to ASCII art.
+    #[cfg(not(feature = "image-logos"))]
+    fn render_block_fallback(_path: &str, _width: Option<u32>, _height: Option<u32>) -> String {
+        String::new()
     }
 
     fn render_iterm2_protocol(encoded: &str, width: Option<u32>, height: Option<u32>) -> String {

@@ -26,8 +26,6 @@ pub use template::TeraEngine;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_uptime_format() {
         assert_eq!(crate::modules::uptime::format_uptime(3661), "1h 1m");

@@ -22,6 +22,26 @@
 {%- if locale %}
 ├─{{ icon_locale }} Locale: {{ locale.lang | default(value="") }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}
 {%- endif %}
+{%- if project %}
+├─{{ icon_project | default(value="󰚩") }} Project: {{ project.type }}{% if project.name %} — {{ project.name }}{% endif %}
+{%- endif %}
+{%- if git %}
+├─{{ icon_git | default(value="󰊢") }} Git: {{ git.branch }}{% if git.ahead %} ↑{{ git.ahead }}{% endif %}{% if git.behind %} ↓{{ git.behind }}{% endif %}{% if git.dirty %} [{{ git.dirty }} dirty]{% endif %}
+{%- endif %}
+{%- if context %}
+{%- if context.container %}
+├─{{ icon_container | default(value="󰡨") }} Container: {{ context.container }}
+{%- endif %}
+{%- if context.venv %}
+├─{{ icon_venv | default(value="󰌠") }} Virtualenv: {{ context.venv }}
+{%- endif %}
+{%- if context.ssh %}
+├─{{ icon_ssh | default(value="󰇧") }} SSH: {{ context.ssh }}
+{%- endif %}
+{%- endif %}
+{%- if health %}
+├─{{ icon_health | default(value="󰐗") }} Health: {{ health.score }}/100 ({{ health.grade }}){% if health.notes %} — {{ health.notes }}{% endif %}
+{%- endif %}
 {%- if cpu %}
 ├─{{ icon_cpu }} CPU: {{ cpu.model }} ({{ cpu.cores }} cores) @ {{ cpu.freq_mhz }} MHz{% if cpu.temp %} | {{ cpu.temp }}{% endif %}
 {%- endif %}

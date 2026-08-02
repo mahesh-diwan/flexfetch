@@ -8,8 +8,34 @@ name = "flexfetch"
 path = "src/main.rs"
 
 [dependencies]
-flexfetch-core = { path = "../flexfetch-core", features = ["lua"] }
-clap = { version = "4", features = ["derive"] }
+# Lua is opt-in via the `lua` feature so `--no-default-features` yields a minimal binary
+# (this matches the documented build: `cargo build --release --no-default-features`).
+flexfetch-core = { path = "../flexfetch-core", default-features = false }
+clap = { version = "4", default-features = false, features = ["std", "color", "help", "usage", "error-context", "derive"] }
 serde_json = "1"
 toml = "0.8"
 ctrlc = "3"
+# Live dashboard (--live): ratatui + crossterm are the only TUI deps, gated behind the
+# `live` feature so --no-default-features stays free of them (both are pure Rust, so the
+# musl cross-compile in CI is unaffected when the feature is on).
+ratatui = { version = "0.30", optional = true }
+crossterm = { version = "0.29", optional = true }
+# Shell completion generator (`completions <shell>` subcommand). Behind a feature so
+# --no-default-features stays lean; clap_complete is small but pulls clap's full tree.
+clap_complete = { version = "4", optional = true }
+
+[features]
+default = ["lua", "live", "image-logos", "tera", "parallel", "completions"]
+lua = ["flexfetch-core/lua"]
+live = ["dep:ratatui", "dep:crossterm"]
+# Image logos (sixel/block) + PNG export need the `image` crate; the minimal
+# `--no-default-features` build drops it entirely (see ROADMAP 0.2 remaining diet work).
+image-logos = ["flexfetch-core/image-logos"]
+# MPRIS via pure-Rust zbus (no dbus-send shell-out); opt-in, see ROADMAP 2.6.
+music = ["flexfetch-core/music"]
+# Template engine + parallel collection are forwarded from core so `--no-default-features`
+# drops tera (plain fallback renderer) and rayon (sequential loops) — the diet (ROADMAP 0.2).
+tera = ["flexfetch-core/tera"]
+parallel = ["flexfetch-core/parallel"]
+# `completions <shell>` subcommand (clap_complete)
+completions = ["dep:clap_complete"]

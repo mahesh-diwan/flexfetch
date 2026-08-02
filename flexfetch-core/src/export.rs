@@ -304,6 +304,7 @@ pub fn export_html(info: &SystemInfo, config: &Config) -> crate::Result<String> 
     ))
 }
 
+#[cfg(feature = "image-logos")]
 pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Result<()> {
     let engine = crate::template::TeraEngine::new_default();
     let text = engine.render(info, config)?;
@@ -350,6 +351,16 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
 
     img.save(path)
         .map_err(|e| crate::Error::Template(format!("png save: {e}")))
+}
+
+// PNG export needs the `image` crate; the minimal `--no-default-features` build
+// drops it, so export_png degrades to a clear error instead of a missing symbol.
+#[cfg(not(feature = "image-logos"))]
+pub fn export_png(_info: &SystemInfo, _config: &Config, _path: &Path) -> crate::Result<()> {
+    Err(crate::Error::Template(
+        "PNG export requires the `image-logos` feature (build with --features image-logos)"
+            .to_string(),
+    ))
 }
 
 pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<String> {

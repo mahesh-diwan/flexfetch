@@ -13,6 +13,10 @@ then renders it through configurable templates.
 Modules can be selected individually, via presets, or via module groups.
 Output can be piped, exported to SVG/HTML/PNG, or displayed with themed
 formatting.
+.PP
+A live dashboard (\fB--live\fR), an interactive config wizard
+(\fB--wizard\fR), remote SSH fetching (\fB--ssh\fR), and shell
+completions generation are also included.
 .SH OPTIONS
 .TP
 .BR \-c ", " \-\-config " " \fIPATH\fR
@@ -42,8 +46,50 @@ List all available modules.
 .B \-\-list-presets
 List all available presets (built-in and user-defined).
 .TP
-.B \-\-benchmark
-Run a performance benchmark of each module.
+.BR \-\-benchmark " " [ N ]
+Run a performance benchmark of each module. With an optional iteration count
+\fIN\fR, run the full pipeline N times and report min/avg timings.
+.TP
+.B \-\-smart
+Add \fI\$PWD\fR context modules: git branch/status, project type, container/venv/SSH.
+.TP
+.B \-\-health
+Add the system health module (score 0\-100 from disk/swap/load/battery).
+.TP
+.B \-\-prompt
+Print a single\-line, ANSI\-free prompt string (OS | CPU | RAM).
+.TP
+.B \-\-motd
+Print a plain\-text banner with ANSI colors stripped (for MOTD/startup).
+.TP
+.BI \-\-ssh " " \fIHOST\fR ...
+Fetch system info from remote host(s) over SSH (repeatable, run in parallel).
+Falls back to scp'ing the current binary when the remote lacks flexfetch.
+.TP
+.B \-\-wizard
+Interactive config wizard: pick modules, theme, and layout, then write
+~/.config/flexfetch/config.toml. Requires the \fBlive\fR feature.
+.TP
+.B \-\-watch
+Refresh output every N seconds (default 2, see --watch-interval).
+Hot\-reloads the config file when it changes.
+.TP
+.BI \-\-watch-interval " " \fISECONDS\fR
+Seconds between watch refreshes (default 2).
+.TP
+.B \-\-live
+Real\-time dashboard: CPU/memory gauges with sparklines, top processes,
+and network rates. Requires a terminal. Requires the \fBlive\fR feature.
+.TP
+.B \-\-smart
+Add \fI\$PWD\fR context modules: git branch/status, project type,
+container/venv/SSH session.
+.TP
+.BR completions " " \fISHELL\fR
+Print shell completions for \fIbash\fR, \fIzsh\fR, \fIfish\fR, etc.
+Requires the \fBcompletions\fR feature (default on).
+.PP
+Example: \fBflexfetch completions bash\fR
 .TP
 .B \-\-pipe
 Force pipe mode (no colors, no boxes).
@@ -94,6 +140,12 @@ Configuration is loaded from ~/.config/flexfetch/config.toml.
 Use \fBflexfetch --gen-config\fR to create a default configuration.
 .PP
 Presets are stored in ~/.config/flexfetch/presets/ as .toml files.
+.PP
+Feature\-gated builds: \fB--no-default-features\fR drops Lua, the live
+dashboard, image logos, the Tera template engine, and Rayon for a
+~1.5 MB minimal binary (plain \fB\|\|\-\-\|\|\fR tree connectors instead
+of templates). See the mdBook docs at
+\fBhttps://github.com/mahesh-diwan/flexfetch\fR for the feature matrix.
 .SH EXAMPLES
 Display default modules:
 .PP
@@ -123,6 +175,30 @@ Pipe-friendly output:
 .PP
 .RS 4
 flexfetch --pipe | head -20
+.RE
+.PP
+Shell prompt string:
+.PP
+.RS 4
+PS1="$(flexfetch --prompt) $ "
+.RE
+.PP
+System health score:
+.PP
+.RS 4
+flexfetch --health
+.RE
+.PP
+Remote hosts over SSH (repeatable; each host runs its own default modules):
+.PP
+.RS 4
+flexfetch --ssh server1 --ssh server2
+.RE
+.PP
+Configure interactively:
+.PP
+.RS 4
+flexfetch --wizard
 .RE
 .SH AUTHORS
 Written by Mahesh Diwan and contributors.
