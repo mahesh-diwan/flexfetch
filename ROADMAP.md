@@ -71,12 +71,20 @@ What was done:
 - `install.sh`: OS detection (`linux`/`macos`), arch mapping to new artifact names.
 - `flexfetch-cli --version` features list is now cfg-gated (no longer falsely claims `lua`
   on minimal builds).
-- README notes: prebuilt binaries exclude Lua; source builds include it.
-
-Locally validated: native 6.29 MB · x86_64-musl 6.40 MB (static-pie) · aarch64-musl
-4.69 MB (static) · armv7-musl 4.38 MB (static) — all link.
-**Still untested locally:** the macOS x86_64 cross-build (from arm64 runner) — validate via
-`workflow_dispatch` on GitHub before the next tag.
+- README notes: prebuilt binaries exclude Lua; source builds include it.Locally validated: native 6.29 MB · x86_64-musl 6.40 MB (static-pie) · aarch64-musl 4.69 MB (static) · armv7-musl 4.38 MB (static) — all link.
+**GitHub matrix validation — ✅ DONE (Aug 2026):** `workflow_dispatch` runs proved the
+macOS aarch64 + x86_64 cross-builds (both green across multiple runs) and caught real bugs:
+- macOS-only compile errors in `network.rs` (type inference on the macos ifconfig path) +
+  dead-code warnings in `cpu.rs`/`cpuusage.rs`/`cpucache.rs` — fixed with explicit types
+  and `#[cfg(target_os = "linux")]` gating (never compiled on Linux, so local CI missed them).
+- `mlugg/setup-zig@v1` requests `zig-linux-x86_64-*` (os-arch) but ziglang.org serves
+  `zig-x86_64-linux-*` (arch-os) — every mirror 404s, so the 3 musl Linux jobs failed at
+  the toolchain step (not the code). Replaced with a pinned direct curl download of
+  `zig-x86_64-linux-0.16.0.tar.xz` (runners are always x86_64, so one tarball cross-links
+  all three musl targets).
+- `softprops/action-gh-release` requires a tag, so tagless `workflow_dispatch` runs red at
+  the final upload step; gated with `if: startsWith(github.ref, 'refs/tags/v')`.
+Post-fix validation status: macOS ✓ (aarch64 + x86_64), Linux pending re-run of the Zig fix.
 
 ---
 
@@ -236,8 +244,9 @@ This replaces the earlier "deferred — not needed" note in 3.1.
    cancel-in-progress. Also fixed 5 pre-existing clippy lints that would have red the
    gate (needless `&` in `logo.rs`, unused `use super::*` in `lib.rs`, 3× `len > 0` in
    `logo_tests.rs`).
-2. **Validate the release matrix on GitHub** — push + `workflow_dispatch` to prove the
-   macOS x86_64 cross-build before the next tag.
+2. **Validate the release matrix on GitHub — ✅ done (Aug 2026)** — `workflow_dispatch`
+   proved the macOS aarch64 + x86_64 cross-builds (green) and caught + fixed 3 real
+   issues (macOS-only compile bugs, the setup-zig naming bug, the tagless-upload red).
 3. **2.1 Live dashboard (`--live`)** — the flagship new feature; ratatui/crossterm,
    reuse existing collectors.
 4. **Finish the diet — ✅ done (Aug 2026)** — `image` gated behind `image-logos`

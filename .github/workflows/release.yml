@@ -70,9 +70,20 @@ jobs:
       # is only needed as the cross linker), `image-logos` (image logos + PNG export),
       # and `completions` (so `flexfetch completions bash` works in installed binaries).
 
+      # Download zig directly instead of mlugg/setup-zig@v1: the action requests
+      # `zig-linux-x86_64-0.16.0.tar.xz` (os-arch naming) which ziglang.org does not
+      # serve (it's `zig-x86_64-linux-0.16.0.tar.xz`, arch-os) — every mirror 404s.
+      # The Linux runner is always ubuntu-latest (x86_64), so the x86_64 tarball is
+      # the correct cross linker for all three musl targets (aarch64/armv7 cross-link
+      # through the same zig binary). Pinned to a known-good version for reproducibility.
       - name: Install Zig (cross linker for musl)
         if: matrix.use_zig
-        uses: mlugg/setup-zig@v1
+        run: |
+          curl -fsSL -o /tmp/zig.tar.xz \
+            https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz
+          mkdir -p /usr/local/zig
+          tar -xJf /tmp/zig.tar.xz -C /usr/local/zig --strip-components=1
+          echo "/usr/local/zig" >> "$GITHUB_PATH"
 
       - name: Install cargo-zigbuild
         if: matrix.use_zig
