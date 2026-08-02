@@ -172,6 +172,17 @@ struct Cli {
     #[arg(long)]
     hook: Option<String>,
 
+    /// Print a tmux.conf snippet that auto-runs the fetch in new idle panes
+    /// (Phase 5.3 — pair with the bundled `flexfetch-tmux` helper binary).
+    #[arg(long)]
+    tmux_config: bool,
+
+    /// Refresh the crowdsourced hardware database (Phase 5.8): downloads the
+    /// latest PCI/USB name map to the cache dir; falls back to the bundled
+    /// seed when offline.
+    #[arg(long)]
+    update_db: bool,
+
     #[cfg(feature = "completions")]
     #[command(subcommand)]
     command: Option<Commands>,
@@ -247,6 +258,24 @@ fn main() {
     // --update: re-run the install script if a newer release exists.
     if cli.update {
         tools::self_update();
+        return;
+    }
+
+    // --tmux-config: print the tmux.conf snippet (pure output, no deps).
+    if cli.tmux_config {
+        tools::print_tmux_config();
+        return;
+    }
+
+    // --update-db: refresh the crowdsourced hardware database (needs curl).
+    if cli.update_db {
+        match flexfetch_core::hardware_db::refresh() {
+            Ok(msg) => println!("{msg}"),
+            Err(e) => {
+                eprintln!("update-db: {e}");
+                std::process::exit(1);
+            }
+        }
         return;
     }
 
@@ -685,6 +714,10 @@ fn render_info(info: &SystemInfo, config: &Config, cli: &Cli) {
             Ok(s) => println!("{s}"),
             Err(e) => eprintln!("export error: {e}"),
         },
+        "github" => match flexfetch_core::export::export_github(info) {
+            Ok(s) => println!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
         _ => {
             let engine = TeraEngine::new_default();
             match engine.render(info, config) {
@@ -872,6 +905,10 @@ fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli) 
             Err(e) => eprintln!("export error: {e}"),
         },
         "prometheus" => match flexfetch_core::export::export_prometheus(info) {
+            Ok(s) => print!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "github" => match flexfetch_core::export::export_github(info) {
             Ok(s) => print!("{s}"),
             Err(e) => eprintln!("export error: {e}"),
         },

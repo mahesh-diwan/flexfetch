@@ -450,6 +450,42 @@ pub fn export_csv(info: &SystemInfo) -> crate::Result<String> {
     Ok(out)
 }
 
+/// GitHub Actions annotation format (Phase 5.2): wraps the fetch in a
+/// collapsible `::group::` block — GitHub renders it as a foldable section in
+/// the job log with colored keys/values (works in any workflow step, no
+/// markup config needed). Designed for the `flexfetch-action` composite action.
+pub fn export_github(info: &SystemInfo) -> crate::Result<String> {
+    let mut output = String::new();
+    output.push_str("::group::\u{1f5a5}\u{fe0f} Runner System Information\n");
+    for (name, value) in &info.entries {
+        if *name == "title" || *name == "separator" {
+            continue;
+        }
+        let text = info_value_summary(value);
+        if text.is_empty() {
+            continue;
+        }
+        output.push_str(&format!("  \u{1b}[36m{:<14}\u{1b}[0m {}\n", name, text));
+    }
+    output.push_str("::endgroup::\n");
+    Ok(output)
+}
+
+/// Compact one-line summary of an InfoValue (shared by the diff table and the
+/// GitHub export so both flatten Maps/Lists/Tables the same way).
+fn info_value_summary(v: &InfoValue) -> String {
+    match v {
+        InfoValue::Scalar(s) => s.clone(),
+        InfoValue::Map(m) => {
+            let mut parts: Vec<String> = m.iter().map(|(k, val)| format!("{k}={val}")).collect();
+            parts.sort();
+            parts.join(", ")
+        }
+        InfoValue::List(l) => l.join(", "),
+        InfoValue::Table(t) => format!("{} rows", t.len()),
+    }
+}
+
 /// OpenMetrics exposition format (Prometheus text protocol v0.0.4): every
 /// scalar becomes a gauge named `flexfetch_<module>`, Maps become labelled
 /// gauges, numeric-looking values keep their number.

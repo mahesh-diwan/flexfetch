@@ -1,0 +1,37 @@
+{
+  "pci": {
+    "10de:2684": "NVIDIA GeForce RTX 4090",
+    "10de:2704": "NVIDIA GeForce RTX 4080",
+    "10de:2206": "NVIDIA GeForce RTX 3080",
+    "10de:2204": "NVIDIA GeForce RTX 3090",
+    "10de:1e87": "NVIDIA GeForce RTX 2080",
+    "10de:1f82": "NVIDIA GeForce RTX 2070",
+    "10de:1b81": "NVIDIA GeForce GTX 1080",
+    "10de:1c82": "NVIDIA GeForce GTX 1050 Ti",
+    "10de:25a0": "NVIDIA GeForce RTX 3070 Ti Laptop",
+    "10de:13c2": "NVIDIA GeForce GT 730",
+    "1002:744c": "AMD Radeon RX 7900 XTX",
+    "1002:73bf": "AMD Radeon RX 6800 XT",
+    "1002:73df": "AMD Radeon RX 6700 XT",
+    "1002:731f": "AMD Radeon RX 6600 XT",
+    "1002:164e": "AMD Radeon Vega 8 Mobile",
+    "1002:15dd": "AMD Radeon Vega 11 Mobile",
+    "8086:56a0": "Intel Arc A770",
+    "8086:56a1": "Intel Arc A750",
+    "8086:4682": "Intel Arc A380",
+    "8086:9a49": "Intel Iris Xe Graphics",
+    "8086:9bc4": "Intel UHD Graphics 630",
+    "8086:3e92": "Intel UHD Graphics 630 (Desktop)",
+    "8086:3e9b": "Intel UHD Graphics 610",
+    "8086:4e71": "Intel UHD Graphics 620",
+    "8086:8a56": "Intel Iris Plus Graphics 655"
+  },
+  "usb": {
+    "046d:c53f": "Logitech G Pro X",
+    "046d:c52b": "Logitech Unifying Receiver",
+    "258a:0049": "Keychron K2",
+    "8087:0026": "Intel Bluetooth",
+    "0bda:0129": "Realtek Card Reader",
+    "05e3:0610": "Genesys Logic USB Hub"
+  }
+}

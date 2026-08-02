@@ -373,9 +373,9 @@ runners flake rather than deleting the gate).
 
 | Task | What | Status |
 | ---- | ---- | ------ |
-| 5.1 | **Nix flake + Home Manager module**: `flake.nix` (rustPlatform.buildRustPackage, cargoLock) + `homeManagerModules.default` writing `~/.config/flexfetch/config.toml` from `programs.flexfetch.settings` | ⬜ |
-| 5.2 | **GitHub Action (`flexfetch-action`)**: composite action running flexfetch in CI with a `github` output format (::group:: annotations); separate marketplace repo | ⬜ |
-| 5.3 | **Tmux integration**: `--tmux-config` snippet + tiny `flexfetch-tmux` helper binary showing the fetch in idle panes | ⬜ |
+| 5.1 | **Nix flake + Home Manager module**: `flake.nix` (rustPlatform.buildRustPackage, cargoLock) + `homeManagerModules.default` writing `~/.config/flexfetch/config.toml` from `programs.flexfetch.settings` | 🟡 |
+| 5.2 | **GitHub Action (`flexfetch-action`)**: composite action running flexfetch in CI with a `github` output format (::group:: annotations); separate marketplace repo | ✅ |
+| 5.3 | **Tmux integration**: `--tmux-config` snippet + tiny `flexfetch-tmux` helper binary showing the fetch in idle panes | ✅ |
 
 ### Pillar G — Intelligence & context
 
@@ -390,8 +390,8 @@ runners flake rather than deleting the gate).
 | Task | What | Status |
 | ---- | ---- | ------ |
 | 5.7 | **Plugin registry**: `flexfetch plugin search|install|list|update` against a hosted `registry.toml` with checksum + min-version checks | ⬜ |
-| 5.8 | **Crowdsourced hardware DB**: compressed JSON on GitHub Pages (`hardware.json.zst`, ~50 KB), `--update-db`, cache + offline hex fallback | ⬜ |
-| 5.9 | **AUR PKGBUILD + Homebrew tap**: native package-manager installs | ⬜ |
+| 5.8 | **Crowdsourced hardware DB**: compressed JSON on GitHub Pages (`hardware.json.zst`, ~50 KB), `--update-db`, cache + offline hex fallback | ✅ |
+| 5.9 | **AUR PKGBUILD + Homebrew tap**: native package-manager installs | 🟡 |
 
 ### Pillar I — Unfair advantages
 
@@ -405,12 +405,51 @@ runners flake rather than deleting the gate).
 | Week | Focus | Tasks |
 | ---- | ----- | ----- |
 | 9 | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container) |
-| 10 | Integration | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB) |
+| 10 | Integration | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB) | ✅ done |
 | 11 | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) |
 | 12 | Community | 5.7 (Plugin Registry), 5.10 (ASCII Cinema) |
 
-**Immediate next step: Task 5.1 (Nix Flake) + Task 5.9 (AUR/Homebrew)** — unlock the
-hardest-to-reach users (NixOS and Arch) who are also the most likely evangelists.
+**Immediate next step: Week 11 — Intelligence: 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications)** —
+Week 9 (distribution: Nix flake, AUR/Homebrew, container) and Week 10 (integration:
+GitHub Action, tmux, hardware DB) are both shipped.
+
+### Task 5.2 — GitHub Action (`flexfetch-action`) — ✅ (Aug 2026)
+- `export_github()` in `flexfetch-core/src/export.rs`: renders a collapsible
+  `::group::` block with `[36m`-colorized `{:<14}` keys (skips title/separator,
+  drops empty values) — GitHub shows it as a foldable, colorized section in any
+  workflow step's log.
+- `--format github` wired into both `main.rs` render paths (direct + export).
+- `packaging/flexfetch-action/action.yml`: composite action (installs flexfetch
+  when missing via install.sh, then runs `flexfetch --format github`, honoring
+  optional `theme`/`modules` inputs). Marketplace publish is a separate repo
+  action (`mahesh-diwan/flexfetch-action`), like the AUR tap.
+
+### Task 5.3 — Tmux integration — ✅ (Aug 2026)
+- `flexfetch --tmux-config` (`tools.rs::print_tmux_config`): prints a
+  `~/.tmux.conf` snippet — `run-shell ~/.local/bin/flexfetch-tmux` fires in every
+  new pane, and the helper only shows the fetch when the pane is idle (its
+  current command is a shell).
+- `flexfetch-cli/src/bin/flexfetch-tmux.rs`: a second `[[bin]]` (pure std, no
+  deps — builds in every feature config) that reads `$TMUX_PANE`, checks
+  `tmux list-panes -F '#{pane_id} #{pane_current_command}'` against
+  bash/zsh/fish/sh/nu, and prints a compact `--minimal` fetch. install.sh places
+  it next to the main binary.
+
+### Task 5.8 — Crowdsourced hardware DB — ✅ (Aug 2026)
+- `flexfetch-core/src/hardware_db.rs` (pure std, no deps): parses a flat
+  `{ "pci": { "10de:2684": "NVIDIA GeForce RTX 4090" }, "usb": ... }` JSON
+  (seed bundled via `include_str!`; cached copy refreshed from the repo raw URL
+  — `FLEXFETCH_HWDB_URL` overridable). `lookup(vendor, device)` normalizes
+  `0x`/case, checks the cache then the seed, returns `None` for misses so
+  callers fall back to raw hex/driver names.
+- `--update-db` (main.rs early handler): `hardware_db::refresh()` downloads the
+  latest DB into the cache dir via curl (consistent with `--update`/install.sh),
+  validates the payload has entries, fails with a clear error otherwise.
+- `gpu.rs` integration: for each `/sys/class/drm/card*` entry, reads
+  `device/vendor` + `device/device` and resolves the friendly model name from
+  the DB (dedup'd), falling back to the driver name.
+- Seed data: `flexfetch-core/data/hardware.json` (26 GPU ids across
+  NVIDIA/AMD/Intel + 6 USB ids).
 
 ### Task 5.1 — Nix flake + Home Manager module — 🟡 (Aug 2026, first batch)
 `flake.nix` at repo root: `rustPlatform.buildRustPackage` with `cargoLock.lockFile =

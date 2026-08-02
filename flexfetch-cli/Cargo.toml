@@ -7,6 +7,13 @@ edition.workspace = true
 name = "flexfetch"
 path = "src/main.rs"
 
+# Tmux auto-fetch helper (Phase 5.3): pure std, shows a compact fetch in idle
+# panes. Install.sh places it next to the main binary so `--tmux-config` works
+# out of the box.
+[[bin]]
+name = "flexfetch-tmux"
+path = "src/bin/flexfetch-tmux.rs"
+
 [dependencies]
 # Lua is opt-in via the `lua` feature so `--no-default-features` yields a minimal binary
 # (this matches the documented build: `cargo build --release --no-default-features`).

@@ -383,6 +383,7 @@ export prints a clear "requires the image-logos feature" message.
 | ---------- | ---------------------------- |
 | `text`     | Terminal (default)           |
 | `json`     | Scripts, tooling             |
+| `github`   | GitHub Actions log block     |
 | `markdown` | Documentation, GitHub README |
 | `svg`      | Vector graphics              |
 | `html`     | Web embedding                |
@@ -393,7 +394,65 @@ JSON mode disables ASCII art and themes. Output is structured for parsing:
 ```bash
 flexfetch -f json | jq '.os.name'
 flexfetch -f markdown > system-info.md
+flexfetch -f github          # ::group:: block for GitHub Actions logs
 ```
+
+<br>
+
+---
+
+## GitHub Action
+
+Drop flexfetch into any CI workflow to show runner system info as a foldable,
+colorized `::group::` block in the job log (needs no extra setup — the format
+uses standard GitHub log annotations):
+
+```yaml
+steps:
+  - uses: mahesh-diwan/flexfetch@main
+    with:
+      format: github   # github (default) | markdown | json
+      theme: catppuccin
+      modules: os,kernel,cpu,memory,disk
+```
+
+The composite action (`packaging/flexfetch-action/action.yml`) installs flexfetch
+when missing and runs `flexfetch --format github`. The raw export is also
+available standalone: `flexfetch -f github`.
+
+<br>
+
+---
+
+## Tmux Integration
+
+Show a compact fetch in every new idle tmux pane:
+
+```bash
+flexfetch --tmux-config >> ~/.tmux.conf
+```
+
+The snippet (`run-shell ~/.local/bin/flexfetch-tmux`) runs the bundled
+`flexfetch-tmux` helper in each new pane — it only prints the fetch when the
+pane is idle (its current command is a shell), so long-running commands are
+never disturbed. The helper is installed next to the main binary by `install.sh`.
+
+<br>
+
+---
+
+## Hardware Database
+
+flexfetch resolves GPU vendor/device IDs to friendly model names via a
+crowdsourced hardware DB (bundled seed + cached copy). Refresh the cache from
+the latest DB on the repo:
+
+```bash
+flexfetch --update-db     # needs curl; writes ~/.cache/flexfetch/hardware.json
+```
+
+When offline, lookups fall back to the bundled seed, then to raw hex/driver
+names. Point `FLEXFETCH_HWDB_URL` at a mirror to override the download source.
 
 <br>
 

@@ -17,10 +17,29 @@ impl Module for GpuModule {
                 for entry in entries.flatten() {
                     let name = entry.file_name().to_string_lossy().to_string();
                     if name.starts_with("card") && name.len() <= 6 {
-                        let drv = entry.path().join("device").join("driver");
+                        let dev = entry.path().join("device");
+
+                        // Phase 5.8: resolve the vendor:device ID against the
+                        // hardware DB (cached + bundled seed) for a friendly
+                        // model name; fall back to the driver name otherwise.
+                        let vendor = std::fs::read_to_string(dev.join("vendor")).ok();
+                        let device = std::fs::read_to_string(dev.join("device")).ok();
+                        if let (Some(v), Some(d)) = (vendor, device) {
+                            if let Some(friendly) = crate::hardware_db::lookup(&v, &d) {
+                                if !gpus.contains(&friendly) {
+                                    gpus.push(friendly);
+                                }
+                                continue;
+                            }
+                        }
+
+                        let drv = dev.join("driver");
                         if let Ok(link) = std::fs::read_link(&drv) {
                             if let Some(d) = link.file_name() {
-                                gpus.push(d.to_string_lossy().to_string());
+                                let d = d.to_string_lossy().to_string();
+                                if !gpus.contains(&d) {
+                                    gpus.push(d);
+                                }
                             }
                         }
                     }
