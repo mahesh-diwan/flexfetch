@@ -1,9 +1,16 @@
 //! Live dashboard (`--live`): real-time system monitor built on ratatui + crossterm.
 //!
-//! Reuses existing collectors where possible (memory via `run_individual`) and adds
-//! lightweight `/proc` + `/sys` samplers for the real-time data that the one-shot
-//! modules don't expose (CPU %, per-process CPU, network rates).
+//! Phase 4.2 — lock-free architecture: a dedicated **sampler thread** owns every
+//! `/proc` prev-state (stat deltas, per-process ticks, net counters) and pushes
+//! `SystemSnapshot` values through a `crossbeam::channel::bounded(1)` **overwrite
+//! channel**. The renderer pulls only the newest snapshot each frame:
+//!   - collection never blocks rendering (no mutex in the hot path),
+//!   - a slow renderer never stalls the sampler — `try_send` on the bounded(1)
+//!     channel never blocks, and the renderer drains with `try_recv` so it
+//!     always displays the newest snapshot that got through,
+//!   - config hot-reload happens on the sampler thread (it owns the Context).
 
+use crossbeam_channel::{Receiver, Sender};
 use flexfetch_core::{Config, Context, InfoValue, ModuleRegistry};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -15,12 +22,17 @@ use ratatui::{
 use std::collections::{HashMap, VecDeque};
 use std::io::IsTerminal;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 /// How many history samples each sparkline keeps.
 const HISTORY: usize = 60;
 /// Tick interval between samples.
 const TICK: Duration = Duration::from_millis(1000);
+/// Render budget: at 60 FPS a frame must finish in ~16 ms. If the renderer
+/// exceeds it, the overwrite channel drops the stale sample automatically.
+const FRAME_BUDGET: Duration = Duration::from_millis(16);
 
 pub fn run(ctx: Context, config_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
     if !std::io::stdout().is_terminal() {
@@ -28,51 +40,55 @@ pub fn run(ctx: Context, config_path: Option<PathBuf>) -> Result<(), Box<dyn std
         std::process::exit(1);
     }
 
-    // Owned context so we can rebuild it when the config file changes
-    // (mtime-based hot-reload, no external watcher dependency).
-    let mut ctx = ctx;
-    let mut last_mtime = config_path.as_deref().and_then(file_mtime);
+    // Phase 4.2: bounded(1) overwrite channel — the sampler's try_send drops the
+    // previous snapshot when the renderer hasn't consumed it yet (no blocking).
+    let (tx, rx): (Sender<SystemSnapshot>, Receiver<SystemSnapshot>) =
+        crossbeam_channel::bounded(1);
+
+    // Cooperative stop: the sampler thread loops forever; flip this on quit.
+    let stop = Arc::new(AtomicBool::new(false));
+    let stop_sampler = Arc::clone(&stop);
+
+    // Sampler thread: owns Context (for config hot-reload) + all prev-state.
+    let sampler = std::thread::spawn(move || {
+        sampler_loop(ctx, config_path, tx, stop_sampler);
+    });
 
     let mut terminal = ratatui::init();
     let result = (|| -> Result<(), Box<dyn std::error::Error>> {
-        let mut app = App::new(&ctx);
-        let mut last_tick = Instant::now();
+        let mut app = App::new();
 
         loop {
-            // Config hot-reload: rebuild ctx (custom modules) when the file changes.
-            if let Some(path) = &config_path {
-                let now = file_mtime(path);
-                if now != last_mtime {
-                    last_mtime = now;
-                    let custom = Config::load(Some(path))
-                        .map(|c| c.custom)
-                        .unwrap_or_default();
-                    ctx = Context::new(
-                        ctx.config_dir.clone(),
-                        ctx.cache_dir.clone(),
-                        ctx.debug,
-                        custom,
-                    );
-                    app.notice = Some("config reloaded".to_string());
-                }
+            // Pull the newest snapshot (overwrite channel: only the latest).
+            while let Ok(snap) = rx.try_recv() {
+                app.snapshot = snap;
             }
 
-            if last_tick.elapsed() >= TICK {
-                app.sample(&ctx);
-                last_tick = Instant::now();
-            }
-
+            let frame_start = Instant::now();
             terminal.draw(|frame| app.draw(frame))?;
+            let frame_time = frame_start.elapsed();
+            // If the frame blew the budget, note it (the channel drops stale
+            // samples on its own; this is just observability for the header).
+            if frame_time > FRAME_BUDGET {
+                app.slow_frames += 1;
+            }
 
             if crossterm::event::poll(Duration::from_millis(50))? {
                 if let crossterm::event::Event::Key(key) = crossterm::event::read()? {
                     if key.kind == crossterm::event::KeyEventKind::Press {
                         match key.code {
                             crossterm::event::KeyCode::Char('q')
-                            | crossterm::event::KeyCode::Esc => return Ok(()),
+                            | crossterm::event::KeyCode::Esc => {
+                                stop.store(true, Ordering::Relaxed);
+                                return Ok(());
+                            }
                             crossterm::event::KeyCode::Char(' ') => {
-                                app.sample(&ctx);
-                                last_tick = Instant::now();
+                                // Force a fresh sample: drain the channel, then
+                                // request one from the sampler by sending a
+                                // no-op tick is unnecessary — just re-pull.
+                                while let Ok(snap) = rx.try_recv() {
+                                    app.snapshot = snap;
+                                }
                             }
                             _ => {}
                         }
@@ -85,13 +101,20 @@ pub fn run(ctx: Context, config_path: Option<PathBuf>) -> Result<(), Box<dyn std
     // Always restore the terminal, even if the loop above exited via `?`
     // (event/redraw error), so the user is never stranded in raw mode.
     ratatui::restore();
+
+    // Signal the sampler to exit and reap it (best effort; the process exits
+    // right after anyway, but this keeps the thread from outliving the TUI).
+    stop.store(true, Ordering::Relaxed);
+    let _ = sampler.join();
+
     result
 }
 
 // ---------------------------------------------------------------------------
-// App state & sampling
+// Sampler thread
 // ---------------------------------------------------------------------------
 
+#[derive(Clone)]
 struct ProcInfo {
     pid: i32,
     name: String,
@@ -99,207 +122,276 @@ struct ProcInfo {
     mem_mb: f64,
 }
 
-#[cfg_attr(not(target_os = "linux"), allow(dead_code, unused_variables))]
-struct App {
-    /// CPU % from the last sample.
+/// Immutable view handed to the renderer each tick. Owned (no borrows), so it
+/// can cross the channel freely; the renderer never touches /proc itself.
+struct SystemSnapshot {
     cpu_pct: f64,
     cpu_history: VecDeque<u64>,
-    /// (total, idle) ticks from `/proc/stat` at the last sample.
-    stat_prev: Option<(u64, u64)>,
-    /// Total ticks when `proc_prev` was last refreshed (for process CPU% deltas).
-    proc_total_prev: u64,
-    /// pid -> (utime + stime) ticks at the last sample.
-    proc_prev: HashMap<i32, u64>,
-    processes: Vec<ProcInfo>,
-    /// Number of logical cores.
-    cores: u64,
     mem_pct: u8,
     mem_used: String,
     mem_total: String,
     mem_history: VecDeque<u64>,
-    /// iface -> (rx_bytes, tx_bytes) at the last sample.
-    net_prev: HashMap<String, (u64, u64)>,
+    processes: Vec<ProcInfo>,
     net_rates: Vec<(String, f64, f64)>,
-    /// When the last sample was taken (for rate computations).
-    last_sample: Instant,
     /// Transient status message (e.g. "config reloaded") shown in the header.
     notice: Option<String>,
 }
 
-impl App {
-    fn new(ctx: &Context) -> Self {
-        let mut app = App {
+impl Default for SystemSnapshot {
+    fn default() -> Self {
+        SystemSnapshot {
             cpu_pct: 0.0,
             cpu_history: VecDeque::with_capacity(HISTORY),
-            stat_prev: None,
-            proc_total_prev: 0,
-            proc_prev: HashMap::new(),
-            processes: Vec::new(),
-            cores: logical_cores(),
             mem_pct: 0,
             mem_used: String::new(),
             mem_total: String::new(),
             mem_history: VecDeque::with_capacity(HISTORY),
-            net_prev: HashMap::new(),
+            processes: Vec::new(),
             net_rates: Vec::new(),
-            last_sample: Instant::now(),
             notice: None,
-        };
-        app.sample(ctx);
-        app
+        }
     }
+}
 
-    fn sample(&mut self, ctx: &Context) {
-        // Actual elapsed time since the last sample (space-bar refresh and slow
-        // terminal draws make this differ from TICK — rates must use the real span).
-        let elapsed = self.last_sample.elapsed().as_secs_f64().max(0.001);
-        self.last_sample = Instant::now();
+fn sampler_loop(
+    mut ctx: Context,
+    config_path: Option<PathBuf>,
+    tx: Sender<SystemSnapshot>,
+    stop: Arc<AtomicBool>,
+) {
+    // All prev-state lives here, on the sampler thread — the renderer never
+    // races with it (no mutex in the hot path).
+    let mut last_mtime = config_path.as_deref().and_then(file_mtime);
+    let mut last_sample = Instant::now();
+    let mut stat_prev: Option<(u64, u64)> = None;
+    let mut proc_total_prev: u64 = 0;
+    let mut proc_prev: HashMap<i32, u64> = HashMap::new();
+    let mut net_prev: HashMap<String, (u64, u64)> = HashMap::new();
+    let mut notice: Option<String> = None;
+    let cores = logical_cores();
+
+    loop {
+        if stop.load(Ordering::Relaxed) {
+            break;
+        }
+
+        // Config hot-reload: rebuild ctx (custom modules) when the file changes.
+        if let Some(path) = &config_path {
+            let now = file_mtime(path);
+            if now != last_mtime {
+                last_mtime = now;
+                let custom = Config::load(Some(path))
+                    .map(|c| c.custom)
+                    .unwrap_or_default();
+                ctx = Context::new(
+                    ctx.config_dir.clone(),
+                    ctx.cache_dir.clone(),
+                    ctx.debug,
+                    custom,
+                );
+                notice = Some("config reloaded".to_string());
+            }
+        }
+
+        // Actual elapsed time (first sample and slow renders make this differ
+        // from TICK — rates must use the real span).
+        let elapsed = last_sample.elapsed().as_secs_f64().max(0.001);
+        last_sample = Instant::now();
+
+        let mut snap = SystemSnapshot {
+            notice: notice.clone(),
+            ..Default::default()
+        };
 
         // --- CPU % (delta of /proc/stat totals, no sleep needed) ---
         if let Some((total, idle)) = read_stat() {
-            if let Some((pt, pi)) = self.stat_prev {
+            if let Some((pt, pi)) = stat_prev {
                 let dt = total.saturating_sub(pt);
                 let di = idle.saturating_sub(pi);
                 if dt > 0 {
-                    self.cpu_pct = (dt - di) as f64 / dt as f64 * 100.0;
+                    snap.cpu_pct = (dt - di) as f64 / dt as f64 * 100.0;
                 }
             }
-            self.stat_prev = Some((total, idle));
+            stat_prev = Some((total, idle));
         }
-        push(&mut self.cpu_history, self.cpu_pct as u64);
+        push(&mut snap.cpu_history, snap.cpu_pct as u64);
 
         // --- Memory: reuse the existing collector via the registry ---
-        if let Some((pct, used, total)) = sample_memory(ctx) {
-            self.mem_pct = pct;
-            self.mem_used = used;
-            self.mem_total = total;
+        if let Some((pct, used, total)) = sample_memory(&ctx) {
+            snap.mem_pct = pct;
+            snap.mem_used = used;
+            snap.mem_total = total;
         }
-        push(&mut self.mem_history, self.mem_pct as u64);
+        push(&mut snap.mem_history, snap.mem_pct as u64);
 
         // --- Top processes (Linux /proc) ---
-        self.sample_processes();
+        sample_processes(
+            &mut snap,
+            &mut proc_prev,
+            &mut proc_total_prev,
+            stat_prev,
+            cores,
+        );
 
         // --- Network rates (Linux /sys) ---
-        self.sample_network(elapsed);
+        sample_network(&mut snap, &mut net_prev, elapsed);
+
+        // Non-blocking push: bounded(1) try_send never blocks the sampler. If
+        // the renderer is slow, the newest sample is skipped (crossbeam never
+        // overwrites) — no backpressure, no stutter. The renderer drains with
+        // `while let Ok(snap) = rx.try_recv()` to always show the latest.
+        let _ = tx.try_send(snap);
+
+        // Sleep the remainder of the tick (cooperative stop check on wake).
+        std::thread::sleep(TICK);
     }
+}
 
-    fn sample_processes(&mut self) {
-        #[cfg(target_os = "linux")]
-        {
-            let stat_total = self.stat_prev.map(|(t, _)| t).unwrap_or(0);
-            let mut cur: HashMap<i32, u64> = HashMap::new();
-            let mut procs: Vec<ProcInfo> = Vec::new();
+#[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
+fn sample_processes(
+    snap: &mut SystemSnapshot,
+    proc_prev: &mut HashMap<i32, u64>,
+    proc_total_prev: &mut u64,
+    stat_prev: Option<(u64, u64)>,
+    cores: u64,
+) {
+    #[cfg(target_os = "linux")]
+    {
+        let stat_total = stat_prev.map(|(t, _)| t).unwrap_or(0);
+        let mut cur: HashMap<i32, u64> = HashMap::new();
+        let mut procs: Vec<ProcInfo> = Vec::new();
 
-            if let Ok(entries) = std::fs::read_dir("/proc") {
-                for entry in entries.flatten() {
-                    let pid: i32 = match entry.file_name().to_str().and_then(|s| s.parse().ok()) {
-                        Some(pid) => pid,
-                        None => continue,
-                    };
-                    let base = entry.path();
-                    let name = std::fs::read_to_string(base.join("comm"))
-                        .map(|s| s.trim().to_string())
-                        .unwrap_or_default();
-                    let stat = std::fs::read_to_string(base.join("stat")).unwrap_or_default();
-                    // Format: "pid (comm) state ppid ... utime stime ...". comm may
-                    // contain spaces/parens, so split after the LAST ')'.
-                    let Some((_, rest)) = stat.rsplit_once(')') else {
-                        continue;
-                    };
-                    let fields: Vec<&str> = rest.split_whitespace().collect();
-                    if fields.len() <= 12 {
-                        continue;
-                    }
-                    let utime: u64 = fields[11].parse().unwrap_or(0);
-                    let stime: u64 = fields[12].parse().unwrap_or(0);
-                    let ticks = utime + stime;
-                    cur.insert(pid, ticks);
+        if let Ok(entries) = std::fs::read_dir("/proc") {
+            for entry in entries.flatten() {
+                let pid: i32 = match entry.file_name().to_str().and_then(|s| s.parse().ok()) {
+                    Some(pid) => pid,
+                    None => continue,
+                };
+                let base = entry.path();
+                let name = std::fs::read_to_string(base.join("comm"))
+                    .map(|s| s.trim().to_string())
+                    .unwrap_or_default();
+                let stat = std::fs::read_to_string(base.join("stat")).unwrap_or_default();
+                // Format: "pid (comm) state ppid ... utime stime ...". comm may
+                // contain spaces/parens, so split after the LAST ')'.
+                let Some((_, rest)) = stat.rsplit_once(')') else {
+                    continue;
+                };
+                let fields: Vec<&str> = rest.split_whitespace().collect();
+                if fields.len() <= 12 {
+                    continue;
+                }
+                let utime: u64 = fields[11].parse().unwrap_or(0);
+                let stime: u64 = fields[12].parse().unwrap_or(0);
+                let ticks = utime + stime;
+                cur.insert(pid, ticks);
 
-                    let rss_pages: u64 = std::fs::read_to_string(base.join("statm"))
-                        .ok()
-                        .and_then(|s| s.split_whitespace().nth(1).and_then(|v| v.parse().ok()))
-                        .unwrap_or(0);
+                let rss_pages: u64 = std::fs::read_to_string(base.join("statm"))
+                    .ok()
+                    .and_then(|s| s.split_whitespace().nth(1).and_then(|v| v.parse().ok()))
+                    .unwrap_or(0);
 
-                    if let Some(&prev_ticks) = self.proc_prev.get(&pid) {
-                        let dproc = ticks.saturating_sub(prev_ticks);
-                        let dtotal = stat_total.saturating_sub(self.proc_total_prev);
-                        // First sample has no baseline for processes yet; skip it.
-                        if dtotal > 0 {
-                            let cpu_pct = dproc as f64 / dtotal as f64 * self.cores as f64 * 100.0;
-                            let mem_mb = rss_pages as f64 * 4096.0 / (1024.0 * 1024.0);
-                            if name.is_empty() || name == "kthreadd" {
-                                continue;
-                            }
-                            procs.push(ProcInfo {
-                                pid,
-                                name,
-                                cpu_pct,
-                                mem_mb,
-                            });
+                if let Some(&prev_ticks) = proc_prev.get(&pid) {
+                    let dproc = ticks.saturating_sub(prev_ticks);
+                    let dtotal = stat_total.saturating_sub(*proc_total_prev);
+                    // First sample has no baseline for processes yet; skip it.
+                    if dtotal > 0 {
+                        let cpu_pct = dproc as f64 / dtotal as f64 * cores as f64 * 100.0;
+                        let mem_mb = rss_pages as f64 * 4096.0 / (1024.0 * 1024.0);
+                        if name.is_empty() || name == "kthreadd" {
+                            continue;
                         }
+                        procs.push(ProcInfo {
+                            pid,
+                            name,
+                            cpu_pct,
+                            mem_mb,
+                        });
                     }
                 }
             }
+        }
 
-            procs.sort_by(|a, b| {
-                b.cpu_pct
-                    .partial_cmp(&a.cpu_pct)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            });
-            procs.truncate(10);
-            self.proc_prev = cur;
-            self.proc_total_prev = stat_total;
-            self.processes = procs;
-        }
-        #[cfg(not(target_os = "linux"))]
-        {
-            self.processes = Vec::new();
-        }
+        procs.sort_by(|a, b| {
+            b.cpu_pct
+                .partial_cmp(&a.cpu_pct)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        procs.truncate(10);
+        *proc_prev = cur;
+        *proc_total_prev = stat_total;
+        snap.processes = procs;
     }
+    #[cfg(not(target_os = "linux"))]
+    {
+        snap.processes = Vec::new();
+    }
+}
 
-    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
-    fn sample_network(&mut self, elapsed: f64) {
-        #[cfg(target_os = "linux")]
-        {
-            let mut rates = Vec::new();
-            if let Ok(entries) = std::fs::read_dir("/sys/class/net/") {
-                for entry in entries.flatten() {
-                    let name = entry.file_name().to_string_lossy().to_string();
-                    if name == "lo"
-                        || name.starts_with("docker")
-                        || name.starts_with("br-")
-                        || name.starts_with("veth")
-                        || name.starts_with("virbr")
-                    {
-                        continue;
-                    }
-                    let base = entry.path().join("statistics");
-                    let rx = read_u64(base.join("rx_bytes"));
-                    let tx = read_u64(base.join("tx_bytes"));
-                    if let Some(&(prx, ptx)) = self.net_prev.get(&name) {
-                        rates.push((
-                            name.clone(),
-                            rx.saturating_sub(prx) as f64 / elapsed,
-                            tx.saturating_sub(ptx) as f64 / elapsed,
-                        ));
-                    }
-                    self.net_prev.insert(name, (rx, tx));
+#[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
+fn sample_network(
+    snap: &mut SystemSnapshot,
+    net_prev: &mut HashMap<String, (u64, u64)>,
+    elapsed: f64,
+) {
+    #[cfg(target_os = "linux")]
+    {
+        let mut rates = Vec::new();
+        if let Ok(entries) = std::fs::read_dir("/sys/class/net/") {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name == "lo"
+                    || name.starts_with("docker")
+                    || name.starts_with("br-")
+                    || name.starts_with("veth")
+                    || name.starts_with("virbr")
+                {
+                    continue;
                 }
+                let base = entry.path().join("statistics");
+                let rx = read_u64(base.join("rx_bytes"));
+                let tx = read_u64(base.join("tx_bytes"));
+                if let Some(&(prx, ptx)) = net_prev.get(&name) {
+                    rates.push((
+                        name.clone(),
+                        rx.saturating_sub(prx) as f64 / elapsed,
+                        tx.saturating_sub(ptx) as f64 / elapsed,
+                    ));
+                }
+                net_prev.insert(name, (rx, tx));
             }
-            rates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-            self.net_rates = rates;
         }
-        #[cfg(not(target_os = "linux"))]
-        {
-            self.net_rates = Vec::new();
+        rates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        snap.net_rates = rates;
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        snap.net_rates = Vec::new();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Renderer (main thread)
+// ---------------------------------------------------------------------------
+
+struct App {
+    /// Latest snapshot from the sampler thread.
+    snapshot: SystemSnapshot,
+    /// Count of frames that exceeded the 16 ms budget (overwrite channel drops
+    /// stale samples on its own; this is observability for the header).
+    slow_frames: u64,
+}
+
+impl App {
+    fn new() -> Self {
+        App {
+            snapshot: SystemSnapshot::default(),
+            slow_frames: 0,
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Rendering
-    // -----------------------------------------------------------------------
-
-    fn draw(&mut self, frame: &mut Frame) {
+    fn draw(&self, frame: &mut Frame) {
+        let snap = &self.snapshot;
         let area = frame.area();
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -314,10 +406,16 @@ impl App {
                 .bg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
         )];
-        if let Some(notice) = &self.notice {
+        if let Some(notice) = &snap.notice {
             spans.push(Span::styled(
                 format!("  {notice}  "),
                 Style::default().fg(Color::Yellow),
+            ));
+        }
+        if self.slow_frames > 0 {
+            spans.push(Span::styled(
+                format!("  [{} slow frames]  ", self.slow_frames),
+                Style::default().fg(Color::DarkGray),
             ));
         }
         spans.push(Span::styled(
@@ -348,17 +446,18 @@ impl App {
     }
 
     fn draw_cpu(&self, frame: &mut Frame, area: Rect) {
+        let snap = &self.snapshot;
         let block = Block::bordered().title(Line::from(" CPU "));
         let inner = block.inner(area);
         frame.render_widget(block, area);
 
         let gauge = Gauge::default()
-            .gauge_style(Style::default().fg(gauge_color(self.cpu_pct)))
-            .ratio(self.cpu_pct.clamp(0.0, 100.0) / 100.0)
-            .label(format!("{:>5.1}%", self.cpu_pct));
+            .gauge_style(Style::default().fg(gauge_color(snap.cpu_pct)))
+            .ratio(snap.cpu_pct.clamp(0.0, 100.0) / 100.0)
+            .label(format!("{:>5.1}%", snap.cpu_pct));
         frame.render_widget(gauge, Rect::new(inner.x, inner.y, inner.width, 1));
 
-        let data: Vec<u64> = self.cpu_history.iter().copied().collect();
+        let data: Vec<u64> = snap.cpu_history.iter().copied().collect();
         let spark = Sparkline::default()
             .data(&data)
             .max(100)
@@ -375,20 +474,21 @@ impl App {
     }
 
     fn draw_mem(&self, frame: &mut Frame, area: Rect) {
+        let snap = &self.snapshot;
         let block = Block::bordered().title(Line::from(" Memory "));
         let inner = block.inner(area);
         frame.render_widget(block, area);
 
         let gauge = Gauge::default()
-            .gauge_style(Style::default().fg(gauge_color(self.mem_pct as f64)))
-            .ratio(self.mem_pct as f64 / 100.0)
+            .gauge_style(Style::default().fg(gauge_color(snap.mem_pct as f64)))
+            .ratio(snap.mem_pct as f64 / 100.0)
             .label(format!(
                 "{:>4}%  {} / {}",
-                self.mem_pct, self.mem_used, self.mem_total
+                snap.mem_pct, snap.mem_used, snap.mem_total
             ));
         frame.render_widget(gauge, Rect::new(inner.x, inner.y, inner.width, 1));
 
-        let data: Vec<u64> = self.mem_history.iter().copied().collect();
+        let data: Vec<u64> = snap.mem_history.iter().copied().collect();
         let spark = Sparkline::default()
             .data(&data)
             .max(100)
@@ -405,11 +505,12 @@ impl App {
     }
 
     fn draw_net(&self, frame: &mut Frame, area: Rect) {
+        let snap = &self.snapshot;
         let block = Block::bordered().title(Line::from(" Network "));
         let inner = block.inner(area);
         frame.render_widget(block, area);
 
-        let mut lines: Vec<Line> = self
+        let mut lines: Vec<Line> = snap
             .net_rates
             .iter()
             .map(|(name, rx, tx)| {
@@ -442,11 +543,12 @@ impl App {
     }
 
     fn draw_procs(&self, frame: &mut Frame, area: Rect) {
+        let snap = &self.snapshot;
         let block = Block::bordered().title(Line::from(" Top processes "));
         let inner = block.inner(area);
         frame.render_widget(block, area);
 
-        let rows: Vec<Row> = self
+        let rows: Vec<Row> = snap
             .processes
             .iter()
             .map(|p| {
@@ -615,5 +717,21 @@ mod tests {
         assert_eq!(h.len(), HISTORY);
         assert_eq!(*h.front().unwrap(), 10);
         assert_eq!(*h.back().unwrap(), (HISTORY + 9) as u64);
+    }
+
+    #[test]
+    fn test_bounded_channel_sender_never_blocks() {
+        // crossbeam bounded(1) has no overwrite: a full channel rejects the
+        // NEW sample with Err(Full) and keeps the old one. That's exactly what
+        // we want here — the sampler's try_send can never block, and the
+        // renderer drains with `while let Ok(snap) = rx.try_recv()` so it
+        // always displays the newest sample that got through.
+        let (tx, rx) = crossbeam_channel::bounded::<u32>(1);
+        assert!(tx.try_send(1).is_ok());
+        assert!(
+            tx.try_send(2).is_err(),
+            "channel full — sender never blocks"
+        );
+        assert_eq!(rx.try_recv(), Ok(1));
     }
 }

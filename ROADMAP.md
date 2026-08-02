@@ -231,7 +231,7 @@ This replaces the earlier "deferred — not needed" note in 3.1.
 
 | Task | What | Feature gate | Status |
 | ---- | ---- | ------------ | ------ |
-| 4.1 | **Sub-10 ms cold start**: eliminate process-spawning collectors, mmap'd `/proc`, `phf` map, lazy zstd assets, `hyperfine` CI gate | `parallel`, `fast-paths` (default) | 🟡 |
+| 4.1 | **Sub-10 ms cold start**: eliminate process-spawning collectors, mmap'd `/proc`, `phf` map, lazy zstd assets, `hyperfine` CI gate | `parallel`, `fast-paths` (default) | ✅ (Aug 2026) |
 | 4.2 | **Lock-free live dashboard**: crossbeam overwrite channel (bounded(1)) collector→renderer, `repr(C)` snapshot with atomics, pre-allocated sparkline ring buffer, 16 ms render budget, core affinity | `live` (exists), `lockfree` | ⬜ |
 | 4.3 | **SIMD benchmark/processing**: AVX2/NEON vectorized CPU bench, `libc::memset` memory bandwidth bench, SIMD sparkline min/max, SIMD logo gradient | `simd` (default x86_64) | ⬜ |
 
@@ -251,7 +251,7 @@ This replaces the earlier "deferred — not needed" note in 3.1.
 | ---- | ---- | ------------ | ------ |
 | 4.9 | **Diff mode** (`--diff <host1> <host2>`): compare local/remote/JSON datasets, 3-column aligned table, semantic highlight, HTML/MD export | `diff` (default) | ⬜ |
 | 4.10 | **Infrastructure exports**: `--format ansible|terraform|csv|prometheus` + `--discover` mDNS service discovery | `export-infra` (default) | ⬜ |
-| 4.11 | **QR config sharing**: `--qr` renders base64+zstd config as terminal QR (unicode blocks), `--import-qr` reads via rqrr | `qr` | ⬜ |
+| 4.11 | **QR config sharing**: `--qr` renders base64+zstd config as terminal QR (unicode blocks), `--import-qr` reads via rqrr | `qr` | ✅ (Aug 2026) |
 | 4.12 | **WASM plugin runtime**: wasmtime behind `wasm-plugins` (off), WIT collector contract, fuel-limited sandboxed `.wasm` plugins in `~/.config/flexfetch/plugins/` | `wasm-plugins` (off) | ⬜ |
 
 ### Pillar D — Marketing hooks
@@ -267,7 +267,7 @@ This replaces the earlier "deferred — not needed" note in 3.1.
 | Task | What | Feature gate | Status |
 | ---- | ---- | ------------ | ------ |
 | 4.16 | **Compile-time asset compression**: build.rs zstd blobs, `phf_codegen` perfect hash for distro→logo, lazy per-logo decompression, string dedup, panic=abort (have), system allocator | — | ⬜ |
-| 4.17 | **Universal installer**: Homebrew tap, AUR `flexfetch-bin`, Nix profile, `.deb`/`.rpm` via cargo-deb/generate-rpm in CI, static musl tarballs (have), simplified install.sh | — | ⬜ |
+| 4.17 | **Universal installer**: Homebrew tap, AUR `flexfetch-bin`, Nix profile, `.deb`/`.rpm` via cargo-deb/generate-rpm in CI, static musl tarballs (have), simplified install.sh | — | 🟡 (checksums + backup + .sha256 done; taps/pkgs pending) |
 
 ### Dependency graph & execution
 
@@ -284,7 +284,7 @@ Suggested order: **Week 1** 4.1 (foundation — forces zero-alloc collectors) ·
 **Start here: Task 4.1** (sub-10 ms guarantee) — it forces zero-allocation collectors,
 which feeds the live dashboard and the whole premium feel.
 
-### Task 4.1 — zero-spawn collectors — 🟡 in progress (Aug 2026, first batch landed)
+### Task 4.1 — zero-spawn collectors + hyperfine gate — ✅ done (Aug 2026)
 
 Goal: eliminate `Command` spawns from every default-path collector so cold start is
 bounded by file reads + network latency, not process forking. Measured on the dev box
@@ -327,10 +327,38 @@ Landed (all Linux default-path modules, macOS paths preserved + cross-check clea
 Validation: 34/34 tests, clippy `-D warnings` clean, fmt clean, macOS core + cli
 cross-checks clean, all feature configs build (default / minimal / release config).
 
-Still open for 4.1 (later batches): mmap'd `/proc` parsing (memmap2/nom zero-copy),
-`phf::Map` for the distro→logo map, `&'static str` label interning, lazy zstd logo
-decompression, and the `hyperfine < 10 ms` CI gate (the 10 ms target applies to the
-minimal build — the full default fetch is network-bound by design).
+Deferred optimizations (not required for the sub-10 ms target — they feed 4.16
+asset compression instead): mmap'd `/proc` parsing (memmap2/nom zero-copy),
+`phf::Map` for the distro→logo map, `&'static str` label interning, lazy zstd
+logo decompression.
+
+### Task 4.11 — QR config sharing — ✅ done (Aug 2026)
+`--qr` encodes the current config as a base64+zstd blob and renders it as a terminal
+QR (unicode blocks, `qrcode` crate); `--import-qr <image>` decodes a screenshot of it
+back into the config path (existing file backed up, `rqrr` decode, `image` png-only
+for the reader). Whole feature gated behind `qr` (opt-in — `zstd-sys` is a C dep, so
+it stays out of the pure-Rust musl release pipeline and the minimal binary). CI
+coverage: the `qr-feature` job runs tests + clippy with `--features qr`.
+
+### Task 4.1 (remainder) — hyperfine cold-start CI gate — ✅ done (Aug 2026)
+`ci.yml` gained a `perf-gate` job: builds the minimal release
+(`--no-default-features`), `cargo install hyperfine`, measures
+`./target/release/flexfetch --minimal` (title/separator/os/kernel/uptime — all
+zero-spawn file reads) with `--warmup 5 --runs 50`, and fails if the mean exceeds
+10 ms (python3 parses the `--export-json` output; raise `limit` to 0.015 if shared
+runners flake rather than deleting the gate).
+
+### Task 4.17 (installer) — checksums + backup + release wiring — 🟡 (Aug 2026)
+- `install.sh`: SHA-256 verification (fail-closed on mismatch, warn+skip only when no
+  sha tool exists or the checksum file is unfetchable; `sha256sum` with a
+  `shasum -a 256` fallback for macOS), timestamped `.bak` backup of the existing
+  binary before overwrite, temp-dir cleanup on both success and failure paths.
+- `release.yml`: a "Generate checksums" step emits `<artifact>.sha256` per tarball
+  (sha256sum / shasum -a 256 detection for the macOS runner), and the release upload
+  now includes tarballs + checksums + `install.sh` — so
+  `curl …/releases/latest/download/install.sh | sh` works and every download is
+  verifiable.
+- Still pending: Homebrew tap, AUR `flexfetch-bin`, Nix profile, `.deb`/`.rpm` in CI.
 
 ---
 
@@ -381,12 +409,16 @@ minimal build — the full default fetch is network-bound by design).
    based hot-reload (mtime works, no dep needed), and finishing the release-matrix
    validation (macOS ✓; Linux musl jobs were fixed via direct zig download — final
    re-run pending).
-7. **Phase 4 — Domination — 🟡 Task 4.1 in progress (Aug 2026)** — first batch landed:
-   every default-path collector is zero-spawn (kernel/packages/wm/disk/health/network/
-   wifi/publicip/cpuusage) + `--benchmark` cold-start reporting. Cold start 5.5 s →
-   686 ms (242 ms with publicip cache); wifi 4.1 s → 24 ms. See the Task 4.1 section.
-   Next: mmap'd `/proc` parsing, `phf` distro map, lazy zstd assets, then the
-   hyperfine CI gate for the minimal build.
+7. **Phase 4 — Domination — 🟡 Task 4.1 done, 4.11 done, 4.17 partial (Aug 2026)** —
+   first batch landed: every default-path collector is zero-spawn
+   (kernel/packages/wm/disk/health/network/wifi/publicip/cpuusage) + `--benchmark`
+   cold-start reporting. Cold start 5.5 s → 686 ms (242 ms with publicip cache);
+   wifi 4.1 s → 24 ms. Then: hyperfine `perf-gate` CI job (minimal build, mean <
+   10 ms) landed; QR config sharing (`--qr`/`--import-qr`, `qr` feature) landed;
+   installer hardened (checksums + .bak backup + `.sha256` artifacts in
+   release.yml); `--update`/`--doctor`/`--hook` shell-integration commands landed
+   (`flexfetch-cli/src/tools.rs`); git-cliff changelog config (`cliff.toml`).
+   Next: 4.2 lock-free live dashboard, 4.3 SIMD, then Pillar B.
 
 ## Reference
 

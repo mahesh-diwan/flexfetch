@@ -1,4 +1,4 @@
-.TH FLEXFETCH 1 "July 2026" "flexfetch 0.7.0" "User Commands"
+.TH FLEXFETCH 1 "August 2026" "flexfetch 0.16.0" "User Commands"
 .SH NAME
 flexfetch \- fast, flexible system information tool
 .SH SYNOPSIS
@@ -33,6 +33,21 @@ Output format: \fBtext\fR (default), \fBjson\fR, \fBsvg\fR, \fBhtml\fR, \fBpng\f
 .TP
 .BI \-\-theme " " \fINAME\fR
 Apply a color theme.
+.TP
+.B \-\-update
+Self\-update: re\-run the idempotent install script (skips when the installed
+version already matches the latest release; verifies the SHA\-256 checksum of
+the download). Requires curl or wget.
+.TP
+.B \-\-doctor
+Environment diagnostics: check stdout TTY, \fBCOLORTERM\fR truecolor, Nerd
+Font heuristic, config TOML syntax, and the core collectors (os/kernel/memory/
+cpu). Exits nonzero if a hard check (color/config/collectors) fails.
+.TP
+.BI \-\-hook " " \fISHELL\fR
+Print a shell snippet that runs \fBflexfetch --prompt\fR when cd\-ing into a
+git repository. Supports \fIbash\fR, \fIzsh\fR, \fIfish\fR.
+Use \fBeval "$(flexfetch --hook zsh)"\fR in the shell rc.
 .TP
 .B \-\-debug
 Enable debug output.
@@ -80,10 +95,6 @@ Seconds between watch refreshes (default 2).
 .B \-\-live
 Real\-time dashboard: CPU/memory gauges with sparklines, top processes,
 and network rates. Requires a terminal. Requires the \fBlive\fR feature.
-.TP
-.B \-\-smart
-Add \fI\$PWD\fR context modules: git branch/status, project type,
-container/venv/SSH session.
 .TP
 .BR completions " " \fISHELL\fR
 Print shell completions for \fIbash\fR, \fIzsh\fR, \fIfish\fR, etc.
@@ -203,4 +214,4 @@ flexfetch --wizard
 .SH AUTHORS
 Written by Mahesh Diwan and contributors.
 .SH VERSION
-flexfetch 0.7.0
+flexfetch 0.16.0

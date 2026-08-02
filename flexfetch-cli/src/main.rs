@@ -9,7 +9,11 @@ use std::time::Duration;
 
 #[cfg(feature = "live")]
 mod live;
+#[cfg(feature = "qr")]
+mod qr;
+mod simd;
 mod ssh;
+mod tools;
 #[cfg(feature = "live")]
 mod wizard;
 
@@ -107,6 +111,15 @@ struct Cli {
     #[arg(long)]
     live: bool,
 
+    /// SIMD CPU micro-benchmark (Phase 4.3): vectorized integer benchmark with
+    /// runtime AVX2/SSE4/NEON detection, scalar fallback.
+    #[arg(long)]
+    bench_cpu: bool,
+
+    /// SIMD memory-bandwidth micro-benchmark (Phase 4.3).
+    #[arg(long)]
+    bench_memory: bool,
+
     /// Smart fetch: add $PWD context (git branch/status, project type, container/venv/SSH)
     #[arg(long)]
     smart: bool,
@@ -127,9 +140,37 @@ struct Cli {
     #[arg(long)]
     ssh: Vec<String>,
 
+    /// Diff mode (Phase 4.9): compare two systems side-by-side. Each target is
+    /// `local`, `host@remote`, or a path to a flexfetch JSON export file.
+    #[arg(long, num_args = 2)]
+    diff: Vec<String>,
+
     /// Interactive config wizard (writes ~/.config/flexfetch/config.toml)
     #[arg(long)]
     wizard: bool,
+
+    /// Render the effective config as a terminal QR code (base64+zstd payload,
+    /// unicode blocks). Scan it with a phone to import on another machine.
+    #[arg(long)]
+    qr: bool,
+
+    /// Import a config from a QR-code image (PNG/etc; decoded via rqrr) and
+    /// write it to the config path (existing file is backed up).
+    #[arg(long)]
+    import_qr: Option<PathBuf>,
+
+    /// Self-update: check the latest GitHub release and re-run the install
+    /// script if a newer version exists (requires curl).
+    #[arg(long)]
+    update: bool,
+
+    /// Environment doctor: validate terminal, color, config, and collectors.
+    #[arg(long)]
+    doctor: bool,
+
+    /// Print a shell hook (bash|zsh|fish) for cd-into-git-repo context fetches.
+    #[arg(long)]
+    hook: Option<String>,
 
     #[cfg(feature = "completions")]
     #[command(subcommand)]
@@ -161,6 +202,8 @@ fn main() {
         features.push("parallel");
         #[cfg(feature = "completions")]
         features.push("completions");
+        #[cfg(feature = "qr")]
+        features.push("qr");
         println!(
             "flexfetch {}\nFeatures: {}",
             env!("CARGO_PKG_VERSION"),
@@ -195,6 +238,43 @@ fn main() {
         return;
     }
 
+    // --hook <shell>: print a cd-into-git-repo hook for the given shell.
+    if let Some(ref shell) = cli.hook {
+        tools::print_hook(shell);
+        return;
+    }
+
+    // --update: re-run the install script if a newer release exists.
+    if cli.update {
+        tools::self_update();
+        return;
+    }
+
+    // --import-qr <image>: decode a QR config image and write it to disk.
+    // Runs before config load because it doesn't need an existing config.
+    if cli.import_qr.is_some() {
+        #[cfg(feature = "qr")]
+        {
+            // Binding lives inside the cfg block so the feature-off build has
+            // no unused-variable warning.
+            if let Some(image) = &cli.import_qr {
+                match qr::import_qr_image(image) {
+                    Ok(toml_str) => write_imported_config(&cli, &toml_str),
+                    Err(e) => {
+                        eprintln!("import-qr error: {e}");
+                        std::process::exit(1);
+                    }
+                }
+            }
+            return;
+        }
+        #[cfg(not(feature = "qr"))]
+        {
+            eprintln!("error: --import-qr requires the `qr` feature (build with --features qr)");
+            std::process::exit(1);
+        }
+    }
+
     let config_dir = get_config_dir();
     let cache_dir = get_cache_dir();
 
@@ -208,6 +288,49 @@ fn main() {
         cli.debug,
         config.custom.clone(),
     );
+
+    // --doctor: environment diagnostics (terminal, color, config, collectors).
+    if cli.doctor {
+        tools::run_doctor(&ctx);
+        return;
+    }
+
+    // --qr: render the effective config as a terminal QR code (Phase 4.11).
+    // Prefers the raw config file when one exists: it preserves comments and
+    // encodes only what the user wrote (smaller, scannable QR). Falls back to
+    // the serialized effective config when there is no file on disk.
+    if cli.qr {
+        #[cfg(feature = "qr")]
+        {
+            let toml_str = config_file_path(&cli)
+                .and_then(|p| std::fs::read_to_string(p).ok())
+                .or_else(|| toml::to_string(&config).ok());
+            match toml_str {
+                Some(toml_str) => match qr::render_config_qr(&toml_str) {
+                    Ok(rendered) => {
+                        println!("{rendered}");
+                        eprintln!(
+                            "Scan with a phone (or --import-qr on another machine) to share this config."
+                        );
+                    }
+                    Err(e) => {
+                        eprintln!("qr error: {e}");
+                        std::process::exit(1);
+                    }
+                },
+                None => {
+                    eprintln!("qr error: cannot serialize config");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        #[cfg(not(feature = "qr"))]
+        {
+            eprintln!("error: --qr requires the `qr` feature (build with --features qr)");
+            std::process::exit(1);
+        }
+    }
 
     // Live dashboard: owns the terminal until the user quits
     if cli.live {
@@ -267,6 +390,34 @@ fn main() {
                 Err(e) => eprintln!("  error: {e}"),
             }
             println!();
+        }
+        return;
+    }
+
+    // --bench-cpu / --bench-memory: SIMD micro-benchmarks (Phase 4.3)
+    if cli.bench_cpu || cli.bench_memory {
+        let iterations = cli.benchmark.unwrap_or(5).max(1);
+        if cli.bench_cpu {
+            let (level, best) = simd::bench_cpu(iterations);
+            println!("CPU SIMD benchmark ({iterations} iterations):");
+            println!("  path:  {level:?}");
+            println!("  best:  {:?}", best);
+        }
+        if cli.bench_memory {
+            let (gb_s, best) = simd::bench_memory(iterations);
+            println!("Memory write bandwidth ({iterations} iterations, 64 MiB buffer):");
+            println!("  best:  {gb_s:.2} GiB/s ({:?})", best);
+        }
+        return;
+    }
+
+    // --diff <target1> <target2>: side-by-side system comparison (Phase 4.9)
+    if cli.diff.len() == 2 {
+        let a = resolve_diff_target(&cli.diff[0], &modules, &ctx, registry, template_content);
+        let b = resolve_diff_target(&cli.diff[1], &modules, &ctx, registry, template_content);
+        match (a, b) {
+            (Ok(ia), Ok(ib)) => render_diff(&ia, &ib, &cli.diff[0], &cli.diff[1]),
+            (Err(e), _) | (_, Err(e)) => eprintln!("diff error: {e}"),
         }
         return;
     }
@@ -429,6 +580,87 @@ fn file_mtime(path: &std::path::Path) -> Option<std::time::SystemTime> {
     std::fs::metadata(path).ok().and_then(|m| m.modified().ok())
 }
 
+/// Resolve a `--diff` target into a `SystemInfo`: `local` collects locally,
+/// `host@remote` (or any host without `/`) fetches via SSH, anything else is
+/// treated as a path to a flexfetch JSON export file.
+fn resolve_diff_target(
+    target: &str,
+    modules: &[String],
+    ctx: &Context,
+    registry: &'static ModuleRegistry,
+    template_content: &str,
+) -> Result<SystemInfo, String> {
+    if target == "local" {
+        return Ok(registry.run_selected(modules, ctx, template_content));
+    }
+    if target.contains('/') || target.ends_with(".json") {
+        let content = std::fs::read_to_string(target).map_err(|e| format!("read {target}: {e}"))?;
+        let json: serde_json::Value =
+            serde_json::from_str(&content).map_err(|e| format!("parse {target}: {e}"))?;
+        return SystemInfo::from_json(&json).map_err(|e| format!("parse {target}: {e}"));
+    }
+    // Remote host (reuses the --ssh fetch machinery, including the scp fallback).
+    let mut results = ssh::fetch_all(&[target.to_string()]);
+    results
+        .pop()
+        .map(|(_, r)| r)
+        .unwrap_or_else(|| Err(format!("no result from {target}")))
+}
+
+/// Render a 3-column side-by-side diff table (Phase 4.9). Rows are aligned by
+/// module name; differing values are highlighted (red for A, green for B).
+fn render_diff(a: &SystemInfo, b: &SystemInfo, name_a: &str, name_b: &str) {
+    let a_map: HashMap<&str, &InfoValue> = a.entries.iter().map(|(n, v)| (*n, v)).collect();
+    let b_map: HashMap<&str, &InfoValue> = b.entries.iter().map(|(n, v)| (*n, v)).collect();
+
+    // Union of module names, preserving A's order then any B-only modules.
+    let mut names: Vec<&str> = a.entries.iter().map(|(n, _)| *n).collect();
+    for (n, _) in &b.entries {
+        if !names.contains(n) {
+            names.push(n);
+        }
+    }
+
+    let w = 12usize;
+    println!("\x1b[1;36m{name_a:<20}\x1b[0m vs \x1b[1;36m{name_b:<20}\x1b[0m");
+    println!("{:<w$} | {:<24} | {:<24}", "Property", name_a, name_b);
+    println!("{:-<1$}", "", w + 2 + 26 + 26);
+
+    for name in names {
+        let va = a_map
+            .get(name)
+            .map(|v| info_value_summary(v))
+            .unwrap_or_default();
+        let vb = b_map
+            .get(name)
+            .map(|v| info_value_summary(v))
+            .unwrap_or_default();
+        let (ca, cb) = if va != vb {
+            ("\x1b[31m", "\x1b[32m")
+        } else {
+            ("", "")
+        };
+        println!(
+            "{:<w$} | {ca}{:<24}\x1b[0m | {cb}{:<24}\x1b[0m",
+            name, va, vb
+        );
+    }
+}
+
+/// Compact one-line summary of an InfoValue for the diff table.
+fn info_value_summary(v: &InfoValue) -> String {
+    match v {
+        InfoValue::Scalar(s) => s.clone(),
+        InfoValue::Map(m) => {
+            let mut parts: Vec<String> = m.iter().map(|(k, val)| format!("{k}={val}")).collect();
+            parts.sort();
+            parts.join(", ")
+        }
+        InfoValue::List(l) => l.join(", "),
+        InfoValue::Table(t) => format!("{} rows", t.len()),
+    }
+}
+
 fn render_info(info: &SystemInfo, config: &Config, cli: &Cli) {
     match cli.format.as_str() {
         "json" => {
@@ -437,6 +669,22 @@ fn render_info(info: &SystemInfo, config: &Config, cli: &Cli) {
                 serde_json::to_string_pretty(&info.to_json()).unwrap_or_else(|_| "{}".into())
             );
         }
+        "ansible" => match flexfetch_core::export::export_ansible(info) {
+            Ok(s) => println!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "terraform" => match flexfetch_core::export::export_terraform(info) {
+            Ok(s) => println!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "csv" => match flexfetch_core::export::export_csv(info) {
+            Ok(s) => println!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "prometheus" => match flexfetch_core::export::export_prometheus(info) {
+            Ok(s) => println!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
         _ => {
             let engine = TeraEngine::new_default();
             match engine.render(info, config) {
@@ -609,6 +857,22 @@ fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli) 
         }
         "markdown" | "md" => match flexfetch_core::export::export_markdown(info, config) {
             Ok(md) => print!("{md}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "ansible" => match flexfetch_core::export::export_ansible(info) {
+            Ok(s) => print!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "terraform" => match flexfetch_core::export::export_terraform(info) {
+            Ok(s) => print!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "csv" => match flexfetch_core::export::export_csv(info) {
+            Ok(s) => print!("{s}"),
+            Err(e) => eprintln!("export error: {e}"),
+        },
+        "prometheus" => match flexfetch_core::export::export_prometheus(info) {
+            Ok(s) => print!("{s}"),
             Err(e) => eprintln!("export error: {e}"),
         },
         _ => {
@@ -875,6 +1139,41 @@ fn generate_config() {
     }
 }
 
+/// Write an imported config to the target path — `--config PATH` if given, else
+/// the default `~/.config/flexfetch/config.toml` — backing up any existing file
+/// first (timestamped, so repeated imports never clobber an older backup).
+#[cfg(feature = "qr")]
+fn write_imported_config(cli: &Cli, toml_str: &str) {
+    let path = cli
+        .config
+        .as_ref()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| get_config_dir().join("config.toml"));
+    if let Some(parent) = path.parent() {
+        if let Err(e) = std::fs::create_dir_all(parent) {
+            eprintln!("error creating config dir: {e}");
+            std::process::exit(1);
+        }
+    }
+    if path.exists() {
+        let ts = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let bak = path.with_extension(format!("toml.bak.{ts}"));
+        if let Err(e) = std::fs::rename(&path, &bak) {
+            eprintln!("error backing up existing config: {e}");
+            std::process::exit(1);
+        }
+        eprintln!("backed up existing config to {bak:?}");
+    }
+    if let Err(e) = std::fs::write(&path, toml_str) {
+        eprintln!("error writing config: {e}");
+        std::process::exit(1);
+    }
+    println!("wrote imported config to {path:?}");
+}
+
 fn list_modules() {
     let builtins = [
         "os",
@@ -910,6 +1209,10 @@ fn list_modules() {
         "project",
         "context",
         "health",
+        "weather",
+        "container",
+        "wallpaper",
+        "fsdeep",
     ];
     println!("Built-in modules:");
     for m in builtins {

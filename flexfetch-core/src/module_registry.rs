@@ -42,6 +42,10 @@ fn extract_template_modules(template_str: &str) -> HashSet<String> {
         "project",
         "context",
         "health",
+        "weather",
+        "container",
+        "wallpaper",
+        "fsdeep",
     ];
     for word in known {
         if template_str.contains(word) {
@@ -204,6 +208,22 @@ impl ModuleRegistry {
             (
                 "health",
                 Box::new(crate::modules::health::HealthModule) as Box<dyn Module>,
+            ),
+            (
+                "weather",
+                Box::new(crate::modules::weather::WeatherModule) as Box<dyn Module>,
+            ),
+            (
+                "container",
+                Box::new(crate::modules::container::ContainerModule) as Box<dyn Module>,
+            ),
+            (
+                "wallpaper",
+                Box::new(crate::modules::wallpaper::WallpaperModule) as Box<dyn Module>,
+            ),
+            (
+                "fsdeep",
+                Box::new(crate::modules::fsdeep::FsDeepModule) as Box<dyn Module>,
             ),
         ];
 

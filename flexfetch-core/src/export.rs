@@ -1,4 +1,4 @@
-use crate::{Config, SystemInfo};
+use crate::{Config, InfoValue, SystemInfo};
 use std::path::Path;
 
 // ANSI color table: index → RGB
@@ -363,6 +363,184 @@ pub fn export_png(_info: &SystemInfo, _config: &Config, _path: &Path) -> crate::
     ))
 }
 
+// ---------------------------------------------------------------------------
+// Phase 4.10 — infrastructure exports (ansible / terraform / csv / prometheus)
+// ---------------------------------------------------------------------------
+
+/// Ansible facts JSON: `{ "ansible_flexfetch": { "module": ... } }` — each
+/// InfoValue is normalized to plain scalars (Maps become nested objects).
+/// Lists/Table become arrays, so the output is valid JSON throughout.
+pub fn export_ansible(info: &SystemInfo) -> crate::Result<String> {
+    let mut facts = serde_json::Map::new();
+    for (name, value) in &info.entries {
+        facts.insert(name.to_string(), info_value_to_json(value));
+    }
+    let mut root = serde_json::Map::new();
+    root.insert("ansible_flexfetch".into(), serde_json::Value::Object(facts));
+    serde_json::to_string_pretty(&serde_json::Value::Object(root))
+        .map_err(|e| crate::Error::Template(format!("ansible export: {e}")))
+}
+
+/// Terraform-style HCL variable declarations: `variable "os_name" { default = "..." }`.
+/// Keys are normalized (dots/spaces → `_`); Maps are flattened to `module_key`.
+pub fn export_terraform(info: &SystemInfo) -> crate::Result<String> {
+    let mut out = String::new();
+    for (name, value) in &info.entries {
+        match value {
+            InfoValue::Scalar(s) => out.push_str(&format!(
+                "variable \"{name}\" {{ default = \"{}\" }}\n",
+                s.replace('"', "\\\"")
+            )),
+            InfoValue::Map(m) => {
+                let mut keys: Vec<_> = m.keys().collect();
+                keys.sort();
+                for k in keys {
+                    out.push_str(&format!(
+                        "variable \"{name}_{}\" {{ default = \"{}\" }}\n",
+                        normalize_key(k),
+                        m[k].replace('"', "\\\"")
+                    ));
+                }
+            }
+            InfoValue::List(l) => {
+                let joined = l
+                    .iter()
+                    .map(|s| format!("\"{}\"", s.replace('"', "\\\"")))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                out.push_str(&format!("variable \"{name}\" {{ default = [{joined}] }}\n"));
+            }
+            InfoValue::Table(t) => {
+                out.push_str(&format!(
+                    "variable \"{name}_count\" {{ default = {} }}\n",
+                    t.len()
+                ));
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// Flat `key,value` CSV (one row per leaf value; Maps flattened to `module_key`).
+pub fn export_csv(info: &SystemInfo) -> crate::Result<String> {
+    let mut out = String::from("key,value\n");
+    for (name, value) in &info.entries {
+        match value {
+            InfoValue::Scalar(s) => out.push_str(&format!("{},{}\n", name, csv_escape(s))),
+            InfoValue::Map(m) => {
+                let mut keys: Vec<_> = m.keys().collect();
+                keys.sort();
+                for k in keys {
+                    out.push_str(&format!(
+                        "{}_{},{}\n",
+                        name,
+                        normalize_key(k),
+                        csv_escape(&m[k])
+                    ));
+                }
+            }
+            InfoValue::List(l) => {
+                out.push_str(&format!("{},{}\n", name, csv_escape(&l.join(" | "))));
+            }
+            InfoValue::Table(t) => {
+                out.push_str(&format!("{}_count,{}\n", name, t.len()));
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// OpenMetrics exposition format (Prometheus text protocol v0.0.4): every
+/// scalar becomes a gauge named `flexfetch_<module>`, Maps become labelled
+/// gauges, numeric-looking values keep their number.
+pub fn export_prometheus(info: &SystemInfo) -> crate::Result<String> {
+    let mut out = String::new();
+    for (name, value) in &info.entries {
+        let metric = format!("flexfetch_{}", normalize_key(name));
+        match value {
+            InfoValue::Scalar(s) => {
+                out.push_str(&format!("# HELP {metric} {name}\n# TYPE {metric} gauge\n"));
+                out.push_str(&format!("{metric} {}\n", prom_number(s)));
+            }
+            InfoValue::Map(m) => {
+                out.push_str(&format!("# HELP {metric} {name}\n# TYPE {metric} gauge\n"));
+                let mut keys: Vec<_> = m.keys().collect();
+                keys.sort();
+                for k in keys {
+                    out.push_str(&format!(
+                        "{metric}{{{}=\"{}\"}} {}\n",
+                        normalize_key(k),
+                        m[k],
+                        prom_number(&m[k])
+                    ));
+                }
+            }
+            InfoValue::List(_) | InfoValue::Table(_) => {
+                // Not a gauge metric; skip structured values in Prometheus format.
+            }
+        }
+    }
+    Ok(out)
+}
+
+fn info_value_to_json(value: &InfoValue) -> serde_json::Value {
+    match value {
+        InfoValue::Scalar(s) => serde_json::Value::String(s.clone()),
+        InfoValue::Map(m) => serde_json::Value::Object(
+            m.iter()
+                .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
+                .collect(),
+        ),
+        InfoValue::List(l) => serde_json::Value::Array(
+            l.iter()
+                .map(|s| serde_json::Value::String(s.clone()))
+                .collect(),
+        ),
+        InfoValue::Table(t) => serde_json::Value::Array(
+            t.iter()
+                .map(|row| {
+                    serde_json::Value::Object(
+                        row.iter()
+                            .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
+                            .collect(),
+                    )
+                })
+                .collect(),
+        ),
+    }
+}
+
+fn normalize_key(k: &str) -> String {
+    k.chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+        .collect()
+}
+
+fn csv_escape(s: &str) -> String {
+    if s.contains(',') || s.contains('"') || s.contains('\n') {
+        format!("\"{}\"", s.replace('"', "\"\""))
+    } else {
+        s.to_string()
+    }
+}
+
+/// Keep numeric-looking values as bare numbers (Prometheus requires numbers);
+/// anything else becomes 1 with the value on the label (best effort).
+fn prom_number(s: &str) -> String {
+    let t = s.trim();
+    if t.parse::<f64>().is_ok() {
+        t.to_string()
+    } else if let Some(pct) = t.strip_suffix('%') {
+        pct.trim().to_string()
+    } else if let Some(gi) = t.strip_suffix("GiB") {
+        gi.trim().to_string()
+    } else if let Some(mi) = t.strip_suffix("MiB") {
+        mi.trim().to_string()
+    } else {
+        "1".to_string()
+    }
+}
+
 pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<String> {
     let engine = crate::template::TeraEngine::new_default();
     let text = engine.render(info, config)?;
@@ -395,6 +573,7 @@ pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<Stri
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn parse_basic_ansi() {
@@ -431,5 +610,51 @@ mod tests {
         assert_eq!(lines[0].len(), 1);
         assert_eq!(lines[0][0].text, "hello");
         assert_eq!(lines[1][0].text, "world");
+    }
+
+    fn sample_info() -> SystemInfo {
+        let mut info = SystemInfo::new();
+        info.add(
+            "os",
+            InfoValue::Map(HashMap::from([("pretty_name".into(), "Arch Linux".into())])),
+        );
+        info.add("kernel", InfoValue::Scalar("6.10.2-arch1-1".into()));
+        info.add(
+            "cpu",
+            InfoValue::Map(HashMap::from([("cores".into(), "12".into())])),
+        );
+        info
+    }
+
+    #[test]
+    fn ansible_export_is_valid_json() {
+        let out = export_ansible(&sample_info()).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        assert!(v.get("ansible_flexfetch").is_some());
+        assert_eq!(v["ansible_flexfetch"]["os"]["pretty_name"], "Arch Linux");
+    }
+
+    #[test]
+    fn terraform_export_normalizes_keys() {
+        let out = export_terraform(&sample_info()).unwrap();
+        assert!(out.contains("variable \"os_pretty_name\""));
+        assert!(out.contains("variable \"kernel\""));
+    }
+
+    #[test]
+    fn csv_export_escapes_commas() {
+        let out = export_csv(&sample_info()).unwrap();
+        assert!(out.starts_with("key,value\n"));
+        assert!(out.contains("os_pretty_name,Arch Linux"));
+    }
+
+    #[test]
+    fn prometheus_export_numbers() {
+        let out = export_prometheus(&sample_info()).unwrap();
+        assert!(out.contains("# TYPE flexfetch_kernel gauge"));
+        // kernel "6.10.2-arch1-1" is not numeric → exported as 1
+        assert!(out.contains("flexfetch_kernel 1"));
+        // cpu.cores "12" IS numeric → stays numeric
+        assert!(out.contains("flexfetch_cpu{cores=\"12\"} 12"));
     }
 }

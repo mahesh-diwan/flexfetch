@@ -42,6 +42,21 @@
 {%- if health %}
 ├─{{ icon_health | default(value="󰐗") }} Health: {{ health.score }}/100 ({{ health.grade }}){% if health.notes %} — {{ health.notes }}{% endif %}
 {%- endif %}
+{%- if container and container.id %}
+├─{{ icon_container | default(value="󰡨") }} Container: {{ container.runtime | default(value="?") }}{% if container.id %} [{{ container.id }}]{% endif %}{% if container.image %} — {{ container.image }}{% endif %}{% if container.k8s_namespace %} | K8s {{ container.k8s_namespace }}{% if container.k8s_pod %}/{{ container.k8s_pod }}{% endif %}{% endif %}
+{%- endif %}
+{%- if wallpaper and wallpaper.path %}
+├─{{ icon_wallpaper | default(value="󰋲") }} Wallpaper: {{ wallpaper.path }}{% if wallpaper.gtk_theme %} | {{ wallpaper.gtk_theme }}{% endif %}
+{%- endif %}
+{%- if weather and weather.temperature %}
+├─{{ icon_weather | default(value="󰖕") }} Weather: {{ weather.symbol | default(value="") }} {{ weather.temperature }}{% if weather.humidity %} {{ weather.humidity }}{% endif %}{% if weather.wind %} {{ weather.wind }}{% endif %}{% if weather.city %} — {{ weather.city }}{% endif %}
+{%- endif %}
+{%- if fsdeep and fsdeep|length > 0 %}
+├─{{ icon_disk | default(value="󰋊") }} Storage: {% if fsdeep.zram_ratio %}ZRAM {{ fsdeep.zram_ratio }}{% endif %}{% if fsdeep.luks_devices %} | LUKS {{ fsdeep.luks_devices }}{% endif %}{% if fsdeep.btrfs_compression %} | BTRFS {{ fsdeep.btrfs_compression }}{% if fsdeep.btrfs_filesystems %} ({{ fsdeep.btrfs_filesystems }}){% endif %}{% endif %}{% if fsdeep.lvm_volumes %} | LVM {{ fsdeep.lvm_volumes }}{% endif %}
+{%- endif %}
+{%- if terminal and terminal.image_protocols %}
+├─{{ icon_terminal | default(value="󰆍") }} Terminal: {{ terminal.name }}{% if terminal.font %} | {{ terminal.font }}{% endif %}{% if terminal.truecolor %} | truecolor{% endif %}{% if terminal.image_protocols %} | {{ terminal.image_protocols }}{% endif %}
+{%- endif %}
 {%- if cpu %}
 ├─{{ icon_cpu }} CPU: {{ cpu.model }} ({{ cpu.cores }} cores) @ {{ cpu.freq_mhz }} MHz{% if cpu.temp %} | {{ cpu.temp }}{% endif %}
 {%- endif %}

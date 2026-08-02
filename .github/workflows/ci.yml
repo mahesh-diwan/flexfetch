@@ -103,3 +103,76 @@ jobs:
       # not just tested, so a future warning in the image-off config is caught in CI.
       - name: Clippy core minimal (no default features)
         run: cargo clippy -p flexfetch-core --no-default-features --all-targets -- -D warnings
+
+  # Phase 4.11 QR config sharing is an opt-in feature (zstd-sys is a C dep, so it
+  # stays out of default/minimal/release builds) — CI must still exercise it so a
+  # regression in qr.rs or the feature wiring can't land silently.
+  qr-feature:
+    name: qr-feature
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      # Default features include `lua` (vendored mlua compiles C — ubuntu has gcc).
+      - name: Test QR feature
+        run: cargo test -p flexfetch-cli --features qr
+
+      - name: Clippy QR feature
+        run: cargo clippy -p flexfetch-cli --features qr --all-targets -- -D warnings
+
+  # Phase 4.1 cold-start gate: the roadmap's sub-10ms promise applies to the
+  # minimal build (the full default fetch is network-bound by design). hyperfine
+  # measures `--minimal` (title/separator/os/kernel/uptime — all zero-spawn file
+  # reads) with a warmup, and the mean must stay under 10 ms. Uses python3 for the
+  # comparison (jq/bc are not guaranteed on runners).
+  perf-gate:
+    name: perf-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build minimal release
+        run: cargo build --release -p flexfetch-cli --no-default-features
+
+      - name: Install hyperfine
+        run: cargo install hyperfine --locked
+
+      # hyperfine discards the benchmarked command's stdout by default, so no
+      # --output flag is needed. Threshold: the roadmap's sub-10ms claim is the
+      # dev-box target for the minimal build; shared runners can be noisier, so
+      # if this ever flakes, raise `limit` in the python step to 0.015 (15 ms)
+      # rather than deleting the gate.
+      - name: "Measure cold start (gate: mean < 10 ms)"
+        run: |
+          hyperfine --warmup 5 --runs 50 \
+            './target/release/flexfetch --minimal' \
+            --export-json /tmp/perf.json
+          python3 - <<'EOF'
+          import json
+          mean = json.load(open('/tmp/perf.json'))['results'][0]['mean']
+          limit = 0.010
+          print(f'cold start mean: {mean*1000:.2f} ms (gate: <{limit*1000:.0f} ms)')
+          if mean > limit:
+              print(f'::error::cold start {mean*1000:.2f} ms exceeds the {limit*1000:.0f} ms gate')
+              raise SystemExit(1)
+          EOF

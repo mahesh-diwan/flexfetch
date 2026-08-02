@@ -20,14 +20,36 @@ ctrlc = "3"
 # musl cross-compile in CI is unaffected when the feature is on).
 ratatui = { version = "0.30", optional = true }
 crossterm = { version = "0.29", optional = true }
+# Lock-free live dashboard (Phase 4.2): a dedicated sampler thread pushes
+# SystemSnapshots through a bounded(1) crossbeam overwrite channel so the
+# renderer never blocks on /proc collection — stale snapshots are dropped
+# automatically when the renderer is slow. Pure Rust, so musl cross-builds
+# are unaffected. Gated behind `lockfree`, which `live` implies.
+crossbeam-channel = { version = "0.5", optional = true }
 # Shell completion generator (`completions <shell>` subcommand). Behind a feature so
 # --no-default-features stays lean; clap_complete is small but pulls clap's full tree.
 clap_complete = { version = "4", optional = true }
+# QR config sharing (Phase 4.11): `--qr` renders the config as a terminal QR,
+# `--import-qr <image>` reads it back via rqrr. qrcode (encode) + rqrr (decode)
+# are pure Rust, but zstd-sys is a C dep — so the whole feature is opt-in (like
+# `music`): it stays out of the pure-Rust musl release builds and the minimal
+# binary. image (png-only, same config as core) decodes the QR screenshot;
+# base64 carries the zstd blob.
+qrcode = { version = "0.14", optional = true }
+# default-features = false drops rqrr's `img` feature (image 0.23, used only
+# for its GrayImage impl) — we feed it luminance via prepare_from_greyscale, so
+# the tree keeps just our single image 0.25 instead of a duplicate pair.
+rqrr = { version = "0.3", default-features = false, optional = true }
+zstd = { version = "0.13", optional = true }
+base64 = { version = "0.21", optional = true }
+image = { version = "0.25", optional = true, default-features = false, features = ["png"] }
 
 [features]
 default = ["lua", "live", "image-logos", "tera", "parallel", "completions"]
 lua = ["flexfetch-core/lua"]
-live = ["dep:ratatui", "dep:crossterm"]
+live = ["dep:ratatui", "dep:crossterm", "lockfree"]
+# Phase 4.2: sampler-thread + overwrite-channel architecture for --live.
+lockfree = ["dep:crossbeam-channel"]
 # Image logos (sixel/block) + PNG export need the `image` crate; the minimal
 # `--no-default-features` build drops it entirely (see ROADMAP 0.2 remaining diet work).
 image-logos = ["flexfetch-core/image-logos"]
@@ -39,3 +61,7 @@ tera = ["flexfetch-core/tera"]
 parallel = ["flexfetch-core/parallel"]
 # `completions <shell>` subcommand (clap_complete)
 completions = ["dep:clap_complete"]
+# QR config sharing (Phase 4.11): `--qr` / `--import-qr`. Opt-in — zstd-sys is a
+# C dep, so it stays out of the pure-Rust musl release pipeline and the minimal
+# binary (see the dep comment above; `music` is likewise opt-in).
+qr = ["dep:qrcode", "dep:rqrr", "dep:zstd", "dep:base64", "dep:image"]

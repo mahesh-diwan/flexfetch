@@ -147,6 +147,7 @@ else
 fi
 
 URL="https://github.com/$REPO/releases/download/$TAG/flexfetch-${OS_ALIAS}-${ARCH_ALIAS}.tar.gz"
+CHECKSUM_URL="$URL.sha256"
 
 TMPDIR=$(mktemp -d)
 
@@ -192,6 +193,55 @@ if ! file "$TMPDIR/$BIN.tar.gz" | grep -qi gzip; then
     exit 1
 fi
 
+# Verify checksum (fail closed on mismatch; skip only if no sha tool exists)
+verify_checksum() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        SUM_TOOL="sha256sum"
+    elif command -v shasum >/dev/null 2>&1; then
+        SUM_TOOL="shasum -a 256"
+    else
+        echo "Warning: no sha256 tool found — skipping checksum verification"
+        return 0
+    fi
+
+    if command -v curl >/dev/null 2>&1; then
+        if ! curl -sfL "$CHECKSUM_URL" -o "$TMPDIR/$BIN.sha256" 2>/dev/null; then
+            echo "Warning: could not fetch checksum ($CHECKSUM_URL) — skipping verification"
+            return 0
+        fi
+    elif command -v wget >/dev/null 2>&1; then
+        if ! wget -q "$CHECKSUM_URL" -O "$TMPDIR/$BIN.sha256" 2>/dev/null; then
+            echo "Warning: could not fetch checksum ($CHECKSUM_URL) — skipping verification"
+            return 0
+        fi
+    else
+        echo "Warning: neither curl nor wget found — skipping checksum verification"
+        return 0
+    fi
+
+    EXPECTED=$(awk '{print $1}' "$TMPDIR/$BIN.sha256")
+    ACTUAL=$($SUM_TOOL "$TMPDIR/$BIN.tar.gz" | awk '{print $1}')
+
+    if [ -n "$EXPECTED" ] && [ "$EXPECTED" = "$ACTUAL" ]; then
+        echo "Checksum verified (sha256)."
+    elif [ -z "$EXPECTED" ]; then
+        echo "Error: checksum file is empty or unreadable"
+        echo "  Refusing to install. Re-run to retry, or download manually:"
+        echo "    $URL"
+        rm -rf "$TMPDIR"
+        exit 1
+    else
+        echo "Error: checksum mismatch!"
+        echo "  Expected: $EXPECTED"
+        echo "  Actual:   $ACTUAL"
+        echo "  Refusing to install. Re-run to retry, or download manually:"
+        echo "    $URL"
+        rm -rf "$TMPDIR"
+        exit 1
+    fi
+}
+verify_checksum
+
 # Extract
 if ! tar xzf "$TMPDIR/$BIN.tar.gz" -C "$TMPDIR" 2>/dev/null; then
     echo "Error: failed to extract archive"
@@ -205,20 +255,42 @@ fi
 
 chmod +x "$TMPDIR/$BIN"
 
+# Backup an existing binary before overwriting (idempotent updates)
+backup_existing() {
+    local dest="$1"
+    if [ -f "$dest" ]; then
+        cp "$dest" "$dest.bak.$(date +%s)" 2>/dev/null || true
+    fi
+}
+
 # Install (try target dir, fall back to ~/.local/bin)
 TARGET=""
-if mkdir -p "$INSTALL_DIR" 2>/dev/null && mv "$TMPDIR/$BIN" "$INSTALL_DIR/$BIN" 2>/dev/null; then
-    TARGET="$INSTALL_DIR/$BIN"
-elif mkdir -p "$LOCAL_DIR" && mv "$TMPDIR/$BIN" "$LOCAL_DIR/$BIN" 2>/dev/null; then
-    TARGET="$LOCAL_DIR/$BIN"
-    if ! echo ":$PATH:" | grep -q ":${LOCAL_DIR}:"; then
-        echo "  Hint: add $LOCAL_DIR to PATH"
-        echo "    export PATH=\"\$PATH:$LOCAL_DIR\""
+if mkdir -p "$INSTALL_DIR" 2>/dev/null; then
+    backup_existing "$INSTALL_DIR/$BIN"
+    if mv "$TMPDIR/$BIN" "$INSTALL_DIR/$BIN" 2>/dev/null; then
+        TARGET="$INSTALL_DIR/$BIN"
     fi
-else
+fi
+if [ -z "$TARGET" ] && mkdir -p "$LOCAL_DIR" 2>/dev/null; then
+    backup_existing "$LOCAL_DIR/$BIN"
+    if mv "$TMPDIR/$BIN" "$LOCAL_DIR/$BIN" 2>/dev/null; then
+        TARGET="$LOCAL_DIR/$BIN"
+    fi
+fi
+if [ -z "$TARGET" ]; then
     echo "Error: cannot write to $INSTALL_DIR or $LOCAL_DIR"
     echo "  Try: INSTALL_DIR=~/mybin sh install.sh"
     exit 1
 fi
+
+# If we fell back to ~/.local/bin, remind the user to add it to PATH
+if [ "$TARGET" = "$LOCAL_DIR/$BIN" ] && ! echo ":$PATH:" | grep -q ":${LOCAL_DIR}:"; then
+    echo "  Hint: add $LOCAL_DIR to PATH"
+    echo "    export PATH=\"\$PATH:$LOCAL_DIR\""
+fi
+
+# Clean up the temp dir on the happy path too (the INT/TERM trap only fires on
+# signals, and cleanup() exits 1 so it must not run on a successful install).
+rm -rf "$TMPDIR"
 
 echo "Done. $BIN $TAG installed to $TARGET"

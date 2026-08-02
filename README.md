@@ -6,7 +6,7 @@
 
 <p align="center">
   <em>Your system info, your rules.</em><br>
-  Lua plugins · Tera templates · 5 theme presets · Written in Rust
+  Lua plugins · Tera templates · 27 theme presets · 527+ ASCII logos · Written in Rust
 </p>
 
 <p align="center">
@@ -25,10 +25,15 @@
 ## Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh
+curl --proto '=https' --tlsv1.2 -sSfL https://github.com/mahesh-diwan/flexfetch/releases/latest/download/install.sh | sh
 ```
 
-Installs latest binary (~2 MB, statically linked) from [GitHub Releases](https://github.com/mahesh-diwan/flexfetch/releases). Requires `curl` + `sudo`. Works on Linux and macOS.
+Installs the latest release binary (~2 MB, statically linked) from
+[GitHub Releases](https://github.com/mahesh-diwan/flexfetch/releases). The script is
+**idempotent**: re-run it to update in place (it compares versions, backs up the old
+binary, and verifies the SHA-256 checksum of the download). Requires `curl` (or
+`wget`) and write access to `/usr/local/bin` (falls back to `~/.local/bin`).
+Works on Linux and macOS.
 
 📖 **Full documentation:** [mdBook docs site](https://mahesh-diwan.github.io/flexfetch/) — modules, templates, plugins, CLI reference, feature flags.
 
@@ -64,7 +69,7 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 | --- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | 🔌  | **Lua plugins**     | Write info modules in Lua. Drop a `.lua` file in `~/.config/flexfetch/plugins/` and it appears in output. No compilation. No Bash. *(Source builds include Lua; prebuilt binaries exclude it.)* |
 | 📝  | **Tera templates**  | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info with right-aligned keys. |
-| 🎭  | **5 theme presets** | Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night. Switch with `--theme`. Per-field overrides with named colors.                     |
+| 🎭  | **27 theme presets**| Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, Rose Pine, Monokai, One Dark, Kanagawa + more. Switch with `--theme`. Per-field overrides with named colors. |
 | ⚡  | **Rust + Rayon**    | Parallel detection. Static binary, zero runtime deps. ~1.5 MB minimal / ~6 MB full. No Python, no Node, no Bash.                     |
 
 <br>
@@ -76,11 +81,11 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 | **Language**          | Rust                           | Bash           | C               | sh       |
 | **Lua plugins**       | ✅                             | —              | —               | —        |
 | **Tera templates**    | ✅                             | —              | —               | —        |
-| **Theme presets**     | ✅ 5 + named overrides         | built-in       | JSON5 presets   | 3 env    |
+| **Theme presets**     | ✅ 27 + named overrides       | built-in       | JSON5 presets   | 3 env    |
 | **Parallel**          | ✅ Rayon                       | —              | ✅              | —        |
 | **Output formats**    | text, JSON, MD, SVG, HTML, PNG | text           | text, JSON      | text     |
 | **Config**            | TOML                           | —              | JSON5           | env vars |
-| **ASCII logos**       | 38 + image support             | ~150           | ~200            | small    |
+| **ASCII logos**       | 527 + image support            | ~150           | ~200            | small    |
 | **Binary size**       | 1.5–6 MB (by features)         | ~1 KB (script) | 2 MB            | 5 KB     |
 | **Runtime deps**      | none                           | Bash + utils   | none            | sh       |
 | **Watch mode**        | ✅                             | —              | —               | —        |
@@ -92,7 +97,7 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 
 ## Themes
 
-5 presets. Same output, dramatically different look. Switch at runtime:
+27 presets. Same output, dramatically different look. Switch at runtime:
 
 ```bash
 flexfetch --theme nord
@@ -281,6 +286,26 @@ shown. It's also a regular module — add `health` to your module list or preset
 
 ---
 
+## Update, Doctor & Shell Hooks
+
+Keep flexfetch current and self-diagnose your environment:
+
+```bash
+flexfetch --update          # re-run the idempotent install script (no-op when current)
+flexfetch --doctor          # check TTY, truecolor, Nerd Font, config, core collectors
+flexfetch --hook zsh        # print a cd-into-git-repo snippet (bash | zsh | fish)
+eval "$(flexfetch --hook zsh)"   # add to your shell rc
+```
+
+`--doctor` exits nonzero if a hard check fails (color, config, collectors) so it
+can be wired into setup scripts; terminal and Nerd Font are informational. The
+`--hook` snippet runs `flexfetch --prompt` whenever you `cd` into a git
+repository.
+
+<br>
+
+---
+
 ## Shell Prompt & MOTD
 
 ```bash
@@ -394,19 +419,17 @@ All modules run in parallel via Rayon and detect from your system automatically.
 
 ## Logo Support
 
-flexfetch detects distro from `/etc/os-release` and renders ASCII art next to info. **38 distros** supported:
+flexfetch detects distro from `/etc/os-release` and renders ASCII art next to info. **527+ distros** supported (imported from fastfetch's logo set, MIT licensed), plus custom high-quality logos for the majors:
 
-| Distro    | Matches                                                                                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Arch      | arch, cachyos, endeavouros, arcolinux, artix, manjaro                                                                                |
-| Debian    | debian, raspbian                                                                                                                     |
-| Ubuntu    | ubuntu, linuxmint, pop, elementary, zorin, budgie, mate, kubuntu, xubuntu                                                            |
-| Fedora    | fedora                                                                                                                               |
-| NixOS     | nixos                                                                                                                                |
-| macOS     | auto-detected                                                                                                                        |
-| + 20 more | slackware, Puppy, Tiny Core, MX Linux, antiX, PCLinuxOS, Garuda, BigLinux, Linux Lite, Peppermint, Bodhi, Trisquel, PureOS, Arch ARM |
+| Source     | Count                                                              |
+| ---------- | ------------------------------------------------------------------ |
+| fastfetch  | 527+ distro logos (auto-generated from fastfetch's set)            |
+| Custom     | high-quality Arch, Debian, Ubuntu, Fedora, NixOS, macOS + more     |
 
-Image logos render as truecolor block art in terminals with 24-bit color support. Falls back to ASCII if no image file exists.
+Image logos render as truecolor block art in terminals with 24-bit color support
+(Kitty / iTerm2 / Sixel / block-character protocols). Falls back to ASCII if no
+image file exists. Override any logo by dropping a file in
+`~/.config/flexfetch/logos/`.
 
 <br>
 
@@ -484,7 +507,7 @@ man doc/flexfetch.1
 
 ## FAQ
 
-**How is this different from neofetch/fastfetch?** Lua plugins, Tera templates, and theme presets — no other tool has all three.
+**How is this different from neofetch/fastfetch?** Lua plugins, Tera templates, and 27 theme presets — no other tool has all three.
 
 **How do I add info that isn't built in?** Two ways: `[custom]` config section (shell commands) or a Lua plugin.
 
