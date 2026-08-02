@@ -47,14 +47,41 @@ pub fn logo_width(rendered: &[String]) -> usize {
 
 use crate::fastfetch_logos::{fastfetch_logo, make_logo};
 
-pub fn detect(module_type: &str) -> &'static Logo {
-    // First check our custom high-quality logos
-    if let Some(logo) = detect_custom(module_type) {
+/// Cache of made fastfetch logos keyed by their source string. `make_logo`
+/// leaks a `Box` per call (returns `&'static`), so caching avoids a fresh
+/// leak on every `detect()` — important for `--live` refresh loops.
+static FF_LOGO_CACHE: std::sync::OnceLock<
+    std::sync::Mutex<std::collections::HashMap<&'static str, &'static Logo>>,
+> = std::sync::OnceLock::new();
+
+fn cached_fastfetch_logo(src: &'static str) -> &'static Logo {
+    let cache =
+        FF_LOGO_CACHE.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+    if let Some(logo) = cache.lock().unwrap().get(src) {
         return logo;
     }
+    let logo = make_logo(src);
+    cache.lock().unwrap().insert(src, logo);
+    logo
+}
+
+pub fn detect(module_type: &str) -> &'static Logo {
+    // First check our custom high-quality logos
+    if let Some(custom) = detect_custom(module_type) {
+        // Prefer the larger art: the compact custom logos (e.g. CachyOS ~10
+        // lines) get lost next to a 20-line info block — fastfetch's versions
+        // are often 2-3x taller. Whichever has more lines wins.
+        if let Some(src) = fastfetch_logo(module_type) {
+            let ff = cached_fastfetch_logo(src);
+            if ff.lines.len() > custom.lines.len() {
+                return ff;
+            }
+        }
+        return custom;
+    }
     // Then check fastfetch-sourced logos (527+ distros)
-    if let Some(logo_str) = fastfetch_logo(module_type) {
-        return make_logo(logo_str);
+    if let Some(src) = fastfetch_logo(module_type) {
+        return cached_fastfetch_logo(src);
     }
     // macOS fallback
     if cfg!(target_os = "macos") {

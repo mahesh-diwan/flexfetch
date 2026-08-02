@@ -50,11 +50,15 @@ impl Module for DiskModule {
         // Phase 4.1: statvfs syscall instead of a `df` subprocess.
         for mp in &mounts {
             if let Some((total, used, pct)) = statvfs_usage(mp) {
-                let entry = format!("{mp}: {total} / {used} {pct}%");
-                // Deduplicate: if size+usage match an existing entry, skip
+                // `pct` already carries the "%" suffix (statvfs_usage formats
+                // it) — appending another one produced the "82%%" bug.
+                let entry = format!("{mp}: {total} / {used} {pct}");
+                // Deduplicate: if size+usage match an existing entry, skip.
+                // Note: `pct` already ends with "%", so no extra suffix here
+                // (matches the entry shape above — otherwise dupes never match).
                 let dup = disks.iter().any(|e: &String| {
                     e.split(": ").nth(1).map(|rest| rest.to_string())
-                        == Some(format!("{total} / {used} {pct}%"))
+                        == Some(format!("{total} / {used} {pct}"))
                 });
                 if !dup {
                     disks.push(entry);

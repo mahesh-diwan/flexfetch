@@ -1,4 +1,5 @@
 use std::cmp;
+use std::io::IsTerminal;
 
 #[cfg(feature = "tera")]
 use std::sync::OnceLock;
@@ -109,6 +110,23 @@ fn palette_display_filter(
     Ok(serde_json::Value::String(result))
 }
 
+/// Pad a string to a fixed visible width (left-aligned, spaces appended).
+/// Used by the default template to align values: `{{ "OS" | pad(width=8) }}`.
+#[cfg(feature = "tera")]
+fn pad_filter(
+    value: &serde_json::Value,
+    args: &std::collections::HashMap<String, serde_json::Value>,
+) -> tera::Result<serde_json::Value> {
+    let width = args.get("width").and_then(|v| v.as_u64()).unwrap_or(8) as usize;
+    let text = value.as_str().unwrap_or("");
+    let len = visible_len(text);
+    Ok(serde_json::Value::String(format!(
+        "{}{}",
+        text,
+        " ".repeat(width.saturating_sub(len))
+    )))
+}
+
 #[cfg(feature = "tera")]
 fn progress_bar_filter(
     value: &serde_json::Value,
@@ -147,6 +165,7 @@ fn get_tera() -> &'static Tera {
             .expect("default template is valid");
         tera.register_filter("palette_display", palette_display_filter);
         tera.register_filter("progress_bar", progress_bar_filter);
+        tera.register_filter("pad", pad_filter);
         tera
     })
 }
@@ -207,7 +226,20 @@ impl TeraEngine {
                 }
             })
             .unwrap_or_default();
-        let rendered = if let Some(img_path) = get_distro_logo_path(&os_id) {
+        // Adaptive width: in narrow interactive terminals (< 80 columns) skip
+        // the logo so the info block stays readable ("compact mode"). Gated on
+        // stdout being a TTY so exports (SVG/HTML/PNG/markdown) always keep the
+        // logo — those render into files/pipes, not a live terminal.
+        let narrow = std::io::stdout().is_terminal()
+            && std::env::var("COLUMNS")
+                .ok()
+                .and_then(|s| s.trim().parse::<u16>().ok())
+                .map(|w| w < 80)
+                .unwrap_or(false);
+
+        let rendered = if narrow {
+            Vec::new()
+        } else if let Some(img_path) = get_distro_logo_path(&os_id) {
             let resolved = crate::image_logo::ImageLogo::resolve_path(&img_path);
             if std::path::Path::new(&resolved).exists() {
                 let logo = crate::image_logo::ImageLogo::new(&resolved).with_size(16, 8);
@@ -226,7 +258,44 @@ impl TeraEngine {
             let ascii = crate::logo::detect(&os_id);
             crate::logo::render(ascii, info_lines.len())
         };
-        let logow = crate::logo::logo_width(&rendered) + 3;
+
+        // Vertically center the logo against the info block: trim only the
+        // leading/trailing blank rows (never blank lines inside the art), then
+        // distribute the remaining padding evenly above and below.
+        let rendered = {
+            let trimmed: Vec<String> = rendered
+                .iter()
+                .skip_while(|l| l.is_empty())
+                .cloned()
+                .collect::<Vec<_>>();
+            let trimmed: Vec<String> = trimmed
+                .into_iter()
+                .rev()
+                .skip_while(|l| l.is_empty())
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect();
+            if trimmed.is_empty() || trimmed.len() >= info_lines.len() {
+                rendered
+            } else {
+                let pad_top = (info_lines.len() - trimmed.len()) / 2;
+                let mut centered: Vec<String> = Vec::with_capacity(info_lines.len());
+                for _ in 0..pad_top {
+                    centered.push(String::new());
+                }
+                centered.extend(trimmed);
+                while centered.len() < info_lines.len() {
+                    centered.push(String::new());
+                }
+                centered
+            }
+        };
+        let logow = if narrow {
+            0
+        } else {
+            crate::logo::logo_width(&rendered) + 3
+        };
         let max = cmp::max(rendered.len(), info_lines.len());
         let mut out = String::with_capacity(raw.len() + rendered.len() * 60);
 
@@ -370,6 +439,56 @@ impl TeraEngine {
         ctx.insert("icon_end", &config.display.icon_end);
         ctx.insert("icon_temp", &config.display.icon_temp);
 
+        // Dedup redundant collectors (Phase 6 visual overhaul): hide WM when it
+        // equals DE, and hide Resolution when Display already reports it.
+        let de_value = info
+            .entries
+            .iter()
+            .find(|(n, _)| *n == "de")
+            .and_then(|(_, v)| match v {
+                InfoValue::Scalar(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+        let wm_name = info
+            .entries
+            .iter()
+            .find(|(n, _)| *n == "wm")
+            .and_then(|(_, v)| match v {
+                InfoValue::Map(m) => m.get("name").cloned(),
+                _ => None,
+            })
+            .unwrap_or_default();
+        let show_wm = wm_name.is_empty()
+            || de_value.is_empty()
+            || de_value == "unknown"
+            || wm_name != de_value;
+        ctx.insert("show_wm", &show_wm);
+
+        let display_val = info
+            .entries
+            .iter()
+            .find(|(n, _)| *n == "display")
+            .and_then(|(_, v)| match v {
+                InfoValue::Scalar(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+        let resolution_val = info
+            .entries
+            .iter()
+            .find(|(n, _)| *n == "resolution")
+            .and_then(|(_, v)| match v {
+                InfoValue::Scalar(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_default();
+        let show_resolution = resolution_val.is_empty()
+            || display_val.is_empty()
+            || display_val == "unknown"
+            || !display_val.contains(&resolution_val);
+        ctx.insert("show_resolution", &show_resolution);
+
         // Compute gradient title if enabled
         let title_text = info
             .entries
@@ -492,8 +611,9 @@ impl TeraEngine {
 
 // ---------------------------------------------------------------------------
 // Plain fallback renderer (used when the `tera` feature is off — the minimal
-// build). Produces fastfetch-style `├─ Key: value` lines with the same labels
-// the default template uses, so output stays readable without tera.
+// build). Mirrors the default template's Phase 6 visual style: padded keys
+// aligned on display_key_width, theme colors on keys/separator/values, dedup
+// of DE==WM and Display+Resolution, and an inline palette swatch for colors.
 // ---------------------------------------------------------------------------
 
 #[cfg(not(feature = "tera"))]
@@ -517,13 +637,85 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
         }
     }
 
-    // Build label/text rows first so the connector can be chosen up front:
-    // every line but the last uses ├─, the final line uses the ╰─ end connector
-    // (mirroring the default template). Deciding at build time avoids byte-level
-    // surgery on multi-byte UTF-8 box characters.
+    // Dedup flags — same rules as the Tera template (Phase 6 visual overhaul).
+    let de_value = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "de")
+        .and_then(|(_, v)| match v {
+            InfoValue::Scalar(s) => Some(s.clone()),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let wm_name = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "wm")
+        .and_then(|(_, v)| match v {
+            InfoValue::Map(m) => m.get("name").cloned(),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let show_wm =
+        wm_name.is_empty() || de_value.is_empty() || de_value == "unknown" || wm_name != de_value;
+    let display_val = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "display")
+        .and_then(|(_, v)| match v {
+            InfoValue::Scalar(s) => Some(s.clone()),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let resolution_val = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "resolution")
+        .and_then(|(_, v)| match v {
+            InfoValue::Scalar(s) => Some(s.clone()),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let show_resolution = resolution_val.is_empty()
+        || display_val.is_empty()
+        || display_val == "unknown"
+        || !display_val.contains(&resolution_val);
+
+    // Build label/text rows with the same labels the default template uses.
+    let key_width = config.display.key_width;
     let mut rows: Vec<(String, String)> = Vec::new();
     for (name, value) in &info.entries {
         if *name == "title" || *name == "separator" {
+            continue;
+        }
+        // Dedup before formatting
+        if *name == "wm" && !show_wm {
+            continue;
+        }
+        if *name == "resolution" && !show_resolution {
+            continue;
+        }
+        // Colors: render an inline palette swatch instead of raw rgb tuples
+        if *name == "colors" {
+            if let InfoValue::List(l) = value {
+                let blocks: Vec<String> = l
+                    .iter()
+                    .filter_map(|c| {
+                        let parts: Vec<u8> =
+                            c.split(',').filter_map(|p| p.trim().parse().ok()).collect();
+                        if parts.len() != 3 {
+                            return None;
+                        }
+                        Some(format!(
+                            "\x1b[48;2;{};{};{}m  \x1b[0m",
+                            parts[0], parts[1], parts[2]
+                        ))
+                    })
+                    .collect();
+                if !blocks.is_empty() {
+                    rows.push(("Colors".into(), blocks.join(" ")));
+                }
+            }
             continue;
         }
         let Some(text) = plain_value(name, value) else {
@@ -534,12 +726,23 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
         }
         rows.push((label_for(name), text));
     }
+
     let last = rows.len().saturating_sub(1);
     for (i, (label, text)) in rows.into_iter().enumerate() {
-        let connector = if i == last { "╰─" } else { "├─" };
+        let padded = format!(
+            "{}{}",
+            label,
+            " ".repeat(key_width.saturating_sub(visible_len(&label)))
+        );
         out.push_str(&format!(
-            "{}{connector} {}{label}: {text}{}",
-            theme.keys, theme.values, theme.reset,
+            "{}{}{}{}{}{}{}",
+            theme.keys,
+            padded,
+            theme.sep,
+            config.display.separator,
+            theme.values,
+            text,
+            theme.reset,
         ));
         if i < last {
             out.push('\n');

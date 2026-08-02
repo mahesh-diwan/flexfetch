@@ -447,6 +447,31 @@ latency matters, cross-compile with cargo-zigbuild in the Dockerfile instead.
 
 ---
 
+---
+
+## Phase 6 — Visual overhaul: "System Log → System Art" (stored Aug 2026)
+
+> Goal: kill the monochrome, cramped, tree-lined output. All tasks ⬜ unless
+> marked done. The pasted plan targeted a ratatui/`crates/ff-renderer` codebase
+> that does not exist here — flexfetch's reality is `templates/default.tera` +
+> `template.rs` (Tera + plain fallback), embedded const themes, `${N}` logos.
+> Every task below is the reality-adapted equivalent.
+
+| Task | Plan's version | Reality-adapted in flexfetch | Status |
+| ---- | -------------- | ---------------------------- | ------ |
+| 6.1 | Kill tree lines → `Key • Value` rows | default.tera rows rewritten: no `├─`/`╰─`, keys padded to `display.key_width` via a new `pad` Tera filter, separator from `display.separator` | ✅ |
+| 6.2 | Theme colors on rows | Rows now wrap key/sep/value in `theme_keys`/`theme_sep`/`theme_values` (previously only the title was colored); default theme is now `catppuccin` so output has color out of the box | ✅ |
+| 6.3 | Merge/dedup collectors | `show_wm` (hide WM when DE==WM) + `show_resolution` (hide Resolution when Display reports it) computed in `template.rs` and honored by both Tera + plain renderers; also surfaces `de`/`wm`/`packages`/`shell`/`colors` modules that were silently filtered out of Tera runs | ✅ |
+| 6.4 | Bigger, color-injected logo | `logo::detect` now prefers the **larger** of custom vs fastfetch logo (e.g. CachyOS 10→25 lines); adds a OnceLock cache so `make_logo`'s `Box::leak` stops leaking per `--live` refresh | ✅ |
+| 6.5 | Logo vertically centered | `TeraEngine::render` splits empty padding above/below the art instead of all-at-bottom | ✅ |
+| 6.6 | Color swatch row | `colors` module now renders as an inline `██` palette row (Tera `palette_display` filter + plain-renderer swatch builder) instead of being dropped | ✅ |
+| 6.7 | Adaptive width (compact < 80 cols) | `render` reads `$COLUMNS`; when < 80 the logo is skipped so rows never wrap | ✅ |
+
+**Note:** the plan's `%%` double-percent bug does not exist in flexfetch (memory/disk
+emit single `%`).
+
+---
+
 ## Rejected / decisions (do not re-propose without new justification)
 
 | Idea | Why rejected |

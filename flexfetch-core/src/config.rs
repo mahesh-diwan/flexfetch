@@ -228,7 +228,10 @@ impl Default for DisplayConfig {
         DisplayConfig {
             separator: Self::default_separator(),
             key_width: Self::default_key_width(),
-            theme: None,
+            // Phase 6: a default theme gives the output color hierarchy out of
+            // the box (fastfetch/neofetch are colored by default too). Users can
+            // opt out with `theme = ""` / `theme = "none"`.
+            theme: Some("catppuccin".to_string()),
             color_title: None,
             color_keys: None,
             color_values: None,
