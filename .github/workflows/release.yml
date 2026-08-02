@@ -81,9 +81,10 @@ jobs:
         run: |
           curl -fsSL -o /tmp/zig.tar.xz \
             https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz
-          mkdir -p /usr/local/zig
-          tar -xJf /tmp/zig.tar.xz -C /usr/local/zig --strip-components=1
-          echo "/usr/local/zig" >> "$GITHUB_PATH"
+          mkdir -p "$HOME/.local"
+          tar -xJf /tmp/zig.tar.xz -C "$HOME/.local" --strip-components=1
+          # ~/.local/bin is already on PATH for GitHub runners, so `zig` resolves
+          # without extra PATH surgery (and avoids the /usr/local permission trap).
 
       - name: Install cargo-zigbuild
         if: matrix.use_zig

@@ -219,6 +219,73 @@ This replaces the earlier "deferred — not needed" note in 3.1.
 
 ---
 
+## Phase 4 — Domination (stored Aug 2026, not yet started)
+
+> Goal: make flexfetch objectively superior to fastfetch/macchina/hyfetch/neofetch in
+> every measurable dimension (latency, size, features, visuals) while keeping every
+> advanced feature behind a compile-time gate so the minimal binary stays sub-1 MB.
+> All tasks ⬜ pending unless marked otherwise. The full original plan text is in the
+> chat history; this section is the canonical index + status tracker.
+
+### Pillar A — Zero-cost performance
+
+| Task | What | Feature gate | Status |
+| ---- | ---- | ------------ | ------ |
+| 4.1 | **Sub-10 ms cold start**: eliminate process-spawning collectors (WM/DE via env + zbus, GPU via `pci`/PCI IDs, packages by parsing pacman/dpkg/rpm DBs directly), mmap'd `/proc` parsing, `&'static str` labels, `phf` distro map, rayon (already have), lazy zstd asset decompression, `hyperfine` CI gate < 10 ms | `parallel`, `fast-paths` (default) | ⬜ |
+| 4.2 | **Lock-free live dashboard**: crossbeam overwrite channel (bounded(1)) collector→renderer, `repr(C)` snapshot with atomics, pre-allocated sparkline ring buffer, 16 ms render budget, core affinity | `live` (exists), `lockfree` | ⬜ |
+| 4.3 | **SIMD benchmark/processing**: AVX2/NEON vectorized CPU bench, `libc::memset` memory bandwidth bench, SIMD sparkline min/max, SIMD logo gradient | `simd` (default x86_64) | ⬜ |
+
+### Pillar B — Deep system introspection
+
+| Task | What | Feature gate | Status |
+| ---- | ---- | ------------ | ------ |
+| 4.4 | **eBPF metrics**: power via RAPL (libbpf-rs), disk I/O latency histograms, TCP retransmits, syscall rate. Privilege-separated `flexfetch-bpf` (setcap cap_bpf+eip) talking over UDS; graceful `/proc` fallback | `bpf` (off) | ⬜ |
+| 4.5 | **GPU deep inspection**: NVML (nvml-wrapper) for VRAM/temp/power/fan/CC/processes/ECC; AMD `/sys/class/drm` gpu_metrics; Intel gt freq; optional Vulkan via `ash` | `gpu-nvml`, `gpu-amd`, `gpu-intel`, `vulkan` | ⬜ |
+| 4.6 | **Filesystem deep dive**: BTRFS profile/compression/subvols, ZFS pools, ZRAM ratio, LVM mapping, LUKS cipher, optional SMART, mount options | `fs-btrfs`, `fs-zfs`, `fs-zram`, `fs-lvm`, `fs-luks`, `fs-smart` | ⬜ |
+| 4.7 | **Terminal fingerprinting**: OSC 50 font query, OSC 4/10/11 palette swatch, image protocol negotiation (kitty/iTerm/sixel), OSC 8 hyperlinks, pixel dims/DPI | `term-deep` (default) | ⬜ |
+| 4.8 | **Wallpaper & desktop context**: wallpaper path per DE/WM (gsettings/KDE cfg/sway/hyprland/osascript/registry), dominant colors via color-thief, GTK/icon/cursor themes | `desktop-context` | ⬜ |
+
+### Pillar C — Workflow & integration power
+
+| Task | What | Feature gate | Status |
+| ---- | ---- | ------------ | ------ |
+| 4.9 | **Diff mode** (`--diff <host1> <host2>`): compare local/remote/JSON datasets, 3-column aligned table, semantic highlight, HTML/MD export | `diff` (default) | ⬜ |
+| 4.10 | **Infrastructure exports**: `--format ansible|terraform|csv|prometheus` + `--discover` mDNS service discovery | `export-infra` (default) | ⬜ |
+| 4.11 | **QR config sharing**: `--qr` renders base64+zstd config as terminal QR (unicode blocks), `--import-qr` reads via rqrr | `qr` | ⬜ |
+| 4.12 | **WASM plugin runtime**: wasmtime behind `wasm-plugins` (off), WIT collector contract, fuel-limited sandboxed `.wasm` plugins in `~/.config/flexfetch/plugins/` | `wasm-plugins` (off) | ⬜ |
+
+### Pillar D — Marketing hooks
+
+| Task | What | Feature gate | Status |
+| ---- | ---- | ------------ | ------ |
+| 4.13 | **Local AI summary** (`--ai-summary`): llama-cpp-rs + bundled Q4_K_M gguf (~30 MB), on-device one-liner roast | `ai` (off, heavy) | ⬜ |
+| 4.14 | **Weather & geolocation**: embedded GeoLite2 + MET Norway API over a hand-rolled `TcpStream` HTTP/1.1 parser (no reqwest/hyper), 10-min cache | `weather` | ⬜ |
+| 4.15 | **Container deep introspection**: docker.sock via hyperlocal, Podman, Kubernetes pod/node/limits | `container-deep` | ⬜ |
+
+### Pillar E — Size & distribution
+
+| Task | What | Feature gate | Status |
+| ---- | ---- | ------------ | ------ |
+| 4.16 | **Compile-time asset compression**: build.rs zstd blobs, `phf_codegen` perfect hash for distro→logo, lazy per-logo decompression, string dedup, panic=abort (have), system allocator | — | ⬜ |
+| 4.17 | **Universal installer**: Homebrew tap, AUR `flexfetch-bin`, Nix profile, `.deb`/`.rpm` via cargo-deb/generate-rpm in CI, static musl tarballs (have), simplified install.sh | — | ⬜ |
+
+### Dependency graph & execution
+
+```
+Phase 0-3 (done) ──► Pillar A (4.1→4.2→4.3) ──► Pillar B (4.4-4.8)
+                        └────────────────────► Pillar C (4.9-4.12) ──► Pillar D (4.13-4.15)
+                                              └────────────────────► Pillar E (4.16-4.17)
+```
+
+Suggested order: **Week 1** 4.1 (foundation — forces zero-alloc collectors) · **Week 2** 4.2+4.3 ·
+**Week 3** 4.5+4.6+4.8 · **Week 4** 4.4+4.7 · **Week 5** 4.9+4.10+4.14 · **Week 6** 4.11+4.12+4.15 ·
+**Week 7** 4.13+4.16+4.17 · **Week 8** v2.0 release.
+
+**Start here: Task 4.1** (sub-10 ms guarantee) — it forces zero-allocation collectors,
+which feeds the live dashboard and the whole premium feel.
+
+---
+
 ## Rejected / decisions (do not re-propose without new justification)
 
 | Idea | Why rejected |
@@ -263,12 +330,19 @@ This replaces the earlier "deferred — not needed" note in 3.1.
    site + GitHub Pages), 3.4 mtime hot-reload in `--watch`/`--live`. All validated:
    34/34 tests, clippy clean on default/minimal/music configs, fmt clean.
 6. Remaining optional/deferred: `clap_mangen` man-page regeneration, `notify`-
-   based hot-reload (mtime works, no dep needed), and the macOS x86_64 cross-build
-   validation via `workflow_dispatch` (the only release-matrix item not yet proven).
+   based hot-reload (mtime works, no dep needed), and finishing the release-matrix
+   validation (macOS ✓; Linux musl jobs were fixed via direct zig download — final
+   re-run pending).
+7. **Phase 4 — Domination — ⬜ stored, not started (Aug 2026)** — see the Phase 4
+   section below. Start with **Task 4.1** (sub-10 ms cold start): eliminate
+   process-spawning collectors, mmap'd `/proc`, zero-alloc collectors. This is the
+   foundation that everything else in Phase 4 builds on.
 
 ## Reference
 
-- Original plan source: pasted v2.0 plan (Rust-native optimization plan).
+- Original plan source: pasted v2.0 plan (Rust-native optimization plan) + pasted
+  Phase 4 "Domination" plan (Aug 2026) — the canonical Phase 4 index is above.
 - Design docs: `docs/superpowers/specs/`, `docs/superpowers/plans/`, `docs/superpowers/research/`.
-- Size baselines: native 6.50 MB (full, incl. live + image-logos) · minimal (--no-default-features)
-  6.04 MB · x86_64-musl 6.40 MB · aarch64-musl 4.69 MB · armv7-musl 4.38 MB.
+- Size baselines: native 6.33 MB (full default) · release pipeline (live+image-logos+
+  completions, no tera/rayon) 2.09 MB · minimal (--no-default-features) 1.53 MB.
+  Phase 4.16 targets a sub-1 MB minimal via asset compression + perfect hashing.
