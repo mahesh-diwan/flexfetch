@@ -83,8 +83,10 @@ jobs:
             https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz
           mkdir -p "$HOME/.local"
           tar -xJf /tmp/zig.tar.xz -C "$HOME/.local" --strip-components=1
-          # ~/.local/bin is already on PATH for GitHub runners, so `zig` resolves
-          # without extra PATH surgery (and avoids the /usr/local permission trap).
+          # Explicitly add ~/.local/bin to PATH for this job: GitHub runners do put
+          # it there by default, but cargo-zigbuild resolves `zig` from PATH, and a
+          # missing entry reds the whole musl build (observed: 'Failed to find zig').
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install cargo-zigbuild
         if: matrix.use_zig
