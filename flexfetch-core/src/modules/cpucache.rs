@@ -9,6 +9,9 @@ impl Module for CpuCacheModule {
     }
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+        // `mut` is only needed on Linux (the /sys cache dirs are the only
+        // inserts); macOS leaves the map empty, so silence the unused warning.
+        #[allow(unused_mut)]
         let mut map = HashMap::new();
 
         #[cfg(target_os = "linux")]

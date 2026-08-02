@@ -9,7 +9,9 @@ impl Module for NetworkModule {
     }
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
-        let mut nets = Vec::new();
+        // Explicit type: on macOS the `&mut nets` read loop precedes the first
+        // `push`, so inference can't resolve the element type there.
+        let mut nets: Vec<HashMap<String, String>> = Vec::new();
 
         #[cfg(target_os = "linux")]
         {
@@ -97,7 +99,7 @@ impl Module for NetworkModule {
                         let state = if line.contains("UP") { "up" } else { "down" };
                         let mut map = HashMap::new();
                         map.insert("name".into(), iface.to_string());
-                        map.insert("state".into(), state);
+                        map.insert("state".into(), state.to_string());
                         map.insert("ipv4".into(), String::new());
                         map.insert("ipv6".into(), String::new());
                         map.insert("mac".into(), String::new());

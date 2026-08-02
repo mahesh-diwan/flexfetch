@@ -1,10 +1,14 @@
 use crate::{Context, InfoValue, Module, Result};
 use std::collections::HashMap;
+#[cfg(target_os = "linux")]
 use std::sync::OnceLock;
+#[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
 
+#[cfg(target_os = "linux")]
 static CPU_STATS: OnceLock<CpuStats> = OnceLock::new();
 
+#[cfg(target_os = "linux")]
 struct CpuStats {
     prev_total: u64,
     prev_idle: u64,
@@ -110,46 +114,40 @@ impl Module for CpuModule {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn get_cpu_usage() -> Option<u32> {
-    #[cfg(target_os = "linux")]
-    {
-        // Read current stats
-        let content = std::fs::read_to_string("/proc/stat").ok()?;
-        let line = content.lines().next()?;
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        let total: u64 = parts
-            .iter()
-            .skip(1)
-            .filter_map(|v| v.parse::<u64>().ok())
-            .sum();
-        let idle: u64 = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(0);
+    // Read current stats
+    let content = std::fs::read_to_string("/proc/stat").ok()?;
+    let line = content.lines().next()?;
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    let total: u64 = parts
+        .iter()
+        .skip(1)
+        .filter_map(|v| v.parse::<u64>().ok())
+        .sum();
+    let idle: u64 = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(0);
 
-        let now = Instant::now();
-        let stats = CPU_STATS.get_or_init(|| CpuStats {
-            prev_total: total,
-            prev_idle: idle,
-            prev_time: now,
-        });
+    let now = Instant::now();
+    let stats = CPU_STATS.get_or_init(|| CpuStats {
+        prev_total: total,
+        prev_idle: idle,
+        prev_time: now,
+    });
 
-        // If we have previous reading and enough time passed
-        if now.duration_since(stats.prev_time) > Duration::from_millis(100) {
-            let total_delta = total.saturating_sub(stats.prev_total);
-            let idle_delta = idle.saturating_sub(stats.prev_idle);
+    // If we have previous reading and enough time passed
+    if now.duration_since(stats.prev_time) > Duration::from_millis(100) {
+        let total_delta = total.saturating_sub(stats.prev_total);
+        let idle_delta = idle.saturating_sub(stats.prev_idle);
 
-            let usage = total_delta
-                .checked_sub(idle_delta)
-                .and_then(|v| v.checked_mul(100))
-                .and_then(|v| v.checked_div(total_delta));
-            if let Some(usage) = usage {
-                return Some(usage as u32);
-            }
+        let usage = total_delta
+            .checked_sub(idle_delta)
+            .and_then(|v| v.checked_mul(100))
+            .and_then(|v| v.checked_div(total_delta));
+        if let Some(usage) = usage {
+            return Some(usage as u32);
         }
+    }
 
-        // Return cached or approximate
-        None
-    }
-    #[cfg(target_os = "macos")]
-    {
-        None
-    }
+    // Return cached or approximate
+    None
 }

@@ -1,4 +1,5 @@
 use crate::{Context, InfoValue, Module, Result};
+#[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
 
 pub struct CpuUsageModule;
