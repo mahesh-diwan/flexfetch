@@ -1,6 +1,6 @@
 # git-cliff changelog configuration (https://git-cliff.org)
 # Generate with: git-cliff -o CHANGELOG.md
-# (optionally: git-cliff --tag v0.17.0 -o CHANGELOG.md for a specific release)
+# (optionally: git-cliff --tag v0.18.0 -o CHANGELOG.md for a specific release)
 
 [changelog]
 header = """

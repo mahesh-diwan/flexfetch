@@ -11,7 +11,7 @@
 # binary, man page, and completions are installed.
 
 pkgname=flexfetch
-pkgver=0.17.0
+pkgver=0.18.0
 pkgrel=1
 pkgdesc="Blazing-fast system information tool"
 arch=('x86_64' 'aarch64')
@@ -39,8 +39,5 @@ package() {
   install -Dm644 completions/flexfetch.bash "$pkgdir/usr/share/bash-completion/completions/flexfetch"
   install -Dm644 completions/flexfetch.zsh "$pkgdir/usr/share/zsh/site-functions/_flexfetch"
   install -Dm644 completions/flexfetch.fish "$pkgdir/usr/share/fish/vendor_completions.d/flexfetch.fish"
-  # The pinned v0.17.0 source tarball predates the LICENSE file (added Aug 2026),
-  # so this is guarded — it activates once a tag that includes LICENSE ships (bump
-  # pkgver + regenerated sha256sums point at that tarball, which contains the file).
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE" 2>/dev/null || true
 }

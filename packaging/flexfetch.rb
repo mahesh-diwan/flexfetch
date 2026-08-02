@@ -14,7 +14,7 @@
 class Flexfetch < Formula
   desc "Blazing-fast system information tool"
   homepage "https://github.com/mahesh-diwan/flexfetch"
-  url "https://github.com/mahesh-diwan/flexfetch/archive/v0.17.0.tar.gz"
+  url "https://github.com/mahesh-diwan/flexfetch/archive/v0.18.0.tar.gz"
   sha256 "124cff5605cc69e4c7bc819b24a0b4edcd31eeb682b36735d468d0c36aa6c92b"
   license "MIT"
 

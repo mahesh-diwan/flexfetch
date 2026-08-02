@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0] - 2026-08-02
+
+### Features
+- Phase 6 visual overhaul — from system log to system art: tree connectors
+  removed; every row is now themed (theme keys/separator/values), keys are
+  padded to `display.key_width` via a new Tera `pad` filter, and the default
+  theme is now Catppuccin. Added DE/WM/packages/shell/colors rows.
+- Adaptive layout: the logo is skipped on narrow terminals (<80 columns, TTY
+  gated so exports keep it) and vertically centered; the WM row hides when it
+  equals the DE, and Resolution hides when Display already reports it.
+- GitHub Action (`--format github`): collapsible `::group::` annotation block
+  for CI logs, plus a composite `flexfetch-action` in packaging/.
+- Tmux integration: `--tmux-config` prints a ~/.tmux.conf snippet and a new
+  pure-std `flexfetch-tmux` helper binary.
+- Hardware database: `hardware_db.rs` maps PCI/USB vendor/device IDs to friendly
+  names (bundled seed + `--update-db` refresh); the GPU module resolves
+  `/sys/class/drm` IDs through it.
+- Distribution: Nix flake + Home Manager module, AUR PKGBUILD, Homebrew
+  formula, scratch container image, MIT LICENSE.
+
+### Bug Fixes
+- Disk usage no longer renders a doubled percent sign (`82%%` → `82%`), and the
+  duplicate-mount dedup check was aligned to the corrected entry format.
+
 ## [0.17.0] - 2026-08-02
 
 ### Features
