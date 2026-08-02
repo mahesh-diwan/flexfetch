@@ -15,7 +15,7 @@ class Flexfetch < Formula
   desc "Blazing-fast system information tool"
   homepage "https://github.com/mahesh-diwan/flexfetch"
   url "https://github.com/mahesh-diwan/flexfetch/archive/v0.18.0.tar.gz"
-  sha256 "124cff5605cc69e4c7bc819b24a0b4edcd31eeb682b36735d468d0c36aa6c92b"
+  sha256 "3fb3df32a880dee79698bf79d4c58da40b95bd5984eaa098b462cfef7650a24b"
   license "MIT"
 
   depends_on "rust" => :build
