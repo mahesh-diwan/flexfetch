@@ -137,6 +137,10 @@ struct Cli {
 }
 
 fn main() {
+    // Phase 4.1: cold-start clock — measured from process entry (before clap
+    // parse + config load) so `--benchmark` reports the true end-to-end time.
+    let t_cold_start = std::time::Instant::now();
+
     // Handle --version before clap to show features
     if std::env::args().any(|a| a == "--version" || a == "-V") {
         // `mut` is only used when lua/live/image-logos/etc are enabled; the
@@ -284,7 +288,15 @@ fn main() {
     }
 
     if cli.benchmark.is_some() {
-        benchmark(&modules, &ctx, registry, template_content, &config, &cli);
+        benchmark(
+            &modules,
+            &ctx,
+            registry,
+            template_content,
+            &config,
+            &cli,
+            t_cold_start,
+        );
         return;
     }
 
@@ -497,6 +509,7 @@ fn benchmark(
     template_content: &str,
     config: &Config,
     cli: &Cli,
+    t_cold_start: std::time::Instant,
 ) {
     let iterations = cli.benchmark.unwrap_or(1).max(1);
     let t0 = std::time::Instant::now();
@@ -534,6 +547,7 @@ fn benchmark(
         "--- flexfetch benchmark ({iterations} iteration{}) ---",
         if iterations == 1 { "" } else { "s" }
     );
+    eprintln!("  cold start:      {:?}", t_cold_start.elapsed());
     eprintln!("  setup:           {:?}", t0.elapsed());
     for (name, dur) in &timings {
         eprintln!("  {name:15} {dur:?}");

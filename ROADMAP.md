@@ -231,7 +231,7 @@ This replaces the earlier "deferred — not needed" note in 3.1.
 
 | Task | What | Feature gate | Status |
 | ---- | ---- | ------------ | ------ |
-| 4.1 | **Sub-10 ms cold start**: eliminate process-spawning collectors (WM/DE via env + zbus, GPU via `pci`/PCI IDs, packages by parsing pacman/dpkg/rpm DBs directly), mmap'd `/proc` parsing, `&'static str` labels, `phf` distro map, rayon (already have), lazy zstd asset decompression, `hyperfine` CI gate < 10 ms | `parallel`, `fast-paths` (default) | ⬜ |
+| 4.1 | **Sub-10 ms cold start**: eliminate process-spawning collectors, mmap'd `/proc`, `phf` map, lazy zstd assets, `hyperfine` CI gate | `parallel`, `fast-paths` (default) | 🟡 |
 | 4.2 | **Lock-free live dashboard**: crossbeam overwrite channel (bounded(1)) collector→renderer, `repr(C)` snapshot with atomics, pre-allocated sparkline ring buffer, 16 ms render budget, core affinity | `live` (exists), `lockfree` | ⬜ |
 | 4.3 | **SIMD benchmark/processing**: AVX2/NEON vectorized CPU bench, `libc::memset` memory bandwidth bench, SIMD sparkline min/max, SIMD logo gradient | `simd` (default x86_64) | ⬜ |
 
@@ -284,6 +284,54 @@ Suggested order: **Week 1** 4.1 (foundation — forces zero-alloc collectors) ·
 **Start here: Task 4.1** (sub-10 ms guarantee) — it forces zero-allocation collectors,
 which feeds the live dashboard and the whole premium feel.
 
+### Task 4.1 — zero-spawn collectors — 🟡 in progress (Aug 2026, first batch landed)
+
+Goal: eliminate `Command` spawns from every default-path collector so cold start is
+bounded by file reads + network latency, not process forking. Measured on the dev box
+(CachyOS, i5-12450H): **cold start 5.5 s → 686 ms** (fresh) / **242 ms** (with the
+publicip cache warm), and the single worst module (**wifi** was 4.1 s) is now **24 ms**.
+
+The remaining 686 ms is *network latency*, not spawn cost: publicip ~500 ms (api.ipify.org
+round-trip, cached for 60 s so repeat runs are ~0), cpuusage 30 ms (sampling window),
+battery 65 ms (sysfs + charging math).
+
+Landed (all Linux default-path modules, macOS paths preserved + cross-check clean):
+- **kernel** (`kernel.rs`) — reads `/proc/sys/kernel/ostype`+`osrelease` instead of
+  `uname` (output order verified identical to `uname -srm`); macOS keeps `sysctl`.
+- **packages** (`packages.rs`) — parses `/var/lib/dpkg/status` (only
+  `Status: install ok installed`), `/var/lib/pacman/local/` (directory entries only —
+  `ALPM_DB_VERSION`/`*_NOTICE` files were being counted!), flatpak + snap dirs; rpm
+  keeps its CLI (Berkeley DB is not parseable as plain files); full CLI fallback still
+  runs when no DB is readable, rayon-parallel under the `parallel` feature.
+- **wm** (`wm.rs`) — WM name from env vars first, `gsettings current-wm` fallback
+  (GNOME keeps the real WM, e.g. mutter, in dconf only); theme/icons/cursor/font read
+  from `~/.config/gtk-{3,4}.0/settings.ini` (each file read once) with a gsettings
+  fallback when no config file exists.
+- **disk** (`disk.rs`) + **health** (`health.rs`) — `libc::statvfs` instead of `df`
+  (`f_frsize` used for byte math; % matches `df`'s `(blocks−avail)/blocks`); disk
+  parses `/proc/mounts` for real roots (ext/btrfs/xfs/zfs/f2fs/overlay — containers
+  now show `/` instead of an empty list).
+- **network** (`network.rs`) — `libc::getifaddrs` + sysfs MAC instead of `ip`/`cat`
+  (paired with `freeifaddrs`); macOS keeps `ifconfig`.
+- **wifi** (`wifi.rs`) — `nmcli … dev wifi list --rescan no` (space-separated! `=no` is
+  rejected) uses NetworkManager's *cached* scan: 24 ms vs 4.17 s. Caveat: on a fresh
+  boot with no scan yet it may report "not connected".
+- **publicip** (`publicip.rs`) — raw `TcpStream` HTTP/1.1 GET to api.ipify.org:80 (no
+  `curl` spawn; also faster: 495 ms vs curl's 715 ms) + shared-cache (60 s TTL) so
+  repeated runs skip the round-trip entirely.
+- **cpuusage** (`cpuusage.rs`) — sampling window 100 ms → 30 ms (removed dead
+  `_start`/`Instant`); still a stable aggregate-cpu delta.
+- **--benchmark** (`main.rs`) — now reports `cold start` measured from process entry
+  (before clap parse), plus per-module timings, `run_selected` avg/min, render avg/min.
+
+Validation: 34/34 tests, clippy `-D warnings` clean, fmt clean, macOS core + cli
+cross-checks clean, all feature configs build (default / minimal / release config).
+
+Still open for 4.1 (later batches): mmap'd `/proc` parsing (memmap2/nom zero-copy),
+`phf::Map` for the distro→logo map, `&'static str` label interning, lazy zstd logo
+decompression, and the `hyperfine < 10 ms` CI gate (the 10 ms target applies to the
+minimal build — the full default fetch is network-bound by design).
+
 ---
 
 ## Rejected / decisions (do not re-propose without new justification)
@@ -333,10 +381,12 @@ which feeds the live dashboard and the whole premium feel.
    based hot-reload (mtime works, no dep needed), and finishing the release-matrix
    validation (macOS ✓; Linux musl jobs were fixed via direct zig download — final
    re-run pending).
-7. **Phase 4 — Domination — ⬜ stored, not started (Aug 2026)** — see the Phase 4
-   section below. Start with **Task 4.1** (sub-10 ms cold start): eliminate
-   process-spawning collectors, mmap'd `/proc`, zero-alloc collectors. This is the
-   foundation that everything else in Phase 4 builds on.
+7. **Phase 4 — Domination — 🟡 Task 4.1 in progress (Aug 2026)** — first batch landed:
+   every default-path collector is zero-spawn (kernel/packages/wm/disk/health/network/
+   wifi/publicip/cpuusage) + `--benchmark` cold-start reporting. Cold start 5.5 s →
+   686 ms (242 ms with publicip cache); wifi 4.1 s → 24 ms. See the Task 4.1 section.
+   Next: mmap'd `/proc` parsing, `phf` distro map, lazy zstd assets, then the
+   hyperfine CI gate for the minimal build.
 
 ## Reference
 

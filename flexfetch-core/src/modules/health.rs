@@ -11,17 +11,21 @@ fn read_u64_file(path: &str) -> Option<u64> {
         .ok()
 }
 
-/// Disk usage % for the root filesystem (via `df -P /`).
+/// Disk usage % for the root filesystem via libc::statvfs (no `df` subprocess).
 fn disk_usage_percent() -> Option<u8> {
-    let out = std::process::Command::new("df")
-        .args(["-P", "/"])
-        .output()
-        .ok()?;
-    let stdout = String::from_utf8_lossy(&out.stdout);
-    let line = stdout.lines().nth(1)?;
-    let parts: Vec<&str> = line.split_whitespace().collect();
-    let pct = parts.get(4)?.trim_end_matches('%').parse::<u8>().ok()?;
-    Some(pct.min(100))
+    let c = std::ffi::CString::new("/").ok()?;
+    let mut st: libc::statvfs = unsafe { std::mem::zeroed() };
+    if unsafe { libc::statvfs(c.as_ptr(), &mut st) } != 0 {
+        return None;
+    }
+    let frsize = st.f_frsize as u64;
+    let total = st.f_blocks as u64 * frsize;
+    let avail = st.f_bavail as u64 * frsize;
+    if total == 0 {
+        return None;
+    }
+    let pct = ((total - avail) * 100 / total).min(100) as u8;
+    Some(pct)
 }
 
 /// Swap usage % from /proc/meminfo (None when no swap).

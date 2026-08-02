@@ -15,6 +15,9 @@ impl Module for NetworkModule {
 
         #[cfg(target_os = "linux")]
         {
+            // Phase 4.1: one getifaddrs() call gives every interface's addresses
+            // (no `ip` subprocess); the MAC comes straight from sysfs (no `cat`).
+            let addrs = iface_addrs();
             if let Ok(entries) = std::fs::read_dir("/sys/class/net/") {
                 for entry in entries.flatten() {
                     let name = entry.file_name().to_string_lossy().to_string();
@@ -26,35 +29,10 @@ impl Module for NetworkModule {
                     {
                         continue;
                     }
-                    let ip4 = std::process::Command::new("ip")
-                        .args(["-o", "-4", "addr", "show", "dev", &name])
-                        .output()
+                    let (ip4, ip6) = addrs.get(&name).cloned().unwrap_or_default();
+                    let mac = std::fs::read_to_string(format!("/sys/class/net/{name}/address"))
                         .ok()
-                        .and_then(|o| {
-                            let out = String::from_utf8_lossy(&o.stdout);
-                            out.split_whitespace()
-                                .nth(3)
-                                .map(|s| s.split('/').next().unwrap_or("").to_string())
-                        })
-                        .unwrap_or_default();
-
-                    let ip6 = std::process::Command::new("ip")
-                        .args(["-o", "-6", "addr", "show", "dev", &name])
-                        .output()
-                        .ok()
-                        .and_then(|o| {
-                            let out = String::from_utf8_lossy(&o.stdout);
-                            out.split_whitespace()
-                                .nth(3)
-                                .map(|s| s.split('/').next().unwrap_or("").to_string())
-                        })
-                        .unwrap_or_default();
-
-                    let mac = std::process::Command::new("cat")
-                        .args([format!("/sys/class/net/{}/address", name)])
-                        .output()
-                        .ok()
-                        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+                        .map(|s| s.trim().to_string())
                         .unwrap_or_default();
 
                     let mut iface = HashMap::new();
@@ -112,4 +90,40 @@ impl Module for NetworkModule {
 
         Ok(InfoValue::Table(nets))
     }
+}
+
+/// All interface IPv4/IPv6 addresses via libc::getifaddrs (zero subprocesses).
+#[cfg(target_os = "linux")]
+fn iface_addrs() -> HashMap<String, (String, String)> {
+    let mut out = HashMap::new();
+    unsafe {
+        let mut ifap: *mut libc::ifaddrs = std::ptr::null_mut();
+        if libc::getifaddrs(&mut ifap) == 0 {
+            let mut cur = ifap;
+            while !cur.is_null() {
+                let ifa = &*cur;
+                if !ifa.ifa_addr.is_null() {
+                    let name = std::ffi::CStr::from_ptr(ifa.ifa_name)
+                        .to_string_lossy()
+                        .to_string();
+                    let e = out
+                        .entry(name)
+                        .or_insert_with(|| (String::new(), String::new()));
+                    let family = (*ifa.ifa_addr).sa_family as i32;
+                    if family == libc::AF_INET {
+                        let sin = &*(ifa.ifa_addr as *const libc::sockaddr_in);
+                        let ip = std::net::Ipv4Addr::from(u32::from_be(sin.sin_addr.s_addr));
+                        e.0 = ip.to_string();
+                    } else if family == libc::AF_INET6 {
+                        let sin6 = &*(ifa.ifa_addr as *const libc::sockaddr_in6);
+                        let ip = std::net::Ipv6Addr::from(sin6.sin6_addr.s6_addr);
+                        e.1 = ip.to_string();
+                    }
+                }
+                cur = ifa.ifa_next;
+            }
+            libc::freeifaddrs(ifap);
+        }
+    }
+    out
 }

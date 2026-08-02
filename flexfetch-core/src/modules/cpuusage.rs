@@ -1,6 +1,6 @@
 use crate::{Context, InfoValue, Module, Result};
 #[cfg(target_os = "linux")]
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 pub struct CpuUsageModule;
 
@@ -38,8 +38,9 @@ fn read_usage() -> Option<f64> {
     };
 
     let (t1, i1) = snapshot()?;
-    let _start = Instant::now();
-    std::thread::sleep(Duration::from_millis(100));
+    // Phase 4.1: 30 ms sample window (was 100 ms) — still long enough for a
+    // stable aggregate-cpu delta, but cuts the module's cold-start cost to ~30 ms.
+    std::thread::sleep(Duration::from_millis(30));
     let (t2, i2) = snapshot()?;
 
     let dt = t2.saturating_sub(t1);

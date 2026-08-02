@@ -10,6 +10,10 @@ impl Module for WifiModule {
     }
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+        // Phase 4.1: `--rescan no` (space-separated — nmcli rejects `=no` with
+        // "invalid extra argument") uses NetworkManager's cached scan instead of
+        // triggering a fresh multi-second wifi scan on every fetch — `nmcli dev
+        // wifi` without it is the single slowest module (4 s+).
         let out = Command::new("nmcli")
             .args([
                 "-t",
@@ -17,6 +21,9 @@ impl Module for WifiModule {
                 "active,ssid,freq,signal,security",
                 "dev",
                 "wifi",
+                "list",
+                "--rescan",
+                "no",
             ])
             .output();
         match out {
