@@ -96,11 +96,24 @@ Seconds between watch refreshes (default 2).
 Real\-time dashboard: CPU/memory gauges with sparklines, top processes,
 and network rates. Requires a terminal. Requires the \fBlive\fR feature.
 .TP
+.BI \-\-record " " \fIPATH\fR
+Record the \fB--live\fR dashboard to an asciinema v2 cast file
+(replay with \fBasciinema play PATH\fR). Requires the \fBlive\fR feature.
+.TP
 .BR completions " " \fISHELL\fR
 Print shell completions for \fIbash\fR, \fIzsh\fR, \fIfish\fR, etc.
 Requires the \fBcompletions\fR feature (default on).
 .PP
 Example: \fBflexfetch completions bash\fR
+.TP
+.BR plugin " " \fISUBCOMMAND\fR
+Plugin registry: \fBsearch\fR \fIQUERY\fR, \fBinstall\fR \fINAME\fR,
+\fBlist\fR, \fBupdate\fR. Plugins are Lua files from the hosted
+\fBregistry/plugins.toml\fR; each download is SHA\-256 verified and
+\fBmin_flexfetch_version\fR\-gated before it lands in
+~/.config/flexfetch/plugins/.
+.PP
+Example: \fBflexfetch plugin search cpu\fR, \fBflexfetch plugin install hello\fR
 .TP
 .B \-\-pipe
 Force pipe mode (no colors, no boxes).

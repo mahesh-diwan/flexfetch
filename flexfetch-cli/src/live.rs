@@ -12,16 +12,19 @@
 
 use crossbeam_channel::{Receiver, Sender};
 use flexfetch_core::{Config, Context, InfoValue, ModuleRegistry};
+use ratatui::backend::{Backend, TestBackend};
+use ratatui::buffer::Buffer;
+use ratatui::layout::Rect;
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Cell, Gauge, Paragraph, Row, Sparkline, Table, Wrap},
-    Frame,
+    Frame, Terminal,
 };
 use std::collections::{HashMap, VecDeque};
-use std::io::IsTerminal;
-use std::path::PathBuf;
+use std::io::{IsTerminal, Write};
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -34,7 +37,11 @@ const TICK: Duration = Duration::from_millis(1000);
 /// exceeds it, the overwrite channel drops the stale sample automatically.
 const FRAME_BUDGET: Duration = Duration::from_millis(16);
 
-pub fn run(ctx: Context, config_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(
+    ctx: Context,
+    config_path: Option<PathBuf>,
+    record: Option<PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
     if !std::io::stdout().is_terminal() {
         eprintln!("--live requires a terminal (stdout is not a tty)");
         std::process::exit(1);
@@ -54,53 +61,39 @@ pub fn run(ctx: Context, config_path: Option<PathBuf>) -> Result<(), Box<dyn std
         sampler_loop(ctx, config_path, tx, stop_sampler);
     });
 
-    let mut terminal = ratatui::init();
-    let result = (|| -> Result<(), Box<dyn std::error::Error>> {
-        let mut app = App::new();
-
-        loop {
-            // Pull the newest snapshot (overwrite channel: only the latest).
-            while let Ok(snap) = rx.try_recv() {
-                app.snapshot = snap;
-            }
-
-            let frame_start = Instant::now();
-            terminal.draw(|frame| app.draw(frame))?;
-            let frame_time = frame_start.elapsed();
-            // If the frame blew the budget, note it (the channel drops stale
-            // samples on its own; this is just observability for the header).
-            if frame_time > FRAME_BUDGET {
-                app.slow_frames += 1;
-            }
-
-            if crossterm::event::poll(Duration::from_millis(50))? {
-                if let crossterm::event::Event::Key(key) = crossterm::event::read()? {
-                    if key.kind == crossterm::event::KeyEventKind::Press {
-                        match key.code {
-                            crossterm::event::KeyCode::Char('q')
-                            | crossterm::event::KeyCode::Esc => {
-                                stop.store(true, Ordering::Relaxed);
-                                return Ok(());
-                            }
-                            crossterm::event::KeyCode::Char(' ') => {
-                                // Force a fresh sample: drain the channel, then
-                                // request one from the sampler by sending a
-                                // no-op tick is unnecessary — just re-pull.
-                                while let Ok(snap) = rx.try_recv() {
-                                    app.snapshot = snap;
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-            }
-        }
-    })();
-
-    // Always restore the terminal, even if the loop above exited via `?`
-    // (event/redraw error), so the user is never stranded in raw mode.
-    ratatui::restore();
+    // Phase 5.10 — ASCII cinema: with `--record path.cast`, every frame is
+    // also rendered into an in-memory TestBackend, diffed against the previous
+    // frame, and written as ANSI to both the real terminal and an asciinema v2
+    // cast file (`[t, "o", text]` events). The terminal is driven manually here
+    // (alternate screen + raw mode) so the escape sequences that land in the
+    // cast are exactly the ones we emit — ratatui's own backend only accepts
+    // cells, it no longer exposes raw bytes.
+    let result = if let Some(path) = &record {
+        crossterm::terminal::enable_raw_mode()?;
+        crossterm::execute!(
+            std::io::stdout(),
+            crossterm::terminal::EnterAlternateScreen,
+            crossterm::cursor::Hide
+        )?;
+        let (width, height) = crossterm::terminal::size()?;
+        let recorder = CastRecorder::new(path, width, height)?;
+        let r = record_loop(&rx, &stop, width, height, recorder);
+        let _ = crossterm::execute!(
+            std::io::stdout(),
+            crossterm::cursor::Show,
+            crossterm::terminal::LeaveAlternateScreen
+        );
+        crossterm::terminal::disable_raw_mode()?;
+        eprintln!("recording saved to {}", path.display());
+        r
+    } else {
+        let mut terminal = ratatui::init();
+        let r = app_loop(&mut terminal, &rx, &stop);
+        // Always restore the terminal, even if the loop exited via `?`
+        // (event/redraw error), so the user is never stranded in raw mode.
+        ratatui::restore();
+        r
+    };
 
     // Signal the sampler to exit and reap it (best effort; the process exits
     // right after anyway, but this keeps the thread from outliving the TUI).
@@ -108,6 +101,245 @@ pub fn run(ctx: Context, config_path: Option<PathBuf>) -> Result<(), Box<dyn std
     let _ = sampler.join();
 
     result
+}
+
+/// The render loop, shared by the plain and recording paths. Only the backend
+/// differs; everything else (sampler drain, key handling, frame budget) is
+/// identical.
+fn app_loop<B: Backend>(
+    terminal: &mut Terminal<B>,
+    rx: &Receiver<SystemSnapshot>,
+    stop: &Arc<AtomicBool>,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    <B as Backend>::Error: 'static,
+{
+    let mut app = App::new();
+
+    loop {
+        // Pull the newest snapshot (overwrite channel: only the latest).
+        while let Ok(snap) = rx.try_recv() {
+            app.snapshot = snap;
+        }
+
+        let frame_start = Instant::now();
+        terminal.draw(|frame| app.draw(frame))?;
+        let frame_time = frame_start.elapsed();
+        // If the frame blew the budget, note it (the channel drops stale
+        // samples on its own; this is just observability for the header).
+        if frame_time > FRAME_BUDGET {
+            app.slow_frames += 1;
+        }
+
+        if crossterm::event::poll(Duration::from_millis(50))? {
+            if let crossterm::event::Event::Key(key) = crossterm::event::read()? {
+                if key.kind == crossterm::event::KeyEventKind::Press {
+                    match key.code {
+                        crossterm::event::KeyCode::Char('q') | crossterm::event::KeyCode::Esc => {
+                            stop.store(true, Ordering::Relaxed);
+                            return Ok(());
+                        }
+                        crossterm::event::KeyCode::Char(' ') => {
+                            // Force a fresh sample: drain the channel, then
+                            // request one from the sampler by sending a
+                            // no-op tick is unnecessary — just re-pull.
+                            while let Ok(snap) = rx.try_recv() {
+                                app.snapshot = snap;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5.10 — asciinema v2 recording
+// ---------------------------------------------------------------------------
+
+/// Recording variant of `app_loop`: renders each frame into an in-memory
+/// `TestBackend`, diffs it against the previous frame, and writes the resulting
+/// ANSI to both the real terminal and the cast file. Everything else (sampler
+/// drain, key handling) mirrors `app_loop`.
+fn record_loop(
+    rx: &Receiver<SystemSnapshot>,
+    stop: &Arc<AtomicBool>,
+    width: u16,
+    height: u16,
+    mut recorder: CastRecorder,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut app = App::new();
+    let mut shadow = Terminal::new(TestBackend::new(width, height))?;
+    let mut prev: Buffer = Buffer::empty(Rect::new(0, 0, width, height));
+
+    loop {
+        // Pull the newest snapshot (overwrite channel: only the latest).
+        while let Ok(snap) = rx.try_recv() {
+            app.snapshot = snap;
+        }
+
+        // Render off-screen; CompletedFrame borrows the terminal's buffer.
+        let completed = shadow.draw(|frame| app.draw(frame))?;
+        let diff = prev.diff(completed.buffer);
+        let ansi = buffer_to_ansi(&diff);
+        prev = completed.buffer.clone();
+        recorder.write(&ansi)?;
+        let mut out = std::io::stdout();
+        out.write_all(&ansi)?;
+        out.flush()?;
+
+        if crossterm::event::poll(Duration::from_millis(50))? {
+            if let crossterm::event::Event::Key(key) = crossterm::event::read()? {
+                if key.kind == crossterm::event::KeyEventKind::Press {
+                    match key.code {
+                        crossterm::event::KeyCode::Char('q') | crossterm::event::KeyCode::Esc => {
+                            stop.store(true, Ordering::Relaxed);
+                            return Ok(());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Serialize a buffer diff into ANSI: clear + home once, then for each changed
+/// cell position the cursor (1-based) and emit the cell's SGR + symbol.
+fn buffer_to_ansi(diff: &[(u16, u16, &ratatui::buffer::Cell)]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(diff.len() * 16);
+    out.extend_from_slice(b"\x1b[2J\x1b[H");
+    for (x, y, cell) in diff {
+        let sym = cell.symbol();
+        if sym.is_empty() {
+            continue;
+        }
+        out.extend_from_slice(format!("\x1b[{};{}H", y + 1, x + 1).as_bytes());
+        out.extend_from_slice(&style_sgr(cell.fg, cell.bg, cell.modifier));
+        out.extend_from_slice(sym.as_bytes());
+    }
+    out
+}
+
+/// ANSI SGR sequence for a cell's fg/bg/modifiers (empty parts => plain reset).
+fn style_sgr(fg: Color, bg: Color, modifier: Modifier) -> Vec<u8> {
+    let mut parts: Vec<String> = Vec::new();
+    let fg_code = |c: Color| -> &'static str {
+        match c {
+            Color::Black => "30",
+            Color::Red => "31",
+            Color::Green => "32",
+            Color::Yellow => "33",
+            Color::Blue => "34",
+            Color::Magenta => "35",
+            Color::Cyan => "36",
+            Color::Gray => "37",
+            Color::DarkGray => "90",
+            Color::LightRed => "91",
+            Color::LightGreen => "92",
+            Color::LightYellow => "93",
+            Color::LightBlue => "94",
+            Color::LightMagenta => "95",
+            Color::LightCyan => "96",
+            Color::White => "97",
+            _ => "39",
+        }
+    };
+    let bg_code = |c: Color| -> &'static str {
+        match c {
+            Color::Black => "40",
+            Color::Red => "41",
+            Color::Green => "42",
+            Color::Yellow => "43",
+            Color::Blue => "44",
+            Color::Magenta => "45",
+            Color::Cyan => "46",
+            Color::Gray => "47",
+            Color::DarkGray => "100",
+            Color::LightRed => "101",
+            Color::LightGreen => "102",
+            Color::LightYellow => "103",
+            Color::LightBlue => "104",
+            Color::LightMagenta => "105",
+            Color::LightCyan => "106",
+            Color::White => "107",
+            _ => "49",
+        }
+    };
+    match fg {
+        Color::Reset => {}
+        Color::Rgb(r, g, b) => parts.push(format!("38;2;{r};{g};{b}")),
+        Color::Indexed(i) => parts.push(format!("38;5;{i}")),
+        c => parts.push(fg_code(c).into()),
+    }
+    match bg {
+        Color::Reset => {}
+        Color::Rgb(r, g, b) => parts.push(format!("48;2;{r};{g};{b}")),
+        Color::Indexed(i) => parts.push(format!("48;5;{i}")),
+        c => parts.push(bg_code(c).into()),
+    }
+    if modifier.contains(Modifier::BOLD) {
+        parts.push("1".into());
+    }
+    if modifier.contains(Modifier::DIM) {
+        parts.push("2".into());
+    }
+    if modifier.contains(Modifier::ITALIC) {
+        parts.push("3".into());
+    }
+    if modifier.contains(Modifier::UNDERLINED) {
+        parts.push("4".into());
+    }
+    if modifier.contains(Modifier::REVERSED) {
+        parts.push("7".into());
+    }
+
+    if parts.is_empty() {
+        return b"\x1b[0m".to_vec();
+    }
+    let mut out = b"\x1b[".to_vec();
+    out.extend_from_slice(parts.join(";").as_bytes());
+    out.push(b'm');
+    out
+}
+
+/// An asciinema v2 cast file: a JSON header line followed by newline-separated
+/// `[elapsed, "o", "text"]` stdout events.
+struct CastRecorder {
+    writer: std::io::BufWriter<std::fs::File>,
+    start: Instant,
+}
+
+impl CastRecorder {
+    fn new(path: &Path, width: u16, height: u16) -> std::io::Result<Self> {
+        let timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let mut writer = std::io::BufWriter::new(std::fs::File::create(path)?);
+        writeln!(
+            writer,
+            "{{\"version\": 2, \"width\": {width}, \"height\": {height}, \"timestamp\": {timestamp}, \"env\": {{\"TERM\": \"xterm-256color\"}}}}"
+        )?;
+        Ok(CastRecorder {
+            writer,
+            start: Instant::now(),
+        })
+    }
+
+    /// Record one stdout event: the ANSI frame written since the last event.
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<()> {
+        if buf.is_empty() {
+            return Ok(());
+        }
+        let t = self.start.elapsed().as_secs_f64();
+        let text = String::from_utf8_lossy(buf);
+        let json = serde_json::to_string(&text).unwrap_or_else(|_| "\"\"".into());
+        writeln!(self.writer, "[{t:.6}, \"o\", {json}]")?;
+        self.writer.flush()
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -717,6 +949,65 @@ mod tests {
         assert_eq!(h.len(), HISTORY);
         assert_eq!(*h.front().unwrap(), 10);
         assert_eq!(*h.back().unwrap(), (HISTORY + 9) as u64);
+    }
+
+    #[test]
+    fn test_style_sgr_default_is_reset() {
+        assert_eq!(
+            style_sgr(Color::Reset, Color::Reset, Modifier::empty()),
+            b"\x1b[0m"
+        );
+    }
+
+    #[test]
+    fn test_style_sgr_rgb_fg() {
+        let s = style_sgr(Color::Rgb(1, 2, 3), Color::Reset, Modifier::empty());
+        assert_eq!(s, b"\x1b[38;2;1;2;3m");
+    }
+
+    #[test]
+    fn test_style_sgr_bold_fg_bg() {
+        let s = style_sgr(Color::Red, Color::Blue, Modifier::BOLD);
+        assert_eq!(s, b"\x1b[31;44;1m");
+    }
+
+    #[test]
+    fn test_buffer_to_ansi_positions_changed_cells() {
+        let area = Rect::new(0, 0, 3, 1);
+        let mut buf = Buffer::empty(area);
+        buf.set_string(1, 0, "A", ratatui::style::Style::default().fg(Color::Red));
+        let diff = Buffer::empty(area).diff(&buf);
+        let ansi = buffer_to_ansi(&diff);
+        let text = String::from_utf8_lossy(&ansi);
+        assert!(
+            text.contains("\x1b[1;2H"),
+            "positions cursor at (2,1): {text:?}"
+        );
+        assert!(text.contains("\x1b[31mA"), "emits red A: {text:?}");
+        // Unchanged (empty) cell at (0,0) is not emitted.
+        assert!(!text.contains("1;1H"), "skips unchanged cells: {text:?}");
+    }
+
+    #[test]
+    fn test_cast_recorder_writes_header_and_events() {
+        let dir = std::env::temp_dir().join(format!("flexfetch-cast-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("creates temp dir");
+        let path = dir.join("test.cast");
+        let mut rec = CastRecorder::new(&path, 80, 24).expect("creates cast");
+        rec.write(b"\x1b[31mA").unwrap();
+        drop(rec);
+        let content = std::fs::read_to_string(&path).unwrap();
+        let mut lines = content.lines();
+        let header: serde_json::Value =
+            serde_json::from_str(lines.next().unwrap()).expect("header is JSON");
+        assert_eq!(header["version"], 2);
+        assert_eq!(header["width"], 80);
+        assert_eq!(header["height"], 24);
+        let event: Vec<serde_json::Value> =
+            serde_json::from_str(lines.next().unwrap()).expect("event is JSON array");
+        assert_eq!(event[1], "o");
+        assert!(event[2].as_str().unwrap().contains("31mA"));
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

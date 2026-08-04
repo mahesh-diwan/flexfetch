@@ -389,7 +389,7 @@ runners flake rather than deleting the gate).
 
 | Task | What | Status |
 | ---- | ---- | ------ |
-| 5.7 | **Plugin registry**: `flexfetch plugin search|install|list|update` against a hosted `registry.toml` with checksum + min-version checks | ⬜ |
+| 5.7 | **Plugin registry**: `flexfetch plugin search|install|list|update` against a hosted `registry.toml` with checksum + min-version checks | ✅ (Aug 2026) |
 | 5.8 | **Crowdsourced hardware DB**: compressed JSON on GitHub Pages (`hardware.json.zst`, ~50 KB), `--update-db`, cache + offline hex fallback | ✅ |
 | 5.9 | **AUR PKGBUILD + Homebrew tap**: native package-manager installs | 🟡 |
 
@@ -397,7 +397,7 @@ runners flake rather than deleting the gate).
 
 | Task | What | Status |
 | ---- | ---- | ------ |
-| 5.10 | **ASCII cinema** (`--live --record session.cast`): asciinema v2-format recording of the live dashboard | ⬜ |
+| 5.10 | **ASCII cinema** (`--live --record session.cast`): asciinema v2-format recording of the live dashboard | ✅ (Aug 2026) |
 | 5.11 | **Container image**: static musl → scratch `~1 MB` image, GHCR publishing in CI (`ghcr.io/mahesh-diwan/flexfetch`) | ⬜ |
 
 ### Execution priority
@@ -407,14 +407,18 @@ runners flake rather than deleting the gate).
 | 9 | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container) |
 | 10 | Integration | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB) | ✅ done |
 | 11 | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) | ✅ done |
-| 12 | Community | 5.7 (Plugin Registry), 5.10 (ASCII Cinema) |
+| 12 | Community | 5.7 (Plugin Registry), 5.10 (ASCII Cinema) | ✅ done |
 
-**Immediate next step: Week 12 — Community: 5.7 (Plugin Registry), 5.10 (ASCII
-Cinema)**. Week 9 (distribution: Nix flake, AUR/Homebrew, container), Week 10
-(integration: GitHub Action, tmux, hardware DB) and Week 11 (intelligence:
-5.4/5.5/5.6) are all shipped. Plugin registry (5.7) is the flagship of the
-week — checksum + min-version-verified `registry.toml`, and it unblocks 8.12
-(Ed25519 signing) since WASM is still 4.12-pending.
+**Week 12 — Community: 5.7 (Plugin Registry) + 5.10 (ASCII Cinema) — ✅ done
+(Aug 2026)**. Week 10 (integration) and Week 11 (intelligence) shipped earlier;
+5.7 landed `flexfetch plugin search|install|list|update` (checksum +
+min-version-verified `registry.toml`, see Task 5.7) and 5.10 landed `--live
+--record session.cast` asciinema v2 recording (see Task 5.10). The registry
+work also unblocks 8.12 (Ed25519 signing) once WASM lands (4.12). **Immediate
+next step: Week 9 — Distribution: 5.1 (Nix flake — needs `flake.lock`
+committed), 5.9 (AUR/Homebrew publish), 5.11 (Container GHCR publish)** — the
+in-repo artifacts for all three are 🟡 done; only the publishing channels
+remain.
 
 ### Task 5.2 — GitHub Action (`flexfetch-action`) — ✅ (Aug 2026)
 - `export_github()` in `flexfetch-core/src/export.rs`: renders a collapsible
@@ -465,6 +469,31 @@ macOS): `--daemon` polls the shared `monitor.rs` sampler every
 cpu/mem/disk/temp crosses its threshold (mem/disk ≥ 90%, cpu ≥ 90%, temp ≥ 85°C),
 arming per metric so each critical episode notifies once; falls back to a
 stderr banner when no notifier is usable.
+
+### Task 5.7 — Plugin registry — ✅ (Aug 2026)
+`flexfetch-cli/src/registry.rs` (pure std + `toml`, no new deps):
+`flexfetch plugin search <q>|install <name>|list|update` against the hosted
+`registry/plugins.toml` (raw.githubusercontent, same channel as install.sh and
+the hardware DB). Every download is **SHA-256 verified** against the registry
+entry before it touches `~/.config/flexfetch/plugins/` (sha256sum / shasum -a
+256 fallback), and `min_flexfetch_version` is compared against the running
+binary (`version_ge`, dotted-numeric, non-numeric segments ignored) — a bad or
+incompatible plugin can never land. `update` re-installs every installed
+plugin still in the registry (idempotent, re-verifies each time). 4 unit tests
+(parse, missing-field rejection, version gate, sha hex). Subcommand wired into
+`Cli`/`Commands` in main.rs.
+
+### Task 5.10 — ASCII cinema — ✅ (Aug 2026)
+`flexfetch --live --record session.cast` records the live dashboard as
+**asciinema v2** (JSON header line `{version, width, height, timestamp, env}`
++ `[t, "o", text]` stdout events — replayable with `asciinema play
+session.cast`). The recording path drives the terminal manually (raw mode +
+alternate screen via crossterm), renders each frame into an in-memory
+`TestBackend`, diffs it against the previous frame with `Buffer::diff`, and
+writes the resulting ANSI (clear + positioned SGR cells, `buffer_to_ansi` /
+`style_sgr` — 16/256/truecolor + modifiers) to both the real terminal and the
+cast. Non-recording `--live` path untouched. 5 unit tests (SGR reset/RGB/bold,
+ansi diff positioning + skip-unchanged, cast header + events).
 
 ### Task 5.8 — Crowdsourced hardware DB — ✅ (Aug 2026)
 - `flexfetch-core/src/hardware_db.rs` (pure std, no deps): parses a flat

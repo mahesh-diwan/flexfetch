@@ -1,0 +1,21 @@
+# flexfetch plugin registry (Phase 5.7)
+#
+# Hosted at:
+#   https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/registry/plugins.toml
+#
+# Consumed by `flexfetch plugin search|install|update`. Every download is
+# SHA-256 verified against `sha256` before it touches the plugins dir
+# (~/.config/flexfetch/plugins/), and `min_flexfetch_version` is compared
+# against the running binary before install.
+#
+# To publish a plugin: open a PR adding an entry here (name, description,
+# version, min_flexfetch_version, a raw URL to the .lua, and its sha256 —
+# `sha256sum your.lua`).
+
+[[plugins]]
+name = "hello"
+description = "Example plugin: greets the current user from Lua"
+version = "1.0.0"
+min_flexfetch_version = "1.0.0"
+url = "https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/tests/fixtures/plugins/hello.lua"
+sha256 = "cd1357d071f02094ae1b33eac710bec19dc2f51f9f4c79896c603c04d4de5608"

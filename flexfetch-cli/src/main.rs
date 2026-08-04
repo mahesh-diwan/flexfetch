@@ -15,6 +15,7 @@ mod history;
 mod live;
 #[cfg(feature = "qr")]
 mod qr;
+mod registry;
 mod simd;
 mod ssh;
 mod tools;
@@ -27,14 +28,33 @@ mod monitor;
 // Phase 8.7 observability: panic hook + --bug-report dump + RUST_LOG gating.
 mod telemetry;
 
-#[cfg(feature = "completions")]
 #[derive(clap::Subcommand)]
 enum Commands {
     /// Generate shell completions for the given shell
+    #[cfg(feature = "completions")]
     Completions {
         #[arg(value_enum)]
         shell: clap_complete::Shell,
     },
+    /// Plugin registry (Phase 5.7): search/install/list/update Lua plugins
+    /// against the hosted registry.toml (checksum + min-version verified).
+    Plugin {
+        #[command(subcommand)]
+        action: PluginAction,
+    },
+}
+
+/// Subcommands under `flexfetch plugin`.
+#[derive(clap::Subcommand)]
+enum PluginAction {
+    /// Search the hosted registry by name/description
+    Search { query: String },
+    /// Install a plugin (SHA-256 verified, min-version gated)
+    Install { name: String },
+    /// List installed plugins + registry status
+    List,
+    /// Re-install every installed plugin still in the registry
+    Update,
 }
 
 #[derive(Parser)]
@@ -124,6 +144,12 @@ struct Cli {
     /// Live dashboard: real-time CPU/memory gauges, top processes, network rates
     #[arg(long)]
     live: bool,
+
+    /// Phase 5.10: record the --live dashboard to an asciinema v2 cast file
+    /// (e.g. --live --record flexfetch.cast; replay with `asciinema play`).
+    #[cfg(feature = "live")]
+    #[arg(long)]
+    record: Option<PathBuf>,
 
     /// SIMD CPU micro-benchmark (Phase 4.3): vectorized integer benchmark with
     /// runtime AVX2/SSE4/NEON detection, scalar fallback.
@@ -244,7 +270,6 @@ struct Cli {
     #[arg(long)]
     bug_report: bool,
 
-    #[cfg(feature = "completions")]
     #[command(subcommand)]
     command: Option<Commands>,
 }
@@ -315,12 +340,18 @@ fn main() {
         cli
     };
 
-    // `completions <shell>` subcommand (clap_complete)
-    #[cfg(feature = "completions")]
-    if let Some(Commands::Completions { shell }) = &cli.command {
-        use clap::CommandFactory;
-        let mut cmd = Cli::command();
-        clap_complete::generate(*shell, &mut cmd, "flexfetch", &mut std::io::stdout());
+    // Subcommands: `completions <shell>` (clap_complete) and `plugin …`
+    // (registry). Dispatch happens before config load — neither needs one.
+    if let Some(command) = &cli.command {
+        match command {
+            #[cfg(feature = "completions")]
+            Commands::Completions { shell } => {
+                use clap::CommandFactory;
+                let mut cmd = Cli::command();
+                clap_complete::generate(*shell, &mut cmd, "flexfetch", &mut std::io::stdout());
+            }
+            Commands::Plugin { action } => registry::run(action),
+        }
         return;
     }
 
@@ -470,7 +501,7 @@ fn main() {
         #[cfg(feature = "live")]
         {
             let watch_path = config_file_path(&cli);
-            if let Err(e) = live::run(ctx, watch_path) {
+            if let Err(e) = live::run(ctx, watch_path, cli.record.clone()) {
                 eprintln!("live dashboard error: {e}");
                 std::process::exit(1);
             }

@@ -165,6 +165,22 @@ Built with [mlua](https://github.com/khvzak/mlua) 0.10 (Lua 5.4).
 
 ---
 
+## Plugin Registry
+
+Install, search, and update Lua plugins from the hosted registry (every
+download is SHA-256 verified and `min_flexfetch_version`-gated):
+
+```bash
+flexfetch plugin search cpu       # search the registry by name/description
+flexfetch plugin install hello    # install to ~/.config/flexfetch/plugins/
+flexfetch plugin list             # installed plugins + registry status
+flexfetch plugin update           # re-install every installed plugin in the registry
+```
+
+<br>
+
+---
+
 ## Templates
 
 Full control over output layout with [Tera](https://tera.netlify.app/) (Jinja2/Django syntax). Default template renders side-by-side logo + info with right-aligned labels.
@@ -372,6 +388,12 @@ drops ratatui/crossterm entirely for the minimal binary. Similarly, image logos
 (sixel/block) and `--export png` are gated behind the `image-logos` feature (default
 on); without it, image logos fall back to ASCII (kitty/iTerm2 still work) and PNG
 export prints a clear "requires the image-logos feature" message.
+
+**Record the dashboard** as an asciinema v2 cast (share/replay with `asciinema play`):
+
+```bash
+flexfetch --live --record session.cast
+```
 
 <br>
 
