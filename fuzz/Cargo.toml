@@ -1,0 +1,31 @@
+# Phase 8.5A — fuzzing targets (cargo-fuzz).
+#
+# This crate is deliberately NOT a workspace member: cargo-fuzz requires the
+# nightly toolchain and libfuzzer-sys, which would pollute the stable build
+# (and the diet). Run on nightly:
+#
+#   cargo +nightly install cargo-fuzz
+#   cd fuzz
+#   cargo +nightly fuzz run proc_parsers
+#
+# The targets feed garbage into the pure /proc + config parsers and assert
+# they never panic (see fuzz/fuzz_targets/*.rs).
+[package]
+name = "flexfetch-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+flexfetch-core = { path = "../flexfetch-core", default-features = false }
+
+[[bin]]
+name = "proc_parsers"
+path = "fuzz_targets/proc_parsers.rs"
+test = false
+doc = false
+bench = false

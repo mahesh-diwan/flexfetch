@@ -177,6 +177,85 @@ jobs:
               raise SystemExit(1)
           EOF
 
+  # Phase 8.4: terminal capability matrix — asserts truecolor vs 16-color
+  # fallback across TERM/COLORTERM combos (script/pty required for the color
+  # paths; falls back to crash-only checks when unavailable).
+  terminal-matrix:
+    name: terminal-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build (default features for the theme paths)
+        run: cargo build --release -p flexfetch-cli
+
+      - name: Run terminal capability matrix
+        run: sh scripts/terminal_matrix.sh target/release/flexfetch
+
+  # Phase 8.5: property-based tests (proptest) on the pure helpers — runs as a
+  # separate job so a property regression doesn't hide behind the unit-test
+  # totals (proptest failures print shrunk counterexamples to stderr).
+  proptest:
+    name: proptest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run property-based tests
+        run: cargo test -p flexfetch-core --test proptest_helpers
+
+  # Phase 8.5C — memory safety gate: valgrind on the minimal fetch (the
+  # release-pipeline feature set) must report zero errors. `--live` needs an
+  # interactive tty, so the gate runs the same zero-spawn collectors the live
+  # dashboard uses, through the full run_selected + render pipeline.
+  valgrind:
+    name: valgrind-leak-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install valgrind
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+
+      - name: Build minimal release
+        run: cargo build --release -p flexfetch-cli --no-default-features
+
+      - name: Valgrind leak check (zero errors tolerated)
+        run: |
+          valgrind --error-exitcode=99 --leak-check=full \
+            --errors-for-leak-kinds=definite,indirect \
+            ./target/release/flexfetch --minimal --pipe >/dev/null 2>/tmp/valgrind.log
+          echo "exit: $?"
+          grep -E 'ERROR SUMMARY' /tmp/valgrind.log
+          grep -cE 'definitely lost|indirectly lost' /tmp/valgrind.log || true
+
   # Phase 5.1: validate the Nix flake (packages.default/full/minimal + Home
   # Manager module) on every push/PR. The dev box has no nix, so CI is where the
   # flake is actually built; cargo tests/clippy run in the other jobs above.

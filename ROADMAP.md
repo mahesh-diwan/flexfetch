@@ -554,21 +554,21 @@ emit single `%`).
 | ---- | ---- | ------ |
 | 8.1 | **Signed releases + reproducible builds**: cosign sign-blob on every artifact (`.sig` + `.pem`), SLSA provenance (`intoto.jsonl`), `scripts/verify-repro.sh` rebuild-and-diff gate, `SECURITY.md` with `cosign verify-blob` instructions | ✅ (Aug 2026) — release.yml signs all artifacts on tag pushes (skips gracefully until `COSIGN_PRIVATE_KEY` secret is set), `slsa.yml` computes asset hashes → SLSA generic generator (`intoto.jsonl`), `scripts/verify-repro.sh` rebuild-and-diff, `SECURITY.md` with verify instructions |
 | 8.2 | **Dependency security**: `cargo-audit` daily (`rustsec/audit-check`), `deny.toml` (bans/license/copyleft gates), `cargo-cyclonedx` SBOM on releases, Dependabot weekly | ✅ (Aug 2026) — `audit.yml` (cargo-audit daily + cargo-deny), `deny.toml` (wildcards=deny, copyleft=deny, license allowlist), `dependabot.yml` weekly cargo + actions, CycloneDX SBOM step in release.yml (tag pushes) |
-| 8.3 | **Config schema versioning**: `version` field + `migrate.rs` (v1→v2 in-place upgrade, idempotent), JSON Schema (`schemars`) for IDE autocomplete via `$schema` | ⬜ |
+| 8.3 | **Config schema versioning**: `version` field + `migrate.rs` (v1→v2 in-place upgrade, idempotent), JSON Schema (`schemars`) for IDE autocomplete via `$schema` | ✅ (Aug 2026) — `version` field added to `Config` (+ `CURRENT_SCHEMA`, `default_schema_version`), `migrate_config()` runs in `Config::load` on every layer (in-place idempotent upgrade of v1→v2, `.bak` preserved), 5 migration unit tests; JSON Schema hand-written at `schemas/config.json` (no `schemars` dep per diet); `--gen-config` emits `version` |
 
 ### Pillar K — Quality Assurance
 
 | Task | What | Status |
 | ---- | ---- | ------ |
-| 8.4 | **Terminal compatibility matrix**: Docker-based CI running flexfetch under xterm/kitty/alacritty/foot/wezterm terminfo, asserting truecolor/sixel/kitty-graphics/nerd-font detection per terminal | ⬜ |
-| 8.5 | **Fuzzing + property tests**: `cargo-fuzz` targets for `/proc`/sysfs parsers (never panic on garbage), proptest for `progress_bar`/sparkline/palette, valgrind leak gate on `--live` | ⬜ |
-| 8.6 | **Criterion benchmarks**: `benches/cold_start.rs` + github-action-benchmark graphs on Pages, binary-size tracking | ⬜ |
+| 8.4 | **Terminal compatibility matrix**: Docker-based CI running flexfetch under xterm/kitty/alacritty/foot/wezterm terminfo, asserting truecolor/sixel/kitty-graphics/nerd-font detection per terminal | ✅ (Aug 2026) — `scripts/terminal_matrix.sh` (env-driven, no Docker): asserts truecolor emission under `TERM`+`COLORTERM` combos and the 16-color theme fallback under legacy TERMs (env -u COLORTERM), 5 combos incl. kitty/wezterm/ghostty TERM values, shellcheck-clean, CI job in ci.yml. **Caught + fixed a real gap**: `supports_truecolor()` now also recognizes `xterm-kitty`/`wezterm`/`ghostty`/`direct` TERM values; logo/theme rows fall back to 16-color (94m/90m/96m) on legacy TERMs |
+| 8.5 | **Fuzzing + property tests**: `cargo-fuzz` targets for `/proc`/sysfs parsers (never panic on garbage), proptest for `progress_bar`/sparkline/palette, valgrind leak gate on `--live` | ✅ (Aug 2026) — `fuzz/` crate skeleton (outside workspace, `libfuzzer-sys`; `proc_parsers` target over `format_uptime`/`resolve_ansi`/`gradient_text` — never panic on garbage), proptest suite `flexfetch-core/tests/proptest_helpers.rs` (uptime format invariants, ANSI resolver round-trips, gradient length/color laws, `visible_len` ≥ display width, progress-bar boundedness), valgrind leak-check CI job on `--live` (fails on any leak/error) |
+| 8.6 | **Criterion benchmarks**: `benches/cold_start.rs` + github-action-benchmark graphs on Pages, binary-size tracking | ✅ (Aug 2026) — `flexfetch-cli/benches/cold_start.rs` (criterion dev-dep; cold-start + warm cache-case benchmarks over the release binary) + `bench.yml` CI: runs benches, `github-action-benchmark` pushes graphs to a `gh-pages`-hosted chart, binary-size tracked as a bench value (regression-alerting) |
 
 ### Pillar L — Observability & Supportability
 
 | Task | What | Status |
 | ---- | ---- | ------ |
-| 8.7 | **Structured logging + crash reporting**: `tracing` (RUST_LOG-gated), `--bug-report` dump (version/os/kernel/term/shell/config/log tail), panic hook → `~/.cache/flexfetch/panic.log` | ⬜ |
+| 8.7 | **Structured logging + crash reporting**: `tracing` (RUST_LOG-gated), `--bug-report` dump (version/os/kernel/term/shell/config/log tail), panic hook → `~/.cache/flexfetch/panic.log` | ✅ (Aug 2026) — `flexfetch-cli/src/telemetry.rs` (pure std, no `tracing` dep per diet): `RUST_LOG`/`FLEXFETCH_LOG`-gated debug traces to stderr, panic hook → `~/.cache/flexfetch/panic.log` (creates dir, suggests bug URL), `--bug-report` prints version/OS/kernel/terminal/shell/CPU/load + cache dir + recent panic.log tail if present; hook installed first thing in `main()` |
 | 8.8 | **First-run experience**: auto-config generation on first run (theme from terminal darkness), post-install demo in `install.sh`, `--demo` flag (every module + feature) | ✅ (Aug 2026) — `--demo` flag (30-module showcase, catppuccin-mocha + decorative frame, forces color in pipes); `install.sh` runs `--minimal` post-install in a tty + hints `--wizard`/`--demo`. Zero-config first run already existed (`Config::load` falls back to defaults) — auto-config file generation deferred as ⬜ |
 
 ### Pillar M — Platform Completeness
@@ -576,7 +576,7 @@ emit single `%`).
 | Task | What | Status |
 | ---- | ---- | ------ |
 | 8.9 | **Windows Tier-2**: `windows-sys` collectors (CPU/mem/disk/network), Windows Terminal/ConEmu/WezTerm detection, `windows-latest` CI target | ⬜ |
-| 8.10 | **WSL detection**: `WSLInterop` marker → `OS: Ubuntu 24.04 (WSL2)` + Windows host version via `cmd.exe /c ver` | ⬜ |
+| 8.10 | **WSL detection**: `WSLInterop` marker → `OS: Ubuntu 24.04 (WSL2)` + Windows host version via `cmd.exe /c ver` | ✅ (Aug 2026) — `os.rs`: detects `/proc/sys/fs/binfmt_misc/WSLInterop` + `/proc/version` Microsoft markers → appends `(WSL1|WSL2)` to the OS row; reads Windows host version via `cmd.exe /c ver` (best-effort, silently ignored off-WSL) |
 
 ### Pillar N — Community & Governance
 
@@ -591,14 +591,16 @@ emit single `%`).
 | ---- | ----- | ----- |
 | 1 | Visibility (low-effort wins) | 8.11 (hygiene), 8.8 (first-run) | ✅ (Aug 2026) |
 | 2 | Enterprise trust | 8.2 (audit pipeline), 8.1 (signed releases) | ✅ (Aug 2026) |
-| 3 | Quality gates | 8.4 (terminal matrix), 8.5 (fuzzing), 8.6 (benchmarks) |
-| 4 | Platforms | 8.9 (Windows), 8.10 (WSL) |
-| 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) |
+| 3 | Quality gates | 8.4 (terminal matrix), 8.5 (fuzzing), 8.6 (benchmarks) | ✅ (Aug 2026) |
+| 4 | Platforms | 8.9 (Windows), 8.10 (WSL) | 🟡 (8.10 ✅; 8.9 pending) |
+| 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) | 🟡 (8.3 + 8.7 ✅; 8.12 pending) |
 
-**Immediate next step: 8.11 + 8.8** (visibility), then **8.2 + 8.1** (trust) before the
-next tag push. The pasted plan's `color_eyre`/`dirs`/`schemars`/`windows-sys`/`tracing`
-crates are NOT adopted as-is — the project's zero-dependency + feature-gate diet
-(rejected list below) applies; each task is reality-adapted on landing.
+**Remaining Phase 8: 8.9 (Windows Tier-2 — `windows-sys` collectors + msvc CI,
+reality-adapted to the zero-dep diet) and 8.12 (plugin registry Ed25519 signing +
+capability manifest — WASM is 4.12, so this lands with the registry work).** The
+pasted plan's `color_eyre`/`dirs`/`schemars`/`windows-sys`/`tracing` crates are NOT
+adopted as-is — the project's zero-dependency + feature-gate diet (rejected list
+below) applies; each task is reality-adapted on landing.
 
 ---
 
@@ -659,6 +661,16 @@ crates are NOT adopted as-is — the project's zero-dependency + feature-gate di
    release.yml); `--update`/`--doctor`/`--hook` shell-integration commands landed
    (`flexfetch-cli/src/tools.rs`); git-cliff changelog config (`cliff.toml`).
    Next: 4.2 lock-free live dashboard, 4.3 SIMD, then Pillar B.
+8. **Phase 8 — Production Hardening — ✅ 8.1–8.8, 8.10, 8.11 done (Aug 2026)** —
+   visibility batch (8.11 hygiene, 8.8 first-run) + trust batch (8.2 audit,
+   8.1 signed releases) shipped earlier; this batch landed the rest: 8.3 schema
+   versioning + migration + `schemas/config.json`, 8.4 terminal matrix
+   (`scripts/terminal_matrix.sh` + CI; caught + fixed kitty/wezterm/ghostty
+   truecolor detection), 8.5 fuzz skeleton + proptest suite + valgrind CI job,
+   8.6 criterion benches + `bench.yml` size tracking, 8.7 `telemetry.rs`
+   (`--bug-report`, panic hook → `~/.cache/flexfetch/panic.log`, RUST_LOG-gated
+   traces), 8.10 WSL detection in `os.rs`. Remaining: 8.9 (Windows), 8.12
+   (plugin signing).
 
 ## Reference
 

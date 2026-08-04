@@ -43,6 +43,43 @@ impl Module for OsModule {
                     map.insert("name".into(), "Arch Linux".into());
                 }
             }
+
+            // Phase 8.10 — WSL detection: the WSLInterop marker exists on both
+            // WSL1 and WSL2; the kernel version string disambiguates them.
+            // Only spawns `cmd.exe /c ver` on an actual WSL system (off the
+            // default path otherwise, so cold start is unaffected).
+            if std::path::Path::new("/proc/sys/fs/binfmt_misc/WSLInterop").exists() {
+                let kernel = std::fs::read_to_string("/proc/sys/kernel/osrelease")
+                    .unwrap_or_default()
+                    .to_lowercase();
+                let wsl = if kernel.contains("wsl2") || kernel.contains("microsoft-standard") {
+                    "2"
+                } else {
+                    "1"
+                };
+                map.insert("wsl".into(), wsl.to_string());
+
+                // Windows host version via the interop boundary (no-op off WSL).
+                if let Ok(output) = std::process::Command::new("cmd.exe")
+                    .args(["/c", "ver"])
+                    .output()
+                {
+                    let v = String::from_utf8_lossy(&output.stdout)
+                        .trim()
+                        .replace("Microsoft Windows ", "");
+                    if !v.is_empty() {
+                        map.insert("windows_host".into(), format!("Windows {v}"));
+                    }
+                }
+
+                // Append the marker to the pretty name so the template's OS row
+                // shows "Ubuntu 24.04 (WSL2)" without a template change.
+                if let Some(pretty) = map.get_mut("pretty_name") {
+                    if !pretty.contains("(WSL") {
+                        pretty.push_str(&format!(" (WSL{wsl})"));
+                    }
+                }
+            }
         }
 
         #[cfg(target_os = "macos")]

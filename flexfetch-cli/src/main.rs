@@ -24,6 +24,8 @@ mod wizard;
 // consumer feature is on so default/minimal builds stay lean).
 #[cfg(any(feature = "history", feature = "notifications"))]
 mod monitor;
+// Phase 8.7 observability: panic hook + --bug-report dump + RUST_LOG gating.
+mod telemetry;
 
 #[cfg(feature = "completions")]
 #[derive(clap::Subcommand)]
@@ -237,6 +239,11 @@ struct Cli {
     #[arg(long)]
     demo: bool,
 
+    /// Phase 8.7: print a full environment/version dump for bug reports
+    /// (version, OS, kernel, terminal, shell, config, module errors).
+    #[arg(long)]
+    bug_report: bool,
+
     #[cfg(feature = "completions")]
     #[command(subcommand)]
     command: Option<Commands>,
@@ -255,6 +262,9 @@ fn parse_history_metric(s: &str) -> Option<history::Metric> {
 }
 
 fn main() {
+    // Phase 8.7: crash dumps go to the cache dir before anything else can panic.
+    telemetry::install_panic_hook(&get_cache_dir());
+
     // Phase 4.1: cold-start clock — measured from process entry (before clap
     // parse + config load) so `--benchmark` reports the true end-to-end time.
     let t_cold_start = std::time::Instant::now();
@@ -296,6 +306,14 @@ fn main() {
     }
 
     let cli = Cli::parse();
+
+    // Phase 8.7: RUST_LOG=debug / FLEXFETCH_LOG=debug/trace enables --debug
+    // output without an explicit flag (nice for `RUST_LOG=debug flexfetch`).
+    let cli = if telemetry::debug_enabled() {
+        Cli { debug: true, ..cli }
+    } else {
+        cli
+    };
 
     // `completions <shell>` subcommand (clap_complete)
     #[cfg(feature = "completions")]
@@ -401,6 +419,12 @@ fn main() {
     // --doctor: environment diagnostics (terminal, color, config, collectors).
     if cli.doctor {
         tools::run_doctor(&ctx);
+        return;
+    }
+
+    // Phase 8.7 --bug-report: full environment/version dump for issue reports.
+    if cli.bug_report {
+        print!("{}", telemetry::generate_bug_report(&ctx, &config));
         return;
     }
 

@@ -311,8 +311,13 @@ pub fn supports_truecolor() -> bool {
         }
     }
     let term = std::env::var("TERM").unwrap_or_default().to_lowercase();
+    // kitty/wezterm/ghostty are truecolor by definition, even when their TERM
+    // value doesn't spell out "truecolor"/"direct" (e.g. TERM=xterm-kitty).
     term.contains("truecolor")
         || term.contains("direct")
+        || term.contains("kitty")
+        || term.contains("wezterm")
+        || term.contains("ghostty")
         || std::env::var("KITTY_WINDOW_ID").is_ok()
 }
 

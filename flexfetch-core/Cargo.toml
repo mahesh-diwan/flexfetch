@@ -35,6 +35,10 @@ image = { version = "0.25", optional = true, default-features = false, features 
 # with unresolved `async_io`/`async_lock`/`async_process`).
 zbus = { version = "5", optional = true, default-features = false, features = ["blocking-api", "async-io"] }
 
+[dev-dependencies]
+# Phase 8.5: property-based tests for the pure parsers/renderers (dev-only).
+proptest = "1"
+
 [features]
 default = ["tera", "parallel"]
 tera = ["dep:tera"]

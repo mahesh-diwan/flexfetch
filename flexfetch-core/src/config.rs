@@ -2,8 +2,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+/// Phase 8.3 — config schema version. Increment when the TOML schema changes
+/// in a breaking way; `migrate_config` upgrades older versions in place.
+/// Version 1: the original schema (flat `modules: Vec<String>`).
+pub const CURRENT_SCHEMA: u32 = 1;
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
+    /// Config schema version, not the app version. Older files are upgraded by
+    /// `migrate_config` on load; newer files are refused with a clear error.
+    #[serde(default = "Config::default_schema_version")]
+    pub version: u32,
+
     #[serde(default = "Config::default_modules")]
     pub modules: Vec<String>,
 
@@ -343,8 +353,10 @@ impl Config {
         // Layer 1: User config ($XDG_CONFIG_HOME/flexfetch/config.toml)
         if let Some(user_config) = find_user_config() {
             if let Ok(content) = std::fs::read_to_string(&user_config) {
-                if let Ok(merged) = toml::from_str::<Config>(&content) {
-                    config = merge_config(config, merged);
+                if let Ok(migrated) = migrate_config(&content) {
+                    if let Ok(merged) = toml::from_str::<Config>(&migrated) {
+                        config = merge_config(config, merged);
+                    }
                 }
             }
         }
@@ -354,8 +366,10 @@ impl Config {
             let project_config = cwd.join("flexfetch.toml");
             if project_config.exists() {
                 if let Ok(content) = std::fs::read_to_string(&project_config) {
-                    if let Ok(merged) = toml::from_str::<Config>(&content) {
-                        config = merge_config(config, merged);
+                    if let Ok(migrated) = migrate_config(&content) {
+                        if let Ok(merged) = toml::from_str::<Config>(&migrated) {
+                            config = merge_config(config, merged);
+                        }
                     }
                 }
             }
@@ -364,8 +378,10 @@ impl Config {
         // Layer 3: Explicit path (CLI --config)
         if let Some(explicit) = path {
             if let Ok(content) = std::fs::read_to_string(explicit) {
-                if let Ok(merged) = toml::from_str::<Config>(&content) {
-                    config = merge_config(config, merged);
+                if let Ok(migrated) = migrate_config(&content) {
+                    if let Ok(merged) = toml::from_str::<Config>(&migrated) {
+                        config = merge_config(config, merged);
+                    }
                 }
             }
         }
@@ -373,8 +389,13 @@ impl Config {
         Ok(config)
     }
 
+    pub fn default_schema_version() -> u32 {
+        CURRENT_SCHEMA
+    }
+
     pub fn default_for_testing() -> Self {
         Config {
+            version: CURRENT_SCHEMA,
             modules: Config::default_modules(),
             plugins_dir: None,
             template: Config::default_template(),
@@ -402,8 +423,37 @@ fn find_user_config() -> Option<PathBuf> {
     }
 }
 
+/// Phase 8.3 — migrate a raw config TOML string to the current schema version.
+///
+/// Returns the (possibly rewritten) TOML. Idempotent: files already at
+/// `CURRENT_SCHEMA` (or with no `version` key, treated as v1) pass through
+/// unchanged. Future versions that we don't know how to migrate to are refused
+/// with a clear error rather than silently misparsed.
+pub fn migrate_config(raw: &str) -> crate::Result<String> {
+    let doc: toml::Value = toml::from_str(raw)
+        .map_err(|e| crate::Error::Config(format!("config parse error: {e}")))?;
+    let version = doc.get("version").and_then(|v| v.as_integer()).unwrap_or(1) as u32;
+
+    match version {
+        // v1 is the current schema — nothing to do.
+        v if v == CURRENT_SCHEMA => Ok(raw.to_string()),
+        v if v < CURRENT_SCHEMA => {
+            // Migration ladder: when a v2 schema exists, add `migrate_v1_to_v2`
+            // here and bump CURRENT_SCHEMA. For now v1 is current, so this arm
+            // is unreachable; it exists so the ladder has a home.
+            let _ = v;
+            Ok(raw.to_string())
+        }
+        v => Err(crate::Error::Config(format!(
+            "config schema version {v} is newer than this flexfetch supports ({CURRENT_SCHEMA}); \
+             upgrade flexfetch or run `flexfetch --gen-config` to see the current format"
+        ))),
+    }
+}
+
 fn merge_config(base: Config, override_config: Config) -> Config {
     Config {
+        version: override_config.version,
         modules: if override_config.modules != Config::default_modules() {
             override_config.modules
         } else {
@@ -484,5 +534,48 @@ fn merge_config(base: Config, override_config: Config) -> Config {
         } else {
             base.modules_config
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn migrate_current_passes_through() {
+        let raw = "version = 1\nmodules = [\"os\", \"kernel\"]\n";
+        assert_eq!(migrate_config(raw).unwrap(), raw);
+    }
+
+    #[test]
+    fn migrate_missing_version_defaults_to_1() {
+        // A legacy config with no version key is treated as v1 (current).
+        let raw = "modules = [\"os\"]\n";
+        assert_eq!(migrate_config(raw).unwrap(), raw);
+    }
+
+    #[test]
+    fn migrate_refuses_future_versions() {
+        let raw = "version = 99\nmodules = [\"os\"]\n";
+        assert!(migrate_config(raw).is_err());
+    }
+
+    #[test]
+    fn default_version_is_current() {
+        assert_eq!(Config::default_for_testing().version, CURRENT_SCHEMA);
+    }
+
+    #[test]
+    fn load_rejects_future_version_via_layer() {
+        // An explicit --config file with a future version must not silently
+        // override the defaults — migrate_config refuses it, so the layer is
+        // skipped and defaults win (no crash, no misparse).
+        let dir = std::env::temp_dir().join(format!("ff-cfg-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("future.toml");
+        std::fs::write(&path, "version = 99\nmodules = [\"os\"]\n").unwrap();
+        let cfg = Config::load(Some(&path)).unwrap();
+        assert_eq!(cfg.version, CURRENT_SCHEMA);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

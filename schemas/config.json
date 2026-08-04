@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mahesh-diwan/flexfetch/blob/main/schemas/config.json",
+  "title": "flexfetch configuration",
+  "description": "Schema for ~/.config/flexfetch/config.toml (also ./flexfetch.toml and --config). Schema version 1. Auto-migrated on load; see ROADMAP 8.3.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Config schema version (not the app version). Must be <= the flexfetch binary's CURRENT_SCHEMA (1). Omit for legacy v1 files.",
+      "minimum": 1
+    },
+    "modules": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Ordered module list. Recognized names: title, separator, os, host, kernel, uptime, locale, cpu, cpucache, cpuusage, memory, swap, disk, gpu, network, dns, display, bluetooth, media, battery, temperature, processes, packages, shell, terminal, de, wm, colors, custom, publicip, wifi, git, project, context, health, weather, container, wallpaper, fsdeep, resolution."
+    },
+    "plugins_dir": {
+      "type": ["string", "null"],
+      "description": "Directory containing Lua plugins (optional; defaults to ~/.config/flexfetch/plugins)."
+    },
+    "template": {
+      "type": "string",
+      "description": "Template name (default) or path to a .tera file.",
+      "default": "default"
+    },
+    "display": {
+      "type": "object",
+      "properties": {
+        "separator": { "type": "string", "default": ": ", "description": "Separator between key and value." },
+        "key_width": { "type": "integer", "minimum": 0, "default": 8, "description": "Minimum width for padded keys." },
+        "theme": { "type": ["string", "null"], "description": "Theme preset name, 'random', 'auto' (wallpaper), or 'none'. Presets: catppuccin, dracula, nord, gruvbox, tokyo-night, solarized-dark/light, rose-pine(-dawn), everforest-dark/light, bamboo, oxocarbon-dark, one-dark/light, tokyo-night-storm, catppuccin-mocha/frappe/macchiato, monokai(-pro), ayu-dark/mirage, palenight, material-ocean, kanagawa, mellow-purple." },
+        "color_title": { "type": ["string", "null"], "description": "ANSI color name or escape for the title." },
+        "color_keys": { "type": ["string", "null"] },
+        "color_values": { "type": ["string", "null"] },
+        "color_sep": { "type": ["string", "null"] },
+        "gradient": { "type": "boolean", "default": false },
+        "gradient_colors": { "type": ["array", "null"], "items": { "type": "string" }, "description": "Hex colors (#rrggbb) for the title gradient." },
+        "logo_mode": { "enum": ["Ascii", "Block", "Image"], "default": "Ascii" },
+        "gradient_title": { "type": "boolean", "default": true },
+        "progress_bars": { "type": "boolean", "default": true },
+        "box_style": { "type": "string", "default": "rounded" },
+        "pixel_logo": { "type": "boolean", "default": false },
+        "palette_style": { "type": "string", "default": "blocks" },
+        "frame": { "type": "string", "default": "none", "enum": ["none", "single", "decorative", "double"] },
+        "logo_gradient": { "type": "boolean", "default": true },
+        "sections": { "type": "boolean", "default": true, "description": "Group rows under section headers (fastfetch style)." },
+        "icon_os": { "type": "string" },
+        "icon_kernel": { "type": "string" },
+        "icon_host": { "type": "string" },
+        "icon_uptime": { "type": "string" },
+        "icon_locale": { "type": "string" },
+        "icon_cpu": { "type": "string" },
+        "icon_gpu": { "type": "string" },
+        "icon_memory": { "type": "string" },
+        "icon_swap": { "type": "string" },
+        "icon_disk": { "type": "string" },
+        "icon_network": { "type": "string" },
+        "icon_interface": { "type": "string" },
+        "icon_resolution": { "type": "string" },
+        "icon_battery": { "type": "string" },
+        "icon_processes": { "type": "string" },
+        "icon_end": { "type": "string" },
+        "icon_temp": { "type": "string" }
+      }
+    },
+    "cache": {
+      "type": "object",
+      "properties": {
+        "ttl": { "type": "integer", "default": 60, "description": "Cache TTL in seconds for network-backed modules (publicip, weather)." }
+      }
+    },
+    "custom": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "command": { "type": "string", "description": "Shell command whose stdout becomes the value." },
+          "label": { "type": ["string", "null"] },
+          "shell": { "type": ["string", "null"] }
+        },
+        "required": ["command"]
+      },
+      "description": "Custom modules: name -> { command, label?, shell? }."
+    },
+    "modules_config": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "color_keys": { "type": ["string", "null"] },
+          "color_values": { "type": ["string", "null"] },
+          "label": { "type": ["string", "null"] }
+        }
+      },
+      "description": "Per-module display overrides (Phase 7.3)."
+    }
+  }
+}

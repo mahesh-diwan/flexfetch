@@ -1,0 +1,64 @@
+# Phase 8.6 — performance regression tracking. Runs the criterion cold-start
+# bench on main pushes and pushes results to the gh-pages branch (rendered by
+# GitHub Pages via github-action-benchmark), plus a binary-size tracker that
+# asserts a regression gate.
+name: Benchmark
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # push benchmark results to gh-pages
+
+jobs:
+  bench:
+    name: criterion + size
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/benchmarks
+          key: bench-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Minimal release build (the artifact both benches measure).
+      - name: Build minimal release
+        run: cargo build --release -p flexfetch-cli --no-default-features
+
+      # Binary-size tracker: renders a size-over-time chart on Pages and fails
+      # if the minimal binary exceeds the 3 MB diet gate (ROADMAP 0.2).
+      - name: Track binary size
+        run: |
+          SIZE=$(stat -c%s target/release/flexfetch)
+          echo "minimal binary: $SIZE bytes"
+          LIMIT=3145728
+          echo "{\"name\":\"minimal-binary-size\",\"unit\":\"bytes\",\"value\":$SIZE}" > sizes.json
+          if [ "$SIZE" -gt "$LIMIT" ]; then
+            echo "::error::minimal binary $SIZE bytes exceeds the 3 MiB diet gate"
+            exit 1
+          fi
+
+      - name: Run criterion benchmarks
+        run: cargo bench -p flexfetch-cli --bench cold_start -- --output-format bencher | tee output.txt
+
+      # Pushes the criterion results + size chart to the gh-pages branch.
+      - name: Publish to GitHub Pages
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'cargo'
+          output-file-path: output.txt
+          # Attach the size tracker as an extra benchmark chart.
+          extra-data: sizes.json
+          benchmark-data-dir-path: dev/bench
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '150%' # alert (check-run) if >1.5x the previous best
+          comment-on-alert: true
+          fail-on-alert: false
