@@ -20,6 +20,9 @@ rayon = { version = "1", optional = true }
 mlua = { version = "0.10", optional = true, features = ["lua54", "vendored"] }
 libc = "0.2"
 base64 = "0.21"
+# Unicode-width-aware padding (Phase 7.2): Nerd Font/CJK glyphs occupy 2 cells,
+# so key alignment must count display columns, not chars. Tiny, pure Rust, no deps.
+unicode-width = "0.2"
 # Only the PNG decoder/encoder is needed: all logos and the PNG export are PNG files.
 # Default features would pull in exr, avif, gif, webp, tiff, qoi, etc. (several MB of decoders).
 # Optional + gated behind the `image-logos` feature so `--no-default-features` builds drop

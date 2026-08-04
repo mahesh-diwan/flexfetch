@@ -511,6 +511,35 @@ emit single `%`).
 
 ---
 
+## Phase 7 — Fastfetch benchmark: aesthetics & speed (stored Aug 2026)
+
+> Goal: close the visual + latency gap to fastfetch. Every item below was audited
+> against the current tree (see `docs/superpowers/research/fastfetch-benchmark.md`
+> for the full analysis). ⬜ pending unless marked done.
+
+### Aesthetics
+
+| # | Task | Effort | Status |
+| - | ---- | ------ | ------ |
+| 7.1 | **Truecolor theme slots**: convert the 27 presets from 16-color ANSI to `38;2;R;G;B` with a 256/16-color fallback ladder (`COLORTERM`/`TERM` gated) — the single biggest look win | Low | ✅ (Aug 2026) |
+| 7.2 | **Unicode-width-aware padding**: `unicode-width` (or wcwidth) in `pad_filter`/`visible_len` so Nerd Font/CJK rows align perfectly | Low | ✅ (Aug 2026) |
+| 7.3 | **Per-module key colors**: `[[display.modules]] type=... key_color=...` (fastfetch `keyColor`), falls back to global theme | Medium | ✅ (Aug 2026) |
+| 7.4 | **Bars + thresholds** on cpuusage/memory/disk rows (reuse `progress_bar_filter`, green<60/yellow<85/red≥85) | Low | ✅ (Aug 2026) |
+| 7.5 | **Section headers**: `{% if section %}` grouping in default.tera with subtle separators | Medium | ⬜ |
+| 7.6 | **Logo brand gradients**: per-line color fade over the `${N}` placeholder system | Medium | ✅ (Aug 2026) |
+| 7.7 | **OSC-8 hyperlinks** on host/public IP; **Nerd Font auto-detect** + ASCII icon fallback | Low/Med | ✅ (Aug 2026) |
+| 7.8 | **Battery glyph with level**, `--list-themes` live preview, `--theme random` | Low | 🟡 (`--list-themes` + `--theme random` done; battery glyph pending) |
+
+### Speed
+
+| # | Task | Effort | Status |
+| - | ---- | ------ | ------ |
+| 7.9 | **Add `parallel` (rayon) to the release feature set** — the shipped binary currently collects modules *sequentially* (`release.yml` uses `live,image-logos,completions`, no `parallel`). Conscious speed↔size tradeoff: rayon was excluded by the 0.2 diet (~2 MB release); re-adding costs ~100–200 KB, still under the 4 MB gate | Trivial | ✅ (Aug 2026) |
+| 7.10 | **Zero-spawn remaining hot collectors**: `processes` (`/proc`), `swap` (`/proc/meminfo`), `temperature` (`/sys/class/thermal`), `resolution` (cache/EDID) — 33 `Command::new` calls remain in the default path | Medium | ✅ (Aug 2026, Linux) — `processes` reads `/proc`, `swap` reads `/proc/meminfo`, `temperature` reads `/sys/class/thermal`, `resolution` reads DRM `modes` sysfs; remaining `Command::new` calls are macOS-only or fallbacks (xrandr/system_profiler) |
+| 7.11 | **`--smart`/`--watch` snapshot reuse** (skip re-collect when nothing changed) | Medium | ⬜ |
+
+---
+
 ## Rejected / decisions (do not re-propose without new justification)
 
 | Idea | Why rejected |

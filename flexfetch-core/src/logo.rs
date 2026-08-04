@@ -9,13 +9,42 @@ pub fn visible_len(s: &str) -> usize {
     #[allow(clippy::while_let_on_iterator)]
     while let Some(c) = chars.next() {
         if c == '\x1b' {
-            while let Some(next) = chars.next() {
-                if next.is_ascii_alphabetic() {
-                    break;
+            // Skip an escape sequence without counting its bytes as cells.
+            // CSI (ESC [ ... m) ends at the first alphabetic byte; OSC
+            // hyperlinks (ESC ] 8 ; ; url ESC \, Phase 7.7) must be skipped
+            // wholesale or the URL would be counted as visible columns and
+            // break `--frame` width math.
+            match chars.peek() {
+                Some('[') => {
+                    chars.next();
+                    while let Some(next) = chars.next() {
+                        if next.is_ascii_alphabetic() {
+                            break;
+                        }
+                    }
+                }
+                Some(']') => {
+                    // OSC: consume until the ST terminator (ESC \) or BEL.
+                    while let Some(next) = chars.next() {
+                        if next == '\x1b' {
+                            if chars.peek() == Some(&'\\') {
+                                chars.next();
+                            }
+                            break;
+                        }
+                        if next == '\x07' {
+                            break;
+                        }
+                    }
+                }
+                _ => {
+                    // Lone ESC or unsupported sequence: drop the ESC itself.
                 }
             }
         } else {
-            len += 1;
+            // Phase 7.2: count display columns, not chars — Nerd Font icons and
+            // CJK glyphs are double-width, so naive +1 misaligns icon'd rows.
+            len += unicode_width::UnicodeWidthChar::width(c).unwrap_or(0);
         }
     }
     len
@@ -43,6 +72,62 @@ pub fn render(logo: &Logo, target_height: usize) -> Vec<String> {
 
 pub fn logo_width(rendered: &[String]) -> usize {
     rendered.iter().map(|l| visible_len(l)).max().unwrap_or(0)
+}
+
+/// Interpolate between `stops` at position `t` in [0, 1] (Phase 7.6 logo
+/// gradients). Linear between consecutive stops; clamps at the ends.
+fn interpolate_stops(stops: &[[u8; 3]], t: f64) -> [u8; 3] {
+    if stops.is_empty() {
+        return [255, 255, 255];
+    }
+    if stops.len() == 1 {
+        return stops[0];
+    }
+    let scaled = t.clamp(0.0, 1.0) * (stops.len() - 1) as f64;
+    let i = (scaled.floor() as usize).min(stops.len() - 2);
+    let frac = scaled - i as f64;
+    let (a, b) = (stops[i], stops[i + 1]);
+    [
+        (a[0] as f64 + (b[0] as f64 - a[0] as f64) * frac) as u8,
+        (a[1] as f64 + (b[1] as f64 - a[1] as f64) * frac) as u8,
+        (a[2] as f64 + (b[2] as f64 - a[2] as f64) * frac) as u8,
+    ]
+}
+
+/// Render a logo with a per-line brand gradient (Phase 7.6): the first color
+/// token (${1}) is replaced with a truecolor code interpolated across the
+/// theme's gradient stops by row index — the classic neofetch/fastfetch
+/// vertical fade. Other tokens keep their static colors.
+pub fn render_gradient(logo: &Logo, target_height: usize, stops: &[[u8; 3]]) -> Vec<String> {
+    let mut out = Vec::with_capacity(target_height);
+    let total = logo.lines.len().max(1);
+    for (idx, line) in logo.lines.iter().enumerate() {
+        let t = if total <= 1 {
+            0.0
+        } else {
+            idx as f64 / (total - 1) as f64
+        };
+        let rgb = interpolate_stops(stops, t);
+        let code = format!("\x1b[38;2;{};{};{}m", rgb[0], rgb[1], rgb[2]);
+        let mut s = line.to_string();
+        for (i, color) in logo.colors.iter().enumerate() {
+            let n = i + 1;
+            let braced = format!("${{{}}}", n);
+            let plain = format!("${}", n);
+            if i == 0 {
+                s = s.replace(&braced, &code);
+                s = s.replace(&plain, &code);
+            } else {
+                s = s.replace(&braced, color);
+                s = s.replace(&plain, color);
+            }
+        }
+        out.push(s);
+    }
+    while out.len() < target_height {
+        out.push(String::new());
+    }
+    out
 }
 
 use crate::fastfetch_logos::{fastfetch_logo, make_logo};

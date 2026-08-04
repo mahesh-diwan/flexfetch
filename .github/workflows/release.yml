@@ -61,14 +61,16 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      # Built with --no-default-features --features live,image-logos,completions: the
-      # release excludes `lua` (mlua is dead code in flexfetch-core/cli — never called,
-      # LTO strips it — and dropping it keeps the tree pure Rust, no C code to compile)
-      # and `tera`/`parallel` (the plain renderer + sequential loops keep the shipped
-      # binary ~2 MB — see ROADMAP 0.2 diet) but INCLUDES the `live` dashboard
-      # (ratatui + crossterm are pure Rust, so the musl cross-compile is unaffected; zig
-      # is only needed as the cross linker), `image-logos` (image logos + PNG export),
-      # and `completions` (so `flexfetch completions bash` works in installed binaries).
+      # Built with --no-default-features --features live,image-logos,completions,parallel:
+      # the release excludes `lua` (mlua is dead code in flexfetch-core/cli — never
+      # called, LTO strips it — and dropping it keeps the tree pure Rust, no C code to
+      # compile) and `tera` (the plain renderer keeps the shipped binary ~2 MB — see
+      # ROADMAP 0.2 diet) but INCLUDES the `live` dashboard (ratatui + crossterm are
+      # pure Rust, so the musl cross-compile is unaffected; zig is only needed as the
+      # cross linker), `image-logos` (image logos + PNG export), `completions` (so
+      # `flexfetch completions bash` works in installed binaries), and `parallel`
+      # (rayon — Phase 7.9: the shipped binary collects modules concurrently, which
+      # the diet had dropped; ~100-200 KB, still under the 4 MB size gate).
 
       # Download zig directly instead of mlugg/setup-zig@v1: the action requests
       # `zig-linux-x86_64-0.16.0.tar.xz` (os-arch naming) which ziglang.org does not
@@ -95,11 +97,11 @@ jobs:
 
       - name: Build (musl via zigbuild)
         if: matrix.use_zig
-        run: cargo zigbuild --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions
+        run: cargo zigbuild --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
 
       - name: Build (native/cross via system clang)
         if: ${{ !matrix.use_zig }}
-        run: cargo build --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions
+        run: cargo build --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
 
       # Size gate (Linux only, uncompressed binary): regression guard, not a diet
       # target. After the tera/rayon gating (ROADMAP 0.2) the release build

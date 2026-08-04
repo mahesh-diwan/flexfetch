@@ -304,8 +304,281 @@ pub fn resolve_ansi(code_or_name: &str) -> String {
     .to_string()
 }
 
+pub fn supports_truecolor() -> bool {
+    if let Ok(ct) = std::env::var("COLORTERM") {
+        if ct.eq_ignore_ascii_case("truecolor") || ct.contains("24bit") {
+            return true;
+        }
+    }
+    let term = std::env::var("TERM").unwrap_or_default().to_lowercase();
+    term.contains("truecolor")
+        || term.contains("direct")
+        || std::env::var("KITTY_WINDOW_ID").is_ok()
+}
+
+/// All built-in theme preset names (used by `--list-themes` and `--theme random`).
+/// Keep in sync with the `resolve` match arms below.
+pub fn preset_names() -> &'static [&'static str] {
+    &[
+        "catppuccin",
+        "dracula",
+        "nord",
+        "gruvbox",
+        "tokyo-night",
+        "solarized-dark",
+        "solarized-light",
+        "rose-pine",
+        "rose-pine-dawn",
+        "everforest-dark",
+        "everforest-light",
+        "bamboo",
+        "oxocarbon-dark",
+        "one-dark",
+        "one-light",
+        "tokyo-night-storm",
+        "catppuccin-mocha",
+        "catppuccin-frappe",
+        "catppuccin-macchiato",
+        "monokai",
+        "monokai-pro",
+        "ayu-dark",
+        "ayu-mirage",
+        "palenight",
+        "material-ocean",
+        "kanagawa",
+        "mellow-purple",
+    ]
+}
+
+/// Pick a pseudo-random preset (Phase 7.8 `--theme random`). Uses a small
+/// xorshift-style scramble of the monotonic clock so consecutive runs differ;
+/// no external RNG dependency.
+pub fn random_preset() -> &'static str {
+    let names = preset_names();
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos() as usize)
+        .unwrap_or(0);
+    let idx = (nanos ^ (nanos >> 16)) % names.len();
+    names[idx]
+}
+
+/// Truecolor RGB per slot for each preset (Phase 7.1). Only consulted when the
+/// terminal supports 24-bit color; the 16-color ANSI consts remain the fallback.
+struct ThemeRgb {
+    title: [u8; 3],
+    keys: [u8; 3],
+    values: [u8; 3],
+    sep: [u8; 3],
+    section: [u8; 3],
+}
+
+fn preset_rgb(name: &str) -> Option<ThemeRgb> {
+    let hex = |s: &str| -> [u8; 3] {
+        let h = s.trim_start_matches('#');
+        [
+            u8::from_str_radix(&h[0..2], 16).unwrap_or(0),
+            u8::from_str_radix(&h[2..4], 16).unwrap_or(0),
+            u8::from_str_radix(&h[4..6], 16).unwrap_or(0),
+        ]
+    };
+    Some(match name {
+        "catppuccin" => ThemeRgb {
+            title: hex("#cba6f7"),
+            keys: hex("#89b4fa"),
+            values: hex("#94e2d5"),
+            sep: hex("#6c7086"),
+            section: hex("#89b4fa"),
+        },
+        "dracula" => ThemeRgb {
+            title: hex("#ff79c6"),
+            keys: hex("#bd93f9"),
+            values: hex("#8be9fd"),
+            sep: hex("#6272a4"),
+            section: hex("#bd93f9"),
+        },
+        "nord" => ThemeRgb {
+            title: hex("#88c0d0"),
+            keys: hex("#81a1c1"),
+            values: hex("#a3be8c"),
+            sep: hex("#4c566a"),
+            section: hex("#81a1c1"),
+        },
+        "gruvbox" => ThemeRgb {
+            title: hex("#fabd2f"),
+            keys: hex("#b8bb26"),
+            values: hex("#83a598"),
+            sep: hex("#928374"),
+            section: hex("#b8bb26"),
+        },
+        "tokyo-night" | "tokyo-night-storm" => ThemeRgb {
+            title: hex("#bb9af7"),
+            keys: hex("#7aa2f7"),
+            values: hex("#7dcfff"),
+            sep: hex("#565f89"),
+            section: hex("#7aa2f7"),
+        },
+        "solarized-dark" => ThemeRgb {
+            title: hex("#b58900"),
+            keys: hex("#268bd2"),
+            values: hex("#2aa198"),
+            sep: hex("#93a1a1"),
+            section: hex("#268bd2"),
+        },
+        "solarized-light" => ThemeRgb {
+            title: hex("#cb4b16"),
+            keys: hex("#268bd2"),
+            values: hex("#2aa198"),
+            sep: hex("#839496"),
+            section: hex("#268bd2"),
+        },
+        "rose-pine" => ThemeRgb {
+            title: hex("#eb6f92"),
+            keys: hex("#9ccfd8"),
+            values: hex("#c4a7e7"),
+            sep: hex("#6e6a86"),
+            section: hex("#9ccfd8"),
+        },
+        "rose-pine-dawn" => ThemeRgb {
+            title: hex("#d7827e"),
+            keys: hex("#56949f"),
+            values: hex("#907aa9"),
+            sep: hex("#9893a5"),
+            section: hex("#56949f"),
+        },
+        "everforest-dark" => ThemeRgb {
+            title: hex("#a7c080"),
+            keys: hex("#7fbbb3"),
+            values: hex("#83c092"),
+            sep: hex("#7a8478"),
+            section: hex("#7fbbb3"),
+        },
+        "everforest-light" => ThemeRgb {
+            title: hex("#8da101"),
+            keys: hex("#3a94c5"),
+            values: hex("#35a77c"),
+            sep: hex("#a6b0a0"),
+            section: hex("#3a94c5"),
+        },
+        "bamboo" => ThemeRgb {
+            title: hex("#e06848"),
+            keys: hex("#68a870"),
+            values: hex("#5898a8"),
+            sep: hex("#888a90"),
+            section: hex("#68a870"),
+        },
+        "oxocarbon-dark" => ThemeRgb {
+            title: hex("#08bdba"),
+            keys: hex("#33b1ff"),
+            values: hex("#ff7eb6"),
+            sep: hex("#525252"),
+            section: hex("#33b1ff"),
+        },
+        "one-dark" => ThemeRgb {
+            title: hex("#c678dd"),
+            keys: hex("#61afef"),
+            values: hex("#98c379"),
+            sep: hex("#5c6370"),
+            section: hex("#61afef"),
+        },
+        "one-light" => ThemeRgb {
+            title: hex("#a626a4"),
+            keys: hex("#e45649"),
+            values: hex("#50a14f"),
+            sep: hex("#a0a1a7"),
+            section: hex("#e45649"),
+        },
+        "catppuccin-mocha" => ThemeRgb {
+            title: hex("#cba6f7"),
+            keys: hex("#89b4fa"),
+            values: hex("#94e2d5"),
+            sep: hex("#6c7086"),
+            section: hex("#89b4fa"),
+        },
+        "catppuccin-frappe" => ThemeRgb {
+            title: hex("#ca9ee6"),
+            keys: hex("#8caaee"),
+            values: hex("#81c8be"),
+            sep: hex("#737994"),
+            section: hex("#8caaee"),
+        },
+        "catppuccin-macchiato" => ThemeRgb {
+            title: hex("#c6a0f6"),
+            keys: hex("#8aadf4"),
+            values: hex("#8bd5ca"),
+            sep: hex("#6e738d"),
+            section: hex("#8aadf4"),
+        },
+        "monokai" => ThemeRgb {
+            title: hex("#e6db74"),
+            keys: hex("#a6e22e"),
+            values: hex("#f92672"),
+            sep: hex("#75715e"),
+            section: hex("#a6e22e"),
+        },
+        "monokai-pro" => ThemeRgb {
+            title: hex("#ffd866"),
+            keys: hex("#a9dc76"),
+            values: hex("#78dce8"),
+            sep: hex("#727072"),
+            section: hex("#a9dc76"),
+        },
+        "ayu-dark" => ThemeRgb {
+            title: hex("#ffb454"),
+            keys: hex("#39bae6"),
+            values: hex("#aad94c"),
+            sep: hex("#5c6773"),
+            section: hex("#39bae6"),
+        },
+        "ayu-mirage" => ThemeRgb {
+            title: hex("#ffcc66"),
+            keys: hex("#73d0ff"),
+            values: hex("#d4bfff"),
+            sep: hex("#5c6773"),
+            section: hex("#73d0ff"),
+        },
+        "palenight" => ThemeRgb {
+            title: hex("#ffcb6b"),
+            keys: hex("#82aaff"),
+            values: hex("#c792ea"),
+            sep: hex("#676e95"),
+            section: hex("#82aaff"),
+        },
+        "material-ocean" => ThemeRgb {
+            title: hex("#ffcb6b"),
+            keys: hex("#82aaff"),
+            values: hex("#89ddff"),
+            sep: hex("#525975"),
+            section: hex("#82aaff"),
+        },
+        "kanagawa" => ThemeRgb {
+            title: hex("#c34043"),
+            keys: hex("#7e9cd8"),
+            values: hex("#6a9589"),
+            sep: hex("#727169"),
+            section: hex("#7e9cd8"),
+        },
+        "mellow-purple" => ThemeRgb {
+            title: hex("#d2a6ff"),
+            keys: hex("#b3a1e6"),
+            values: hex("#9ce6d4"),
+            sep: hex("#8a88b8"),
+            section: hex("#b3a1e6"),
+        },
+        _ => return None,
+    })
+}
+
 pub fn resolve(config: &Config) -> ThemeStrings {
-    let preset = match config.display.theme.as_deref().unwrap_or("") {
+    let theme_arg = config.display.theme.as_deref().unwrap_or("");
+    // Phase 7.8: `--theme random` (and `theme = "random"` in config) resolves
+    // to a random preset each run.
+    let resolved_name = if theme_arg == "random" {
+        random_preset()
+    } else {
+        theme_arg
+    };
+    let preset = match resolved_name {
         "catppuccin" => &CATPPUCCIN,
         "dracula" => &DRACULA,
         "nord" => &NORD,
@@ -336,6 +609,24 @@ pub fn resolve(config: &Config) -> ThemeStrings {
         _ => &NONE,
     };
 
+    let truecolor = supports_truecolor();
+    let rgb = preset_rgb(resolved_name);
+    // Pick a color code for one slot: explicit config override wins; else
+    // truecolor RGB when the terminal supports it; else the 16-color ANSI.
+    let slot =
+        |override_cfg: &Option<String>, ansi: &str, rgbc: Option<[u8; 3]>, bold: bool| -> String {
+            if let Some(c) = override_cfg {
+                return resolve_ansi(c);
+            }
+            if let Some(rgb) = rgbc {
+                if truecolor {
+                    let pre = if bold { "\x1b[1;38;2;" } else { "\x1b[38;2;" };
+                    return format!("{pre}{};{};{}m", rgb[0], rgb[1], rgb[2]);
+                }
+            }
+            ansi.to_string()
+        };
+
     let gradient_colors = config
         .display
         .gradient_colors
@@ -344,31 +635,31 @@ pub fn resolve(config: &Config) -> ThemeStrings {
         .unwrap_or_else(|| preset.gradient_colors.to_vec());
 
     ThemeStrings {
-        title: config
-            .display
-            .color_title
-            .as_deref()
-            .map(resolve_ansi)
-            .unwrap_or_else(|| preset.title.to_string()),
-        keys: config
-            .display
-            .color_keys
-            .as_deref()
-            .map(resolve_ansi)
-            .unwrap_or_else(|| preset.keys.to_string()),
-        values: config
-            .display
-            .color_values
-            .as_deref()
-            .map(resolve_ansi)
-            .unwrap_or_else(|| preset.values.to_string()),
-        sep: config
-            .display
-            .color_sep
-            .as_deref()
-            .map(resolve_ansi)
-            .unwrap_or_else(|| preset.sep.to_string()),
-        section: preset.section.to_string(),
+        title: slot(
+            &config.display.color_title,
+            preset.title,
+            rgb.as_ref().map(|r| r.title),
+            true,
+        ),
+        keys: slot(
+            &config.display.color_keys,
+            preset.keys,
+            rgb.as_ref().map(|r| r.keys),
+            false,
+        ),
+        values: slot(
+            &config.display.color_values,
+            preset.values,
+            rgb.as_ref().map(|r| r.values),
+            false,
+        ),
+        sep: slot(
+            &config.display.color_sep,
+            preset.sep,
+            rgb.as_ref().map(|r| r.sep),
+            false,
+        ),
+        section: slot(&None, preset.section, rgb.as_ref().map(|r| r.section), true),
         reset: preset.reset,
         gradient: config.display.gradient,
         gradient_colors,

@@ -110,6 +110,79 @@ fn palette_display_filter(
     Ok(serde_json::Value::String(result))
 }
 
+/// OSC-8 hyperlink wrapper (Phase 7.7): `url` comes from the template (e.g.
+/// `https://ipinfo.io/<ip>`), the value is the visible text. Terminals without
+/// OSC-8 support show the plain text (the escape is a no-op for them).
+#[cfg(feature = "tera")]
+fn osc8_filter(
+    value: &serde_json::Value,
+    args: &std::collections::HashMap<String, serde_json::Value>,
+) -> tera::Result<serde_json::Value> {
+    let text = value.as_str().unwrap_or("");
+    let url = args.get("url").and_then(|v| v.as_str()).unwrap_or("");
+    if text.is_empty() || url.is_empty() {
+        return Ok(serde_json::Value::String(text.to_string()));
+    }
+    Ok(serde_json::Value::String(format!(
+        "\x1b]8;;{url}\x1b\\{text}\x1b]8;;\x1b\\"
+    )))
+}
+
+/// Phase 7.7: Nerd Font heuristic — env-gated (no subprocess), non-blocking.
+/// Terminals we know ship with a Nerd Font out of the box get icons; others
+/// fall back to plain-text keys so rows never show tofu boxes. Only used by
+/// the tera-backed renderer, so gate it to keep the minimal build lean.
+#[cfg(feature = "tera")]
+fn detect_nerd_font() -> bool {
+    let tp = std::env::var("TERM_PROGRAM")
+        .unwrap_or_default()
+        .to_lowercase();
+    let term = std::env::var("TERM").unwrap_or_default().to_lowercase();
+    let known = [
+        "kitty",
+        "wezterm",
+        "foot",
+        "alacritty",
+        "iterm",
+        "konsole",
+        "ghostty",
+        "vscode",
+        "contour",
+        "rio",
+        "warp",
+        "hyper",
+        "tabby",
+        "mintty",
+        "rio",
+        "tmux",
+    ];
+    known.iter().any(|k| tp.contains(k) || term.contains(k))
+}
+
+/// Phase 7.7: OSC-8 hyperlink support — same env heuristic as the terminal
+/// module's `hyperlinks` flag, kept in sync (no subprocess, non-blocking).
+/// Only used by the tera-backed renderer, so gate it for the minimal build.
+#[cfg(feature = "tera")]
+fn detect_osc8() -> bool {
+    let tp = std::env::var("TERM_PROGRAM")
+        .unwrap_or_default()
+        .to_lowercase();
+    let term = std::env::var("TERM").unwrap_or_default().to_lowercase();
+    [
+        "kitty",
+        "wezterm",
+        "foot",
+        "alacritty",
+        "iterm",
+        "konsole",
+        "ghostty",
+        "vscode",
+        "tmux",
+    ]
+    .iter()
+    .any(|h| tp.contains(h) || term.contains(h))
+}
+
 /// Pad a string to a fixed visible width (left-aligned, spaces appended).
 /// Used by the default template to align values: `{{ "OS" | pad(width=8) }}`.
 #[cfg(feature = "tera")]
@@ -132,14 +205,38 @@ fn progress_bar_filter(
     value: &serde_json::Value,
     args: &std::collections::HashMap<String, serde_json::Value>,
 ) -> tera::Result<serde_json::Value> {
-    let percent = match value {
+    // Accept a number, a bare "79", or a string that contains a percent like
+    // "79%" / "12.3%" / "/: 476.6G / 390.0G 82%" (extract the last NN%).
+    let percent: u8 = match value {
         serde_json::Value::Number(n) => n.as_u64().unwrap_or(0) as u8,
-        serde_json::Value::String(s) => s.parse::<u8>().unwrap_or(0),
+        serde_json::Value::String(s) => {
+            let mut best = 0u8;
+            let bytes = s.as_bytes();
+            let mut i = 0;
+            while i + 1 < bytes.len() {
+                if bytes[i].is_ascii_digit() && bytes[i + 1] == b'%' {
+                    // walk back over digits AND one decimal point, so
+                    // "37.1%" yields 37 (not 1 — the old integer-only walk
+                    // stopped at the '.', breaking the CPU Usage bar).
+                    let mut j = i;
+                    while j > 0 && (bytes[j - 1].is_ascii_digit() || bytes[j - 1] == b'.') {
+                        j -= 1;
+                    }
+                    if let Ok(v) = s[j..=i].parse::<f64>() {
+                        best = v.round().clamp(0.0, 100.0) as u8;
+                    }
+                    i += 1;
+                } else {
+                    i += 1;
+                }
+            }
+            best
+        }
         _ => 0,
     };
     let width = args.get("width").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
-    let filled = (percent as usize * width) / 100;
-    let empty = width - filled;
+    let filled = (percent.min(100) as usize * width) / 100;
+    let empty = width.saturating_sub(filled);
     let color = if percent < 60 {
         "\x1b[32m"
     } else if percent < 85 {
@@ -166,6 +263,7 @@ fn get_tera() -> &'static Tera {
         tera.register_filter("palette_display", palette_display_filter);
         tera.register_filter("progress_bar", progress_bar_filter);
         tera.register_filter("pad", pad_filter);
+        tera.register_filter("osc8", osc8_filter);
         tera
     })
 }
@@ -212,6 +310,23 @@ impl TeraEngine {
         #[cfg(not(feature = "tera"))]
         let raw = render_plain(info, config);
 
+        // Phase 7.6: per-line brand gradient on the ASCII logo (fastfetch's
+        // signature vertical fade). Only when truecolor is supported and the
+        // user hasn't disabled logo gradients in config.
+        let logo_gradient = config.display.logo_gradient && crate::theme::supports_truecolor();
+        let grad_stops = if logo_gradient {
+            crate::theme::resolve(config).gradient_colors.clone()
+        } else {
+            Vec::new()
+        };
+        let render_ascii = |ascii: &crate::logo::Logo, height: usize| -> Vec<String> {
+            if logo_gradient && !grad_stops.is_empty() {
+                crate::logo::render_gradient(ascii, height, &grad_stops)
+            } else {
+                crate::logo::render(ascii, height)
+            }
+        };
+
         let info_lines: Vec<&str> = raw.lines().collect();
         // Try image logo first (block characters work in any truecolor terminal)
         let os_id = info
@@ -247,16 +362,13 @@ impl TeraEngine {
                 if !ansi.is_empty() {
                     ansi.lines().map(String::from).collect::<Vec<_>>()
                 } else {
-                    let ascii = crate::logo::detect(&os_id);
-                    crate::logo::render(ascii, info_lines.len())
+                    render_ascii(crate::logo::detect(&os_id), info_lines.len())
                 }
             } else {
-                let ascii = crate::logo::detect(&os_id);
-                crate::logo::render(ascii, info_lines.len())
+                render_ascii(crate::logo::detect(&os_id), info_lines.len())
             }
         } else {
-            let ascii = crate::logo::detect(&os_id);
-            crate::logo::render(ascii, info_lines.len())
+            render_ascii(crate::logo::detect(&os_id), info_lines.len())
         };
 
         // Vertically center the logo against the info block: trim only the
@@ -404,6 +516,54 @@ impl TeraEngine {
         ctx.insert("display_separator", &config.display.separator);
         ctx.insert("display_key_width", &config.display.key_width);
         ctx.insert("display_palette_style", &config.display.palette_style);
+        ctx.insert("display_progress_bars", &config.display.progress_bars);
+        ctx.insert("display_logo_gradient", &config.display.logo_gradient);
+
+        // Phase 7.7: Nerd Font auto-detect — when the terminal isn't known to
+        // have a Nerd Font (env-gated, non-spawning), blank every icon so rows
+        // fall back to plain-text keys instead of tofu boxes.
+        let nerd_font = detect_nerd_font();
+        ctx.insert("nerd_font", &nerd_font);
+        if !nerd_font {
+            for k in [
+                "icon_os",
+                "icon_kernel",
+                "icon_host",
+                "icon_uptime",
+                "icon_locale",
+                "icon_cpu",
+                "icon_gpu",
+                "icon_memory",
+                "icon_swap",
+                "icon_disk",
+                "icon_network",
+                "icon_interface",
+                "icon_resolution",
+                "icon_battery",
+                "icon_processes",
+                "icon_end",
+                "icon_temp",
+            ] {
+                ctx.insert(k, &String::new());
+            }
+        }
+
+        // Phase 7.7: OSC-8 hyperlinks — gate on the same env heuristic as the
+        // terminal module's `hyperlinks` flag (kitty/wezterm/foot/alacritty/...).
+        ctx.insert("osc8_support", &detect_osc8());
+
+        // Phase 7.3: per-module key/value color overrides (fastfetch keyColor).
+        // Only inserted when the user sets them in [modules_config.<name>], so
+        // the template's `| default(value=theme_keys)` picks the global theme
+        // for every other row.
+        for (name, mcfg) in &config.modules_config {
+            if let Some(k) = &mcfg.color_keys {
+                ctx.insert(format!("key_color_{name}"), &crate::theme::resolve_ansi(k));
+            }
+            if let Some(v) = &mcfg.color_values {
+                ctx.insert(format!("val_color_{name}"), &crate::theme::resolve_ansi(v));
+            }
+        }
 
         let box_chars = get_box_chars(&config.display.box_style);
         ctx.insert("box_header_left", &box_chars.header_left);

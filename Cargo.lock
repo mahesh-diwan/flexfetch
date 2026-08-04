@@ -930,6 +930,7 @@ dependencies = [
  "serde_json",
  "tera",
  "toml",
+ "unicode-width",
  "zbus",
 ]
 

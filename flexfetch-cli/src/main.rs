@@ -57,6 +57,10 @@ struct Cli {
     #[arg(long)]
     list_presets: bool,
 
+    /// List all built-in theme presets (Phase 7.8 — pairs with `--theme random`).
+    #[arg(long)]
+    list_themes: bool,
+
     /// Micro-benchmark: `--benchmark` (per-module timing) or `--benchmark N`
     /// (run each module N times, report min/avg/total).
     #[arg(long, num_args = 0..=1, default_missing_value = "1")]
@@ -246,6 +250,14 @@ fn main() {
 
     if cli.list_presets {
         list_presets();
+        return;
+    }
+
+    // --list-themes: show every built-in theme preset name (Phase 7.8).
+    if cli.list_themes {
+        for name in flexfetch_core::theme::preset_names() {
+            println!("{name}");
+        }
         return;
     }
 
