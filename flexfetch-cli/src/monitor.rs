@@ -68,9 +68,14 @@ pub fn sample_health(ctx: &Context) -> Health {
 }
 
 /// Parse a temperature string like `"85°C"` (or `"85°c"`) into a number.
-/// Trims any trailing °/C/c in any order so `85°C` doesn't get stuck at `85°`.
+/// Trims any trailing °/C/c in any order so `85°C` doesn't get stuck at `85°`,
+/// and tolerates a space before the unit (`"90 C"`).
 fn parse_temp_c(s: &str) -> Option<f64> {
-    s.trim_end_matches(['°', 'C', 'c']).parse::<f64>().ok()
+    s.trim()
+        .trim_end_matches(['°', 'C', 'c'])
+        .trim()
+        .parse::<f64>()
+        .ok()
 }
 
 /// Direct `statvfs` on `/` as a fallback when the disk collector's list parsing

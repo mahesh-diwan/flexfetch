@@ -381,9 +381,9 @@ runners flake rather than deleting the gate).
 
 | Task | What | Feature gate | Status |
 | ---- | ---- | ------------ | ------ |
-| 5.4 | **Wallpaper auto-theming** (`--auto-theme`): color-thief dominant colors → on-the-fly theme, cached to `/tmp` by wallpaper mtime | `auto-theme` (image) | ⬜ |
-| 5.5 | **SQLite metrics history** (`history.db`): snapshots table, `--history-graph cpu|memory --hours N` ASCII sparkline, `--history-export csv`, 90-day prune | `history` (rusqlite) | ⬜ |
-| 5.6 | **Critical health notifications** (`--daemon`): notify-rust/mac-notification-sys on threshold breach (cpu/mem/disk/temp), 60 s poll | `notifications` | ⬜ |
+| 5.4 | **Wallpaper auto-theming** (`--auto-theme`): color-thief dominant colors → on-the-fly theme, cached to `/tmp` by wallpaper mtime | `auto-theme` (image) | ✅ (Aug 2026) |
+| 5.5 | **SQLite metrics history** (`history.db`): snapshots table, `--history-graph cpu|memory --hours N` ASCII sparkline, `--history-export csv`, 90-day prune | `history` (rusqlite) | ✅ (Aug 2026) |
+| 5.6 | **Critical health notifications** (`--daemon`): notify-rust/mac-notification-sys on threshold breach (cpu/mem/disk/temp), 60 s poll | `notifications` | ✅ (Aug 2026) |
 
 ### Pillar H — Community & extensibility
 
@@ -406,12 +406,15 @@ runners flake rather than deleting the gate).
 | ---- | ----- | ----- |
 | 9 | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container) |
 | 10 | Integration | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB) | ✅ done |
-| 11 | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) |
+| 11 | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) | ✅ done |
 | 12 | Community | 5.7 (Plugin Registry), 5.10 (ASCII Cinema) |
 
-**Immediate next step: Week 11 — Intelligence: 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications)** —
-Week 9 (distribution: Nix flake, AUR/Homebrew, container) and Week 10 (integration:
-GitHub Action, tmux, hardware DB) are both shipped.
+**Immediate next step: Week 12 — Community: 5.7 (Plugin Registry), 5.10 (ASCII
+Cinema)**. Week 9 (distribution: Nix flake, AUR/Homebrew, container), Week 10
+(integration: GitHub Action, tmux, hardware DB) and Week 11 (intelligence:
+5.4/5.5/5.6) are all shipped. Plugin registry (5.7) is the flagship of the
+week — checksum + min-version-verified `registry.toml`, and it unblocks 8.12
+(Ed25519 signing) since WASM is still 4.12-pending.
 
 ### Task 5.2 — GitHub Action (`flexfetch-action`) — ✅ (Aug 2026)
 - `export_github()` in `flexfetch-core/src/export.rs`: renders a collapsible
@@ -434,6 +437,34 @@ GitHub Action, tmux, hardware DB) are both shipped.
   `tmux list-panes -F '#{pane_id} #{pane_current_command}'` against
   bash/zsh/fish/sh/nu, and prints a compact `--minimal` fetch. install.sh places
   it next to the main binary.
+
+### Task 5.4 — Wallpaper auto-theming — ✅ (Aug 2026)
+`flexfetch-core/src/autotheme.rs` (feature `auto-theme`, opt-in — adds the `image`
+jpeg decoder): color-thief style bucket+score quantizer extracts the wallpaper's
+top 3 distinct saturated colors, builds a truecolor `ThemeStrings` on the fly
+(title/keys = #1, values = #2, sep = #3, gradient stops = palette so the logo
+blends with the wallpaper), cached to `/tmp/flexfetch-autotheme-<hash>` keyed by
+wallpaper path + mtime (cache invalidated on wallpaper change). Degrades
+gracefully: `None` without truecolor support, undecodable image, or flat
+palette → caller falls back to a preset. `--auto-theme` in main.rs.
+
+### Task 5.5 — SQLite metrics history — ✅ (Aug 2026)
+`flexfetch-cli/src/history.rs` (feature `history`, rusqlite **bundled** — no
+system lib): snapshots table in `~/.cache/flexfetch/history.db`, rows pruned
+past 90 days on every open; `--history-graph cpu|memory|disk|temp --hours N`
+renders an ASCII sparkline (range window honored, "no history" message when
+empty); `--history-export <path>` dumps the table as CSV; `--history`
+records a snapshot every `--history-interval` seconds until Ctrl+C.
+`--daemon` (5.6) also records via the same loop.
+
+### Task 5.6 — Critical health notifications — ✅ (Aug 2026)
+`flexfetch-cli/src/daemon.rs` (feature `notifications`, notify-rust with the `z`
+zbus backend — pure Rust on Linux/BSD, no dbus C dep; mac-notification-sys on
+macOS): `--daemon` polls the shared `monitor.rs` sampler every
+`--history-interval` seconds and fires a desktop notification when
+cpu/mem/disk/temp crosses its threshold (mem/disk ≥ 90%, cpu ≥ 90%, temp ≥ 85°C),
+arming per metric so each critical episode notifies once; falls back to a
+stderr banner when no notifier is usable.
 
 ### Task 5.8 — Crowdsourced hardware DB — ✅ (Aug 2026)
 - `flexfetch-core/src/hardware_db.rs` (pure std, no deps): parses a flat
