@@ -68,6 +68,11 @@ rqrr = { version = "0.3", default-features = false, optional = true }
 zstd = { version = "0.13", optional = true }
 base64 = { version = "0.21", optional = true }
 image = { version = "0.25", optional = true, default-features = false, features = ["png"] }
+# Phase 8.12: Ed25519 signature verification for the plugin registry (client
+# side). Small, self-contained, pure Rust — no C deps — and it feeds the
+# release diet fine (only a few KB in the minimal binary; the registry module
+# is always compiled).
+ed25519-compact = "2"
 
 [dev-dependencies]
 # Phase 8.6: micro-benchmarks (`cargo bench`). Dev-only — does not affect the

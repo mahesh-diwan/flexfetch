@@ -470,6 +470,25 @@ cpu/mem/disk/temp crosses its threshold (mem/disk ≥ 90%, cpu ≥ 90%, temp ≥
 arming per metric so each critical episode notifies once; falls back to a
 stderr banner when no notifier is usable.
 
+### Task 8.12 — Plugin registry Ed25519 signing — 🟡 (Ed25519 verify ✅, Aug 2026)
+- `flexfetch-cli/src/registry.rs`: `TRUSTED_PUBLISHER_KEY` (base64 Ed25519
+  public key const) + `verify_signature(bytes, sig_b64, pk_b64)` via
+  `ed25519-compact` (pure Rust, no C deps — ~200 KB in the minimal binary,
+  still 1.76 MB total, far under the 3 MB diet target). `plugin install` now
+  verifies the entry's `signature` over the raw plugin bytes **before** the
+  SHA-256 check, so tampered payloads fail closed even if the checksum file
+  were compromised; entries without a signature install with a notice
+  (backwards compatible).
+- `flexfetch-cli/examples/registry_sign.rs`: publisher tool — `cargo run
+  --example registry_sign -- plugin.lua <seed-hex>` prints the base64 public
+  key + signature to paste into `registry/plugins.toml` (deterministic, no
+  noise). `registry/plugins.toml` documents the flow and carries a signed
+  `hello` entry.
+- Tests: signature round-trip (accept / tamper-reject / wrong-key-reject /
+  garbage-never-panics) + std base64 decode round-trip. Registry entries
+  parse `signature` (optional).
+- Pending: WASM capability manifest (fs/network/env) — blocked on 4.12.
+
 ### Task 5.7 — Plugin registry — ✅ (Aug 2026)
 `flexfetch-cli/src/registry.rs` (pure std + `toml`, no new deps):
 `flexfetch plugin search <q>|install <name>|list|update` against the hosted
@@ -643,7 +662,7 @@ emit single `%`).
 | Task | What | Status |
 | ---- | ---- | ------ |
 | 8.11 | **Repo hygiene**: issue templates (bug report w/ `--bug-report` field + terminal dropdown), PR template with checklist, `CONTRIBUTING.md` (DCO), `CODE_OF_CONDUCT.md`, `GOVERNANCE.md`, social preview via `--demo --export png` | ✅ (Aug 2026) — `bug_report.yml` (with `--bug-report` guidance + terminal dropdown), `feature_request.yml` (ROADMAP-aware), `config.yml` (roadmap link), `PULL_REQUEST_TEMPLATE.md` (verification checklist incl. feature-off path), `CONTRIBUTING.md` (diet rules + DCO `-s`), `CODE_OF_CONDUCT.md`, `GOVERNANCE.md` (BDFL + core team). Social preview PNG: generate via `flexfetch --demo --export png` (documented; note `--bug-report` itself is 8.7, template asks for `--version`/env instead until then) |
-| 8.12 | **Plugin registry hardening**: Ed25519 signed manifests (`publisher_key` + `signature`), client-side verify, WASM capability manifest (fs/network/env) | ⬜ |
+| 8.12 | **Plugin registry hardening**: Ed25519 signed manifests (`publisher_key` + `signature`), client-side verify, WASM capability manifest (fs/network/env) | 🟡 (Ed25519 verify ✅; WASM capability manifest pending 4.12) |
 
 ### Execution priority
 
@@ -653,14 +672,20 @@ emit single `%`).
 | 2 | Enterprise trust | 8.2 (audit pipeline), 8.1 (signed releases) | ✅ (Aug 2026) |
 | 3 | Quality gates | 8.4 (terminal matrix), 8.5 (fuzzing), 8.6 (benchmarks) | ✅ (Aug 2026) |
 | 4 | Platforms | 8.9 (Windows), 8.10 (WSL) | 🟡 (8.10 ✅; 8.9 pending) |
-| 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) | 🟡 (8.3 + 8.7 ✅; 8.12 pending) |
+| 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) | 🟡 (8.3 + 8.7 ✅; 8.12 Ed25519 verify ✅, WASM capability manifest pending) |
 
 **Remaining Phase 8: 8.9 (Windows Tier-2 — `windows-sys` collectors + msvc CI,
-reality-adapted to the zero-dep diet) and 8.12 (plugin registry Ed25519 signing +
-capability manifest — WASM is 4.12, so this lands with the registry work).** The
-pasted plan's `color_eyre`/`dirs`/`schemars`/`windows-sys`/`tracing` crates are NOT
-adopted as-is — the project's zero-dependency + feature-gate diet (rejected list
-below) applies; each task is reality-adapted on landing.
+reality-adapted to the zero-dep diet) and the WASM half of 8.12 (capability
+manifest — WASM is 4.12).** The Ed25519 half of 8.12 is ✅ (Aug 2026): the
+client embeds the project's trusted publisher key
+(`TRUSTED_PUBLISHER_KEY` in `flexfetch-cli/src/registry.rs`) and verifies each
+entry's `signature` over the raw plugin bytes *before* the SHA-256 check
+(`verify_signature`, `ed25519-compact` — small, pure Rust); unsigned entries
+fall back to sha256-only with a notice; a publisher tool ships at
+`flexfetch-cli/examples/registry_sign.rs` (prints base64 pubkey + signature).
+The pasted plan's `color_eyre`/`dirs`/`schemars`/`windows-sys`/`tracing`
+crates are NOT adopted as-is — the project's zero-dependency + feature-gate
+diet (rejected list below) applies; each task is reality-adapted on landing.
 
 ---
 

@@ -167,8 +167,10 @@ Built with [mlua](https://github.com/khvzak/mlua) 0.10 (Lua 5.4).
 
 ## Plugin Registry
 
-Install, search, and update Lua plugins from the hosted registry (every
-download is SHA-256 verified and `min_flexfetch_version`-gated):
+Install, search, and update Lua plugins from the hosted registry. Every
+download is **SHA-256 verified** and `min_flexfetch_version`-gated, and signed
+entries are **Ed25519-verified** against the project's embedded publisher key
+before anything touches disk:
 
 ```bash
 flexfetch plugin search cpu       # search the registry by name/description
@@ -176,6 +178,11 @@ flexfetch plugin install hello    # install to ~/.config/flexfetch/plugins/
 flexfetch plugin list             # installed plugins + registry status
 flexfetch plugin update           # re-install every installed plugin in the registry
 ```
+
+Publishing a plugin: open a PR against `registry/plugins.toml` and sign your
+plugin with the publisher tool (`cargo run --example registry_sign -- your.lua
+<seed-hex>` prints the base64 signature to paste into the entry). Unsigned
+entries still install (sha256-only, with a notice) for backwards compatibility.
 
 <br>
 

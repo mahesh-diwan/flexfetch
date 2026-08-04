@@ -15,6 +15,13 @@ use std::path::PathBuf;
 const REGISTRY_URL: &str =
     "https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/registry/plugins.toml";
 
+/// Phase 8.12 — the project's trusted Ed25519 publisher key (base64). Every
+/// registry entry that carries a `signature` must verify against this key, or
+/// the install is refused. Generate a new one with
+/// `cargo run --example registry_sign -- <plugin.lua> <seed-hex>` and update
+/// BOTH this const and the registry entries.
+const TRUSTED_PUBLISHER_KEY: &str = "IHoGeJKCHiXXcPH7oMR8Ef9LgT5UFi7Onrg54HYjGrY=";
+
 /// One registry entry.
 pub struct PluginEntry {
     pub name: String,
@@ -23,6 +30,10 @@ pub struct PluginEntry {
     pub min_flexfetch_version: String,
     pub url: String,
     pub sha256: String,
+    /// Phase 8.12: base64 Ed25519 signature over the plugin bytes, made with
+    /// the project's private key. `None` for entries that predate signing
+    /// (sha256-only, with a notice).
+    pub signature: Option<String>,
 }
 
 /// The directory installed plugins live in (matches the `--list-modules`
@@ -69,6 +80,10 @@ fn parse_registry(text: &str) -> Result<Vec<PluginEntry>, String> {
             min_flexfetch_version: get("min_flexfetch_version")?,
             url: get("url")?,
             sha256: get("sha256")?,
+            signature: item
+                .get("signature")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string()),
         });
     }
     Ok(entries)
@@ -138,6 +153,31 @@ fn install(name: &str) {
     if let Err(e) = run_cmd("curl", &["-fsSL", &entry.url, "-o", &tmp.to_string_lossy()]) {
         eprintln!("download failed for '{name}': {e}");
         std::process::exit(1);
+    }
+
+    // Phase 8.12: verify the Ed25519 signature over the raw plugin bytes
+    // BEFORE the SHA-256 check, so a tampered payload fails closed even if
+    // the checksum file were also compromised.
+    if let Some(sig_b64) = &entry.signature {
+        let bytes = match std::fs::read(&tmp) {
+            Ok(b) => b,
+            Err(e) => {
+                eprintln!("read download: {e}");
+                let _ = std::fs::remove_file(&tmp);
+                std::process::exit(1);
+            }
+        };
+        if let Err(e) = verify_signature(&bytes, sig_b64, TRUSTED_PUBLISHER_KEY) {
+            eprintln!(
+                "signature verification failed for '{name}': {e}\nrefusing to install (the entry is not signed by the project's publisher key)."
+            );
+            let _ = std::fs::remove_file(&tmp);
+            std::process::exit(1);
+        }
+    } else {
+        eprintln!(
+            "note: '{name}' has no Ed25519 signature (pre-8.12 registry entry) — sha256 check only."
+        );
     }
 
     let actual = match sha256_hex(&tmp) {
@@ -281,6 +321,49 @@ fn version_ge(a: &str, b: &str) -> bool {
     true
 }
 
+/// Phase 8.12 — verify a base64 Ed25519 signature over `bytes` against the
+/// base64 public key. Uses `ed25519-compact` (pure Rust, no C deps).
+fn verify_signature(bytes: &[u8], signature_b64: &str, pubkey_b64: &str) -> Result<(), String> {
+    use ed25519_compact::{PublicKey, Signature};
+
+    let pk_bytes = base64_decode(pubkey_b64)
+        .ok_or_else(|| "trusted publisher key is not valid base64".to_string())?;
+    let sig_bytes =
+        base64_decode(signature_b64).ok_or_else(|| "signature is not valid base64".to_string())?;
+
+    let pk = PublicKey::from_slice(&pk_bytes).map_err(|e| format!("invalid publisher key: {e}"))?;
+    let sig = Signature::from_slice(&sig_bytes).map_err(|e| format!("invalid signature: {e}"))?;
+
+    pk.verify(bytes, &sig)
+        .map_err(|e| format!("Ed25519 verify failed: {e}"))
+}
+
+/// Minimal standard-base64 decoder (std only; the `base64` crate is gated
+/// behind the `qr` feature, so the registry keeps itself dependency-light).
+fn base64_decode(input: &str) -> Option<Vec<u8>> {
+    let mut out = Vec::with_capacity(input.len() / 4 * 3);
+    let mut buf: u32 = 0;
+    let mut bits = 0u32;
+    for &c in input.as_bytes() {
+        let val = match c {
+            b'A'..=b'Z' => c - b'A',
+            b'a'..=b'z' => c - b'a' + 26,
+            b'0'..=b'9' => c - b'0' + 52,
+            b'+' => 62,
+            b'/' => 63,
+            b'=' => break,
+            _ => return None,
+        };
+        buf = (buf << 6) | u32::from(val);
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            out.push((buf >> bits) as u8);
+        }
+    }
+    Some(out)
+}
+
 /// sha256 of a file, via sha256sum (Linux) or shasum -a 256 (macOS).
 fn sha256_hex(path: &std::path::Path) -> Result<String, String> {
     let stdout = |cmd: &str, args: &[&str]| -> Option<String> {
@@ -330,6 +413,7 @@ version = "1.0.0"
 min_flexfetch_version = "1.0.0"
 url = "https://example.com/hello.lua"
 sha256 = "cd1357d071f02094ae1b33eac710bec19dc2f51f9f4c79896c603c04d4de5608"
+signature = "+g48Ps3mYZC8OXw6URMeAZTB2nxi1TX7/QumdzT/ehxCMvhWH5S+vefh/0kD57MIzH0wAvDfNnHXnFiwUbvSCA=="
 
 [[plugins]]
 name = "cpu-heavy"
@@ -345,7 +429,79 @@ sha256 = "abc"
         let entries = parse_registry(SAMPLE).expect("sample parses");
         assert_eq!(entries.len(), 2);
         assert_eq!(entries[0].name, "hello");
+        assert_eq!(entries[0].signature.as_deref(),
+            Some("+g48Ps3mYZC8OXw6URMeAZTB2nxi1TX7/QumdzT/ehxCMvhWH5S+vefh/0kD57MIzH0wAvDfNnHXnFiwUbvSCA=="));
         assert_eq!(entries[1].min_flexfetch_version, "2.0.0");
+        assert!(
+            entries[1].signature.is_none(),
+            "unsigned entries parse as None"
+        );
+    }
+
+    #[test]
+    fn signature_roundtrip_accepts_then_rejects_tampering() {
+        use ed25519_compact::{KeyPair, Seed};
+
+        // Self-contained keypair from a fixed seed — deterministic test.
+        let kp = KeyPair::from_seed(Seed::new([7u8; 32]));
+        let plugin =
+            b"return { name = \"x\", collect = function() return { value = \"1\" } end }\n";
+        let sig = kp.sk.sign(plugin, None);
+        let pk_b64 = base64_encode_std(kp.pk.as_ref());
+        let sig_b64 = base64_encode_std(sig.as_ref());
+
+        // Genuine signature verifies.
+        assert!(verify_signature(plugin, &sig_b64, &pk_b64).is_ok());
+
+        // Tampered payload fails closed.
+        let mut tampered = plugin.to_vec();
+        tampered[10] ^= 0xff;
+        assert!(verify_signature(&tampered, &sig_b64, &pk_b64).is_err());
+
+        // Wrong key fails.
+        let other = KeyPair::from_seed(Seed::new([8u8; 32]));
+        assert!(verify_signature(plugin, &sig_b64, &base64_encode_std(other.pk.as_ref())).is_err());
+
+        // Garbage inputs fail gracefully (never panic).
+        assert!(verify_signature(b"", "!!not-base64!!", &pk_b64).is_err());
+        assert!(verify_signature(plugin, &sig_b64, "not base64").is_err());
+    }
+
+    #[test]
+    fn base64_decode_roundtrip() {
+        let input = b"flexfetch-plugin-sig-test";
+        let encoded = base64_encode_std(input);
+        assert_eq!(base64_decode(&encoded).as_deref(), Some(&input[..]));
+        assert_eq!(base64_decode("!!!!"), None);
+        assert_eq!(base64_decode("YWJj"), Some(b"abc".to_vec())); // "abc"
+    }
+
+    /// Test-only std base64 encoder (mirrors the registry_sign example).
+    fn base64_encode_std(input: &[u8]) -> String {
+        const TABLE: &[u8; 64] =
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        let mut out = String::with_capacity(input.len().div_ceil(3) * 4);
+        for chunk in input.chunks(3) {
+            let b = [
+                chunk[0],
+                *chunk.get(1).unwrap_or(&0),
+                *chunk.get(2).unwrap_or(&0),
+            ];
+            let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
+            out.push(TABLE[(n >> 18) as usize & 63] as char);
+            out.push(TABLE[(n >> 12) as usize & 63] as char);
+            if chunk.len() > 1 {
+                out.push(TABLE[(n >> 6) as usize & 63] as char);
+            } else {
+                out.push('=');
+            }
+            if chunk.len() > 2 {
+                out.push(TABLE[n as usize & 63] as char);
+            } else {
+                out.push('=');
+            }
+        }
+        out
     }
 
     #[test]
