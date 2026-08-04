@@ -313,10 +313,10 @@ impl ModuleRegistry {
                     let result = module.collect(ctx);
                     (*n, result)
                 })
-        };
-
-        // Modules whose values are effectively static within a session.
-        let static_modules: [&str; 23] = [
+        }; // Modules whose values are effectively static within a session. Note
+           // `custom` is deliberately NOT here: user-defined commands are arbitrary
+           // and may be time-varying (e.g. `date`), so they re-collect every tick.
+        let static_modules: [&str; 22] = [
             "os",
             "host",
             "kernel",
@@ -339,7 +339,6 @@ impl ModuleRegistry {
             "wallpaper",
             "fsdeep",
             "weather",
-            "custom",
         ];
         let is_static = |name: &str| static_modules.contains(&name);
 

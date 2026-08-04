@@ -719,7 +719,9 @@ impl TeraEngine {
                             .map(|s| {
                                 let low = s.to_lowercase();
                                 low.contains("ac attached")
-                                    || (low.contains("charg") && !low.contains("not charg"))
+                                    || (low.contains("charg")
+                                        && !low.contains("not charg")
+                                        && !low.contains("discharg"))
                             })
                             .unwrap_or(false);
                         Some(battery_glyph(pct, charging))
@@ -1032,7 +1034,12 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
                     out.push_str(&format!("{}── {sec} ──{}\n", theme.section, theme.reset));
                 }
             }
-            last_section = section;
+            // Only advance on a real section so a None-section row (e.g.
+            // custom) between two same-section rows can't cause a second
+            // header to be emitted for the same section.
+            if section.is_some() {
+                last_section = section;
+            }
         }
         let padded = format!(
             "{}{}",
