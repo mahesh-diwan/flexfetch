@@ -540,6 +540,68 @@ emit single `%`).
 
 ---
 
+## Phase 8 — Production Hardening (stored Aug 2026, not yet started)
+
+> Goal: close the gap between a "working project" and a "trusted system tool" —
+> supply-chain trust, quality gates, observability, platform completeness, and
+> community governance. All tasks ⬜ pending unless marked otherwise. The full
+> original plan text is in the chat history; this section is the canonical index
+> + status tracker.
+
+### Pillar J — Trust & Supply Chain
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 8.1 | **Signed releases + reproducible builds**: cosign sign-blob on every artifact (`.sig` + `.pem`), SLSA provenance (`intoto.jsonl`), `scripts/verify-repro.sh` rebuild-and-diff gate, `SECURITY.md` with `cosign verify-blob` instructions | ✅ (Aug 2026) — release.yml signs all artifacts on tag pushes (skips gracefully until `COSIGN_PRIVATE_KEY` secret is set), `slsa.yml` computes asset hashes → SLSA generic generator (`intoto.jsonl`), `scripts/verify-repro.sh` rebuild-and-diff, `SECURITY.md` with verify instructions |
+| 8.2 | **Dependency security**: `cargo-audit` daily (`rustsec/audit-check`), `deny.toml` (bans/license/copyleft gates), `cargo-cyclonedx` SBOM on releases, Dependabot weekly | ✅ (Aug 2026) — `audit.yml` (cargo-audit daily + cargo-deny), `deny.toml` (wildcards=deny, copyleft=deny, license allowlist), `dependabot.yml` weekly cargo + actions, CycloneDX SBOM step in release.yml (tag pushes) |
+| 8.3 | **Config schema versioning**: `version` field + `migrate.rs` (v1→v2 in-place upgrade, idempotent), JSON Schema (`schemars`) for IDE autocomplete via `$schema` | ⬜ |
+
+### Pillar K — Quality Assurance
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 8.4 | **Terminal compatibility matrix**: Docker-based CI running flexfetch under xterm/kitty/alacritty/foot/wezterm terminfo, asserting truecolor/sixel/kitty-graphics/nerd-font detection per terminal | ⬜ |
+| 8.5 | **Fuzzing + property tests**: `cargo-fuzz` targets for `/proc`/sysfs parsers (never panic on garbage), proptest for `progress_bar`/sparkline/palette, valgrind leak gate on `--live` | ⬜ |
+| 8.6 | **Criterion benchmarks**: `benches/cold_start.rs` + github-action-benchmark graphs on Pages, binary-size tracking | ⬜ |
+
+### Pillar L — Observability & Supportability
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 8.7 | **Structured logging + crash reporting**: `tracing` (RUST_LOG-gated), `--bug-report` dump (version/os/kernel/term/shell/config/log tail), panic hook → `~/.cache/flexfetch/panic.log` | ⬜ |
+| 8.8 | **First-run experience**: auto-config generation on first run (theme from terminal darkness), post-install demo in `install.sh`, `--demo` flag (every module + feature) | ✅ (Aug 2026) — `--demo` flag (30-module showcase, catppuccin-mocha + decorative frame, forces color in pipes); `install.sh` runs `--minimal` post-install in a tty + hints `--wizard`/`--demo`. Zero-config first run already existed (`Config::load` falls back to defaults) — auto-config file generation deferred as ⬜ |
+
+### Pillar M — Platform Completeness
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 8.9 | **Windows Tier-2**: `windows-sys` collectors (CPU/mem/disk/network), Windows Terminal/ConEmu/WezTerm detection, `windows-latest` CI target | ⬜ |
+| 8.10 | **WSL detection**: `WSLInterop` marker → `OS: Ubuntu 24.04 (WSL2)` + Windows host version via `cmd.exe /c ver` | ⬜ |
+
+### Pillar N — Community & Governance
+
+| Task | What | Status |
+| ---- | ---- | ------ |
+| 8.11 | **Repo hygiene**: issue templates (bug report w/ `--bug-report` field + terminal dropdown), PR template with checklist, `CONTRIBUTING.md` (DCO), `CODE_OF_CONDUCT.md`, `GOVERNANCE.md`, social preview via `--demo --export png` | ✅ (Aug 2026) — `bug_report.yml` (with `--bug-report` guidance + terminal dropdown), `feature_request.yml` (ROADMAP-aware), `config.yml` (roadmap link), `PULL_REQUEST_TEMPLATE.md` (verification checklist incl. feature-off path), `CONTRIBUTING.md` (diet rules + DCO `-s`), `CODE_OF_CONDUCT.md`, `GOVERNANCE.md` (BDFL + core team). Social preview PNG: generate via `flexfetch --demo --export png` (documented; note `--bug-report` itself is 8.7, template asks for `--version`/env instead until then) |
+| 8.12 | **Plugin registry hardening**: Ed25519 signed manifests (`publisher_key` + `signature`), client-side verify, WASM capability manifest (fs/network/env) | ⬜ |
+
+### Execution priority
+
+| Step | Focus | Tasks |
+| ---- | ----- | ----- |
+| 1 | Visibility (low-effort wins) | 8.11 (hygiene), 8.8 (first-run) | ✅ (Aug 2026) |
+| 2 | Enterprise trust | 8.2 (audit pipeline), 8.1 (signed releases) | ✅ (Aug 2026) |
+| 3 | Quality gates | 8.4 (terminal matrix), 8.5 (fuzzing), 8.6 (benchmarks) |
+| 4 | Platforms | 8.9 (Windows), 8.10 (WSL) |
+| 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) |
+
+**Immediate next step: 8.11 + 8.8** (visibility), then **8.2 + 8.1** (trust) before the
+next tag push. The pasted plan's `color_eyre`/`dirs`/`schemars`/`windows-sys`/`tracing`
+crates are NOT adopted as-is — the project's zero-dependency + feature-gate diet
+(rejected list below) applies; each task is reality-adapted on landing.
+
+---
+
 ## Rejected / decisions (do not re-propose without new justification)
 
 | Idea | Why rejected |

@@ -232,6 +232,11 @@ struct Cli {
     #[arg(long)]
     threshold: Vec<String>,
 
+    /// Phase 8.8: showcase mode — every module + every visual feature, for
+    /// screenshots / social previews / `install.sh` first-run demos.
+    #[arg(long)]
+    demo: bool,
+
     #[cfg(feature = "completions")]
     #[command(subcommand)]
     command: Option<Commands>,
@@ -558,9 +563,10 @@ fn main() {
         }
     }
 
-    // Pipe detection
+    // Pipe detection. `--demo` always renders full color (it's for screenshots/
+    // social previews, where stdout is usually a pipe).
     let is_tty = std::io::stdout().is_terminal();
-    let pipe_mode = cli.pipe || !is_tty;
+    let pipe_mode = if cli.demo { false } else { cli.pipe || !is_tty };
 
     // Module toggle groups and presets
     let mut modules = resolve_modules(&cli, &config);
@@ -722,6 +728,39 @@ fn main() {
 /// Resolve the module list from CLI flags/presets/config (shared by the main
 /// path and watch-mode config hot-reload).
 fn resolve_modules(cli: &Cli, config: &Config) -> Vec<String> {
+    // Phase 8.8 --demo: every built-in module in a showcase order.
+    if cli.demo {
+        return vec![
+            "title".into(),
+            "separator".into(),
+            "os".into(),
+            "host".into(),
+            "kernel".into(),
+            "uptime".into(),
+            "packages".into(),
+            "shell".into(),
+            "terminal".into(),
+            "de".into(),
+            "wm".into(),
+            "cpu".into(),
+            "cpucache".into(),
+            "cpuusage".into(),
+            "gpu".into(),
+            "memory".into(),
+            "swap".into(),
+            "disk".into(),
+            "network".into(),
+            "resolution".into(),
+            "display".into(),
+            "battery".into(),
+            "temperature".into(),
+            "processes".into(),
+            "dns".into(),
+            "colors".into(),
+            // Deliberately excluded for determinism/speed: publicip (network
+            // round-trip), wifi (nmcli), bluetooth (2× bluetoothctl spawn).
+        ];
+    }
     let mut modules: Vec<String> = if cli.minimal {
         module_group("minimal")
     } else if cli.full {
@@ -762,6 +801,17 @@ fn apply_cli_overrides(cli: &Cli, config: &mut Config, pipe_mode: bool) {
         // explicit `--theme X` on the same invocation.
         if cli.theme.is_none() {
             config.display.theme = Some("auto".into());
+        }
+    }
+    if cli.demo {
+        // Phase 8.8: deterministic vibrant theme for screenshots (unless the
+        // user overrode it with --theme/--auto-theme).
+        if cli.theme.is_none() && !cli.auto_theme {
+            config.display.theme = Some("catppuccin-mocha".into());
+        }
+        // Showcase the boxed frame (supported styles: double, decorative/single).
+        if config.display.frame == "none" {
+            config.display.frame = "decorative".into();
         }
     }
     if cli.no_gradient {

@@ -1,0 +1,45 @@
+# Phase 8.2 — dependency security: cargo-audit (RUSTSEC advisories) runs daily
+# and on every dependency change, so we hear about vulnerabilities before users
+# do. cargo-deny (licenses/bans/copyleft) runs on the same schedule as an
+# explicit gate; advisories are warning-only (auto-updating a locked Cargo.lock
+# in CI would race with PRs — the daily cadence keeps the window tiny).
+name: Security Audit
+on:
+  push:
+    paths: ["**/Cargo.toml", "**/Cargo.lock", "deny.toml"]
+  schedule:
+    - cron: "0 0 * * *" # Daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write # rustsec/audit-check files advisories as issues
+
+jobs:
+  audit:
+    name: cargo-audit (RUSTSEC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # rustsec/audit-check installs and runs cargo-audit; failing advisories
+      # open an issue automatically (so they're tracked even though the check
+      # itself is advisory-only).
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  deny:
+    name: cargo-deny (licenses/bans)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # cargo-deny fails the job on license violations / banned crates /
+      # duplicate-version problems configured in deny.toml.
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check all
+          arguments: --manifest-path Cargo.toml

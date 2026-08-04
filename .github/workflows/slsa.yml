@@ -1,0 +1,72 @@
+# Phase 8.1B — SLSA provenance (supply-chain Levels for Software Artifacts).
+#
+# After the release job uploads artifacts, this workflow computes the sha256 of
+# every asset attached to the GitHub release and hands them to the SLSA generic
+# generator, which produces an `intoto.jsonl` provenance file and uploads it
+# back to the release. Verify with slsa-verifier (see SECURITY.md).
+#
+# Runs on release publication (the `released` event fires after all assets are
+# uploaded) and via workflow_dispatch for manual re-runs.
+name: SLSA Provenance
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to generate provenance for (e.g. v0.18.0)"
+        required: true
+
+permissions:
+  contents: read
+  id-token: write # OIDC: required by the generator for the provenance signature
+  actions: read
+
+jobs:
+  # Compute base64-encoded sha256 digests of every release asset. The generator
+  # needs subjects in `sha256:<hex>` form, base64-encoded as a single value.
+  hashes:
+    name: Compute release asset hashes
+    runs-on: ubuntu-latest
+    outputs:
+      subjects: ${{ steps.hash.outputs.subjects }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect release assets
+        id: hash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${{ github.event.release.tag_name }}"
+          fi
+          echo "release tag: $TAG"
+          # Download all release assets, hash each, emit sha256:<hex> lines.
+          mkdir -p /tmp/assets
+          gh release download "$TAG" --dir /tmp/assets
+          DIGESTS=""
+          for f in /tmp/assets/*; do
+            DIGESTS="${DIGESTS}$(printf 'sha256:%s\n' "$(sha256sum "$f" | awk '{print $1}')")"
+          done
+          # The generator expects one base64-encoded newline-joined string.
+          SUBJECTS=$(printf '%s' "$DIGESTS" | base64 -w0)
+          echo "subjects=$SUBJECTS" >> "$GITHUB_OUTPUT"
+          echo "hashing $(ls /tmp/assets | wc -l) assets"
+
+  # Call the SLSA generic generator (pin a release tag, not main).
+  provenance:
+    name: Generate SLSA provenance
+    needs: [hashes]
+    permissions:
+      contents: write
+      id-token: write
+      actions: read
+      packages: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.hashes.outputs.subjects }}"
+      upload-assets: true
+      compile-generator: true

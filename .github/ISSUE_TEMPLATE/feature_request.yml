@@ -1,0 +1,37 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[feat]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, please check the [ROADMAP](https://github.com/mahesh-diwan/flexfetch/blob/main/ROADMAP.md)
+        — the idea may already be planned or explicitly rejected.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do that flexfetch can't do today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Sketch the flag, module, config key, or behavior you have in mind.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Feature gate?
+      options:
+        - Default build
+        - Opt-in feature (off by default)
+        - Not sure
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What have you tried (e.g. fastfetch, neofetch, a custom template)?

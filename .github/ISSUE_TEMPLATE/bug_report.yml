@@ -1,0 +1,71 @@
+name: Bug Report
+description: Something is wrong — help us reproduce it
+title: "[bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please run `flexfetch --bug-report` (if available)
+        or paste the requested details below.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead? Paste the (mis)rendered output.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: The exact command you ran (e.g. `flexfetch --modules cpuusage:memory`).
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: terminal
+    attributes:
+      label: Terminal emulator
+      description: Which terminal are you using?
+      options:
+        - Kitty
+        - Alacritty
+        - WezTerm
+        - GNOME Terminal
+        - Konsole
+        - Windows Terminal
+        - tmux
+        - screen
+        - Other / unsure
+  - type: input
+    id: version
+    attributes:
+      label: flexfetch version
+      description: Output of `flexfetch --version`
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS / distro
+      description: e.g. CachyOS, Ubuntu 24.04, macOS 14, WSL2
+    validations:
+      required: true
+  - type: dropdown
+    id: build
+    attributes:
+      label: How did you install / build?
+      options:
+        - install.sh / release binary
+        - cargo install
+        - source build (--features ...)
+        - Nix / AUR / Homebrew
+        - Container image
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verification
+      options:
+        - label: I can reproduce with `flexfetch --theme none --modules os` (isolates theme/logo issues)

@@ -1,0 +1,31 @@
+# Phase 8.2 — Dependabot: weekly cargo dependency updates with a bounded PR
+# rate (auto-merge is intentionally off; every bump is reviewed against the
+# binary-size diet + feature gates in CONTRIBUTING.md).
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    # Ignore pre-release churn on the compiler toolchain deps that pin to rust
+    # versions (e.g. zbus/notify-rust MSRV bumps) — those are handled manually.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - ci

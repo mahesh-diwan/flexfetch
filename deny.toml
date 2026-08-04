@@ -1,0 +1,26 @@
+# Phase 8.2 — cargo-deny configuration.
+# Gates: RUSTSEC advisories, yanked crates, duplicate versions, wildcard deps,
+# and license compliance. Run locally with `cargo install cargo-deny` +
+# `cargo deny check`; CI runs it daily + on dependency changes.
+
+[advisories]
+db-urls = ["https://github.com/rustsec/advisory-db"]
+# Fail on yanked dependencies (pulls that were never meant to ship).
+yanked = "deny"
+
+[bans]
+# Multiple versions of the same crate are allowed (e.g. transient deps pin
+# different majors) but flagged — keep the tree honest where practical.
+multiple-versions = "warn"
+# Wildcard version requirements (x.y without a patch) make builds non-reproducible.
+wildcards = "deny"
+
+[licenses]
+# Permissive licenses only — flexfetch is MIT and its deps must not drag in
+# copyleft obligations. Extend this list deliberately, not reactively.
+allow = ["MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "BSD-3-Clause", "ISC", "Unicode-DFS-2016", "Zlib", "BSL-1.0"]
+copyleft = "deny"
+default = "deny"
+# Crates we ship are binary-only (no vendoring of third-party code), but keep
+# confidence that sources match the published crates.
+confidence-threshold = 0.8

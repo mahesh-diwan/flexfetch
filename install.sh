@@ -294,3 +294,14 @@ fi
 rm -rf "$TMPDIR"
 
 echo "Done. $BIN $TAG installed to $TARGET"
+
+# Phase 8.8: first-run payoff — show a live fetch immediately when the install
+# happens in an interactive terminal (curl | sh always has stdout piped, so this
+# only triggers for real ttys).
+if [ -t 1 ]; then
+    echo ""
+    "$TARGET" --minimal 2>/dev/null || true
+    echo ""
+    echo "Customize with: $BIN --wizard   (interactive config)"
+    echo "Showcase every module: $BIN --demo"
+fi
