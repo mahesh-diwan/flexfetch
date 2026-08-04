@@ -525,10 +525,10 @@ emit single `%`).
 | 7.2 | **Unicode-width-aware padding**: `unicode-width` (or wcwidth) in `pad_filter`/`visible_len` so Nerd Font/CJK rows align perfectly | Low | ✅ (Aug 2026) |
 | 7.3 | **Per-module key colors**: `[[display.modules]] type=... key_color=...` (fastfetch `keyColor`), falls back to global theme | Medium | ✅ (Aug 2026) |
 | 7.4 | **Bars + thresholds** on cpuusage/memory/disk rows (reuse `progress_bar_filter`, green<60/yellow<85/red≥85) | Low | ✅ (Aug 2026) |
-| 7.5 | **Section headers**: `{% if section %}` grouping in default.tera with subtle separators | Medium | ⬜ |
+| 7.5 | **Section headers**: `{% if section %}` grouping in default.tera with subtle separators | Medium | ✅ (Aug 2026) — `display.sections` flag (default true); default.tera regrouped into System/Software/Hardware/Network/Processes with `── {name} ──` headers gated on `show_section_*` flags; plain renderer mirrors them via `section_for()` |
 | 7.6 | **Logo brand gradients**: per-line color fade over the `${N}` placeholder system | Medium | ✅ (Aug 2026) |
 | 7.7 | **OSC-8 hyperlinks** on host/public IP; **Nerd Font auto-detect** + ASCII icon fallback | Low/Med | ✅ (Aug 2026) |
-| 7.8 | **Battery glyph with level**, `--list-themes` live preview, `--theme random` | Low | 🟡 (`--list-themes` + `--theme random` done; battery glyph pending) |
+| 7.8 | **Battery glyph with level**, `--list-themes` live preview, `--theme random` | Low | ✅ (Aug 2026) — `--list-themes` + `--theme random` + level-aware `battery_glyph()` (󰂎 empty … 󰁹 full, 󰂄 charging; `Not charging`/`Discharging` correctly excluded) |
 
 ### Speed
 
@@ -536,7 +536,7 @@ emit single `%`).
 | - | ---- | ------ | ------ |
 | 7.9 | **Add `parallel` (rayon) to the release feature set** — the shipped binary currently collects modules *sequentially* (`release.yml` uses `live,image-logos,completions`, no `parallel`). Conscious speed↔size tradeoff: rayon was excluded by the 0.2 diet (~2 MB release); re-adding costs ~100–200 KB, still under the 4 MB gate | Trivial | ✅ (Aug 2026) |
 | 7.10 | **Zero-spawn remaining hot collectors**: `processes` (`/proc`), `swap` (`/proc/meminfo`), `temperature` (`/sys/class/thermal`), `resolution` (cache/EDID) — 33 `Command::new` calls remain in the default path | Medium | ✅ (Aug 2026, Linux) — `processes` reads `/proc`, `swap` reads `/proc/meminfo`, `temperature` reads `/sys/class/thermal`, `resolution` reads DRM `modes` sysfs; remaining `Command::new` calls are macOS-only or fallbacks (xrandr/system_profiler) |
-| 7.11 | **`--smart`/`--watch` snapshot reuse** (skip re-collect when nothing changed) | Medium | ⬜ |
+| 7.11 | **`--smart`/`--watch` snapshot reuse** (skip re-collect when nothing changed) | Medium | ✅ (Aug 2026) — `ModuleRegistry::run_selected_cached()`: 23 static modules (os/host/kernel/…) served from a snapshot cache, dynamic ones (cpuusage/memory/disk/…) re-collected each tick; `--watch` owns the cache, clears it on config hot-reload |
 
 ---
 

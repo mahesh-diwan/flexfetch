@@ -503,6 +503,12 @@ fn main() {
     if cli.watch {
         // Watch mode: refresh every N seconds, hot-reloading the config file
         // when it changes (mtime-based, no extra dependency).
+        //
+        // Phase 7.11 snapshot reuse: static modules (os/host/kernel/…) are
+        // collected once and served from `snapshot` on every tick; only the
+        // dynamic ones (cpuusage/memory/disk/network/battery/…) are re-collected.
+        // The snapshot is reset on config hot-reload since the module set may
+        // have changed.
         let running = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
         let r = running.clone();
         let _ = ctrlc::set_handler(move || {
@@ -510,6 +516,8 @@ fn main() {
         });
         let config_file = config_file_path(&cli);
         let mut last_mtime = config_file.as_deref().and_then(file_mtime);
+        let mut snapshot: std::collections::HashMap<String, flexfetch_core::InfoValue> =
+            std::collections::HashMap::new();
         while running.load(std::sync::atomic::Ordering::SeqCst) {
             // Config hot-reload: if the file changed, rebuild config/ctx/modules.
             if let Some(path) = &config_file {
@@ -526,11 +534,13 @@ fn main() {
                         config.custom.clone(),
                     );
                     modules = resolve_modules(&cli, &config);
+                    snapshot.clear();
                     eprintln!("\n[flexfetch] config reloaded\n");
                 }
             }
             print!("\x1b[2J\x1b[H");
-            let fresh = registry.run_selected(&modules, &ctx, template_content);
+            let fresh =
+                registry.run_selected_cached(&modules, &ctx, template_content, &mut snapshot);
             render_output(&fresh, &config, &cli);
             std::io::Write::flush(&mut std::io::stdout()).ok();
             std::thread::sleep(Duration::from_secs(cli.watch_interval));

@@ -251,6 +251,47 @@ fn progress_bar_filter(
     )))
 }
 
+/// Phase 7.5: which named section a module belongs to. Only the plain
+/// renderer (minimal build) uses it — the Tera path computes its own
+/// `show_section_*` flags in render_tera — so gate it for the tera build.
+#[cfg(not(feature = "tera"))]
+fn section_for(module: &str) -> Option<&'static str> {
+    match module {
+        "os" | "kernel" | "host" | "uptime" | "locale" => Some("System"),
+        "packages" | "shell" | "terminal" | "de" | "wm" | "project" | "git" | "context"
+        | "health" | "container" | "wallpaper" | "weather" | "fsdeep" => Some("Software"),
+        "cpu" | "cpucache" | "cpuusage" | "gpu" | "memory" | "swap" | "disk" | "battery"
+        | "temperature" | "display" | "resolution" | "colors" => Some("Hardware"),
+        "network" | "wifi" | "publicip" | "bluetooth" | "media" => Some("Network"),
+        "processes" => Some("Processes"),
+        _ => None,
+    }
+}
+
+/// Phase 7.8: Nerd Font battery glyph for a charge level (0-100). Matches
+/// nf-md-battery-{10,20,...100}; charging gets the bolt glyph. Only used by
+/// the tera-backed renderer (the minimal plain path has no icons), so gate it.
+#[cfg(feature = "tera")]
+fn battery_glyph(percent: u8, charging: bool) -> String {
+    if charging {
+        return "󰂄 ".into(); // nf-md-battery-charging-100
+    }
+    let g = match percent {
+        0 => "󰂎 ",       // battery-0 (empty)
+        1..=10 => "󰁺 ",  // battery-10
+        11..=20 => "󰁻 ", // battery-20
+        21..=30 => "󰁼 ", // battery-30
+        31..=40 => "󰁽 ", // battery-40
+        41..=50 => "󰁾 ", // battery-50
+        51..=60 => "󰁿 ", // battery-60
+        61..=70 => "󰂀 ", // battery-70
+        71..=80 => "󰂁 ", // battery-80
+        81..=90 => "󰂂 ", // battery-90
+        _ => "󰁹 ",       // battery-100 (full)
+    };
+    g.into()
+}
+
 #[cfg(feature = "tera")]
 static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
 
@@ -518,6 +559,65 @@ impl TeraEngine {
         ctx.insert("display_palette_style", &config.display.palette_style);
         ctx.insert("display_progress_bars", &config.display.progress_bars);
         ctx.insert("display_logo_gradient", &config.display.logo_gradient);
+        ctx.insert("display_sections", &config.display.sections);
+
+        // Phase 7.5: which sections have content (fastfetch grouping). Each
+        // header in default.tera is gated on its flag, so empty sections are
+        // skipped entirely.
+        let has_any = |mods: &[&str]| {
+            mods.iter()
+                .any(|m| info.entries.iter().any(|(n, _)| n == m))
+        };
+        ctx.insert(
+            "show_section_system",
+            &(config.display.sections && has_any(&["os", "kernel", "host", "uptime", "locale"])),
+        );
+        ctx.insert(
+            "show_section_software",
+            &(config.display.sections
+                && has_any(&[
+                    "packages",
+                    "shell",
+                    "terminal",
+                    "de",
+                    "wm",
+                    "project",
+                    "git",
+                    "context",
+                    "health",
+                    "container",
+                    "wallpaper",
+                    "weather",
+                    "fsdeep",
+                ])),
+        );
+        ctx.insert(
+            "show_section_hardware",
+            &(config.display.sections
+                && has_any(&[
+                    "cpu",
+                    "cpucache",
+                    "cpuusage",
+                    "gpu",
+                    "memory",
+                    "swap",
+                    "disk",
+                    "battery",
+                    "temperature",
+                    "display",
+                    "resolution",
+                    "colors",
+                ])),
+        );
+        ctx.insert(
+            "show_section_network",
+            &(config.display.sections
+                && has_any(&["network", "wifi", "publicip", "bluetooth", "media"])),
+        );
+        ctx.insert(
+            "show_section_processes",
+            &(config.display.sections && has_any(&["processes"])),
+        );
 
         // Phase 7.7: Nerd Font auto-detect — when the terminal isn't known to
         // have a Nerd Font (env-gated, non-spawning), blank every icon so rows
@@ -598,6 +698,39 @@ impl TeraEngine {
         ctx.insert("icon_processes", &config.display.icon_processes);
         ctx.insert("icon_end", &config.display.icon_end);
         ctx.insert("icon_temp", &config.display.icon_temp);
+
+        // Phase 7.8: level-aware battery glyph (fastfetch's 🔋 79%). Replaces
+        // the static battery icon with a Nerd Font glyph that matches the
+        // charge level (󰂎 empty … 󰁹 full, 󰂄 charging). Falls back to the
+        // configured icon when there's no battery data or no Nerd Font.
+        let battery_glyph = if nerd_font {
+            info.entries
+                .iter()
+                .find(|(n, _)| *n == "battery")
+                .and_then(|(_, v)| match v {
+                    InfoValue::Map(m) => {
+                        let pct = m.get("percent_int").cloned().unwrap_or_default();
+                        let pct: u8 = pct.parse().unwrap_or(0);
+                        // "Charging" exactly (Linux sysfs) / "AC attached"
+                        // (macOS pmset); "Not charging" and "Discharging"
+                        // must NOT match the bolt glyph.
+                        let charging = m
+                            .get("status")
+                            .map(|s| {
+                                let low = s.to_lowercase();
+                                low.contains("ac attached")
+                                    || (low.contains("charg") && !low.contains("not charg"))
+                            })
+                            .unwrap_or(false);
+                        Some(battery_glyph(pct, charging))
+                    }
+                    _ => None,
+                })
+                .unwrap_or_else(|| config.display.icon_battery.clone())
+        } else {
+            String::new()
+        };
+        ctx.insert("battery_glyph", &battery_glyph);
 
         // Dedup redundant collectors (Phase 6 visual overhaul): hide WM when it
         // equals DE, and hide Resolution when Display already reports it.
@@ -842,8 +975,9 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
         || !display_val.contains(&resolution_val);
 
     // Build label/text rows with the same labels the default template uses.
+    // (label, text, section) — section drives the Phase 7.5 headers below.
     let key_width = config.display.key_width;
-    let mut rows: Vec<(String, String)> = Vec::new();
+    let mut rows: Vec<(String, String, Option<&'static str>)> = Vec::new();
     for (name, value) in &info.entries {
         if *name == "title" || *name == "separator" {
             continue;
@@ -873,7 +1007,7 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
                     })
                     .collect();
                 if !blocks.is_empty() {
-                    rows.push(("Colors".into(), blocks.join(" ")));
+                    rows.push(("Colors".into(), blocks.join(" "), section_for(name)));
                 }
             }
             continue;
@@ -884,11 +1018,22 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
         if text.is_empty() {
             continue;
         }
-        rows.push((label_for(name), text));
+        rows.push((label_for(name), text, section_for(name)));
     }
 
+    // Phase 7.5: emit a section header (── System ── style, theme-colored)
+    // whenever the module's section changes, mirroring default.tera.
+    let mut last_section: Option<&'static str> = None;
     let last = rows.len().saturating_sub(1);
-    for (i, (label, text)) in rows.into_iter().enumerate() {
+    for (i, (label, text, section)) in rows.into_iter().enumerate() {
+        if config.display.sections {
+            if section.is_some() && section != last_section {
+                if let Some(sec) = section {
+                    out.push_str(&format!("{}── {sec} ──{}\n", theme.section, theme.reset));
+                }
+            }
+            last_section = section;
+        }
         let padded = format!(
             "{}{}",
             label,

@@ -285,6 +285,122 @@ impl ModuleRegistry {
         info
     }
 
+    /// Phase 7.11: snapshot-reuse collection for `--watch` (and other
+    /// repeated-run loops). Static modules (OS/host/kernel/… — values that
+    /// don't change mid-session) are served from `cache`; only the dynamic
+    /// ones (cpuusage/memory/disk/network/battery/… — values that change every
+    /// tick) are re-collected. `cache` is updated in place so the next call
+    /// reuses this tick's static values. Thread-safe for the parallel path.
+    pub fn run_selected_cached(
+        &self,
+        selected: &[String],
+        ctx: &Context,
+        template_content: &str,
+        cache: &mut std::collections::HashMap<String, InfoValue>,
+    ) -> SystemInfo {
+        let template_modules = extract_template_modules(template_content);
+        let entry = |name: &String| {
+            if name == "separator" {
+                return None;
+            }
+            if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
+                return None;
+            }
+            self.builders
+                .iter()
+                .find(|(n, _)| n == name)
+                .map(|(n, module)| {
+                    let result = module.collect(ctx);
+                    (*n, result)
+                })
+        };
+
+        // Modules whose values are effectively static within a session.
+        let static_modules: [&str; 23] = [
+            "os",
+            "host",
+            "kernel",
+            "shell",
+            "terminal",
+            "de",
+            "wm",
+            "locale",
+            "packages",
+            "cpu",
+            "cpucache",
+            "gpu",
+            "colors",
+            "resolution",
+            "display",
+            "project",
+            "git",
+            "context",
+            "container",
+            "wallpaper",
+            "fsdeep",
+            "weather",
+            "custom",
+        ];
+        let is_static = |name: &str| static_modules.contains(&name);
+
+        // Reuse cached static values that are still requested; collect the rest.
+        let mut info = SystemInfo::new();
+        let mut to_collect: Vec<String> = Vec::new();
+        for name in selected {
+            if name == "separator" {
+                continue;
+            }
+            if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
+                continue;
+            }
+            if is_static(name) {
+                if let Some(cached) = cache.get(name) {
+                    // Resolve the canonical &'static name from the builder list
+                    // (module names are static literals) — avoids leaking a
+                    // String per cache hit on every watch tick.
+                    if let Some(static_name) = self
+                        .builders
+                        .iter()
+                        .find(|(n, _)| *n == name)
+                        .map(|(n, _)| *n)
+                    {
+                        info.add(static_name, cached.clone());
+                        continue;
+                    }
+                }
+            }
+            to_collect.push(name.clone());
+        }
+
+        #[cfg(feature = "parallel")]
+        let entries: Vec<_> = {
+            use rayon::prelude::*;
+            to_collect.par_iter().filter_map(entry).collect()
+        };
+        #[cfg(not(feature = "parallel"))]
+        let entries: Vec<_> = to_collect.iter().filter_map(entry).collect();
+
+        for (name, result) in entries {
+            match result {
+                Ok(val) => {
+                    // Cache static modules so the next tick reuses them.
+                    if is_static(name) {
+                        cache.insert(name.to_string(), val.clone());
+                    }
+                    info.add(name, val);
+                }
+                Err(e) => {
+                    if ctx.debug {
+                        eprintln!("[flexfetch] module {name} error: {e}");
+                    }
+                    info.add(name, InfoValue::Scalar("error".into()));
+                }
+            }
+        }
+
+        info
+    }
+
     pub fn run_individual(&self, name: &str, ctx: &Context) -> Option<InfoValue> {
         self.builders
             .iter()

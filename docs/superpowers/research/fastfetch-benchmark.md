@@ -167,11 +167,11 @@ renderer has fewer features. Keep both, keep the cache.
 | 🥇 | **Unicode-width padding** (fix Nerd Font misalignment) | Low | High — rows line up perfectly | ✅ (Aug 2026) |
 | 🥈 | **Per-module key colors** (`[[display.modules]]`) | Medium | High — fastfetch's signature look | ✅ (Aug 2026) |
 | 🥈 | **Bars + thresholds** on cpu/mem/disk rows | Low | High — data becomes visual | ✅ (Aug 2026) |
-| 🥈 | **Section headers** with subtle separators | Medium | Medium | ⬜ |
+| 🥈 | **Section headers** with subtle separators | Medium | Medium | ✅ (Aug 2026) |
 | 🥈 | **Logo brand gradients** (per-line color fade) | Medium | Medium | ✅ (Aug 2026) |
 | 🥉 | **OSC-8 hyperlinks** (clickable host/public IP) | Low | Nice wow | ✅ (Aug 2026) |
 | 🥉 | **Nerd Font auto-detect + ASCII icon fallback** | Medium | Nice | ✅ (Aug 2026) |
-| 🥉 | **Battery glyph with level** (🔋 79%) | Low | Nice | 🟡 (bars cover it; glyph pending) |
+| 🥉 | **Battery glyph with level** (🔋 79%) | Low | Nice | ✅ (Aug 2026) |
 | 🥉 | **`--list-themes` live preview** (swatch rows per theme) | Low | Great discoverability | ✅ (Aug 2026) |
 | 🥉 | **Random/cycle theme** (`--theme random`) | Low | Fun | ✅ (Aug 2026) |
 
@@ -181,7 +181,7 @@ renderer has fewer features. Keep both, keep the cache.
 | - | ---- | ------ | ------ | ------ |
 | 1 | **Add `parallel` (rayon) to the release feature set** | Trivial | High — shipped binary collects concurrently | ✅ (Aug 2026) |
 | 2 | **Zero-spawn remaining hot collectors** (`processes`, `swap`, `temperature`, `resolution`) | Medium | High | ✅ (Aug 2026, Linux) — processes reads `/proc`, swap reads `/proc/meminfo`, temperature reads `/sys/class/thermal`, resolution reads DRM `modes` sysfs; remaining `Command::new` are macOS-only or fallbacks |
-| 3 | **`--smart`/`--watch` snapshot reuse** (skip re-collect on no-change) | Medium | Medium | ⬜ |
+| 3 | **`--smart`/`--watch` snapshot reuse** (skip re-collect on no-change) | Medium | Medium | ✅ (Aug 2026) |
 
 ---
 

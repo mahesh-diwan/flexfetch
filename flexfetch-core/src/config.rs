@@ -97,6 +97,12 @@ pub struct DisplayConfig {
     #[serde(default = "DisplayConfig::default_logo_gradient")]
     pub logo_gradient: bool,
 
+    /// Phase 7.5: group rows under subtle section headers (── System ── /
+    /// ── Hardware ── / …) like fastfetch. Default on; set false for the old
+    /// flat row list.
+    #[serde(default = "DisplayConfig::default_sections")]
+    pub sections: bool,
+
     // Icons for fastfetch-style output
     #[serde(default = "DisplayConfig::default_icon_os")]
     pub icon_os: String,
@@ -177,6 +183,9 @@ impl DisplayConfig {
     pub fn default_logo_gradient() -> bool {
         true
     }
+    pub fn default_sections() -> bool {
+        true
+    }
 
     // Default Nerd Font icons (fastfetch style)
     pub fn default_icon_os() -> String {
@@ -255,6 +264,7 @@ impl Default for DisplayConfig {
             palette_style: Self::default_palette_style(),
             frame: Self::default_frame(),
             logo_gradient: Self::default_logo_gradient(),
+            sections: Self::default_sections(),
             // Icons
             icon_os: Self::default_icon_os(),
             icon_kernel: Self::default_icon_kernel(),
@@ -443,6 +453,7 @@ fn merge_config(base: Config, override_config: Config) -> Config {
             palette_style: override_config.display.palette_style,
             frame: override_config.display.frame,
             logo_gradient: override_config.display.logo_gradient,
+            sections: override_config.display.sections,
             // Icons
             icon_os: override_config.display.icon_os,
             icon_kernel: override_config.display.icon_kernel,

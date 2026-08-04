@@ -7,6 +7,9 @@
 {{ theme_sep }}────────────────────────────{{ theme_reset }}
 {%- endif -%}
 
+{%- if show_section_system %}
+{{ theme_section }}── System ──{{ theme_reset }}
+{%- endif %}
 {%- if os %}
 {{ key_color_os | default(value=theme_keys) }}{{ icon_os }}{{ "OS" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_os | default(value=theme_values) }}{{ os.pretty_name | default(value=os.name | default(value="")) }}{{ theme_reset }}
 {%- endif %}
@@ -22,11 +25,24 @@
 {%- if locale %}
 {{ key_color_locale | default(value=theme_keys) }}{{ icon_locale }}{{ "Locale" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_locale | default(value=theme_values) }}{{ locale.lang | default(value="") }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}{{ theme_reset }}
 {%- endif %}
+
+{%- if show_section_software %}
+{{ theme_section }}── Software ──{{ theme_reset }}
+{%- endif %}
 {%- if packages and packages != "0" %}
 {{ key_color_packages | default(value=theme_keys) }}{{ icon_packages | default(value="󰏗 ") }}{{ "Packages" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_packages | default(value=theme_values) }}{{ packages }}{{ theme_reset }}
 {%- endif %}
 {%- if shell and shell != "unknown" %}
 {{ key_color_shell | default(value=theme_keys) }}{{ icon_shell | default(value="󰆍 ") }}{{ "Shell" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_shell | default(value=theme_values) }}{{ shell }}{{ theme_reset }}
+{%- endif %}
+{%- if terminal and terminal.image_protocols %}
+{{ key_color_terminal | default(value=theme_keys) }}{{ icon_terminal | default(value="󰆍 ") }}{{ "Terminal" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_terminal | default(value=theme_values) }}{{ terminal.name }}{% if terminal.font %} | {{ terminal.font }}{% endif %}{% if terminal.truecolor %} | truecolor{% endif %}{% if terminal.image_protocols %} | {{ terminal.image_protocols }}{% endif %}{{ theme_reset }}
+{%- endif %}
+{%- if de and de != "unknown" %}
+{{ key_color_de | default(value=theme_keys) }}{{ icon_de | default(value="󰍹 ") }}{{ "DE" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_de | default(value=theme_values) }}{{ de }}{{ theme_reset }}
+{%- endif %}
+{%- if wm and wm.name and wm.name != "unknown" and show_wm %}
+{{ key_color_wm | default(value=theme_keys) }}{{ icon_wm | default(value="󰘦 ") }}{{ "WM" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_wm | default(value=theme_values) }}{{ wm.name }}{% if wm.theme %} | {{ wm.theme }}{% endif %}{{ theme_reset }}
 {%- endif %}
 {%- if project %}
 {{ key_color_project | default(value=theme_keys) }}{{ icon_project | default(value="󰚩 ") }}{{ "Project" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_project | default(value=theme_values) }}{{ project.type }}{% if project.name %} — {{ project.name }}{% endif %}{{ theme_reset }}
@@ -60,14 +76,9 @@
 {%- if fsdeep and fsdeep|length > 0 %}
 {{ theme_keys }}{{ icon_disk | default(value="󰋊 ") }}{{ "Storage" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ theme_values }}{% if fsdeep.zram_ratio %}ZRAM {{ fsdeep.zram_ratio }}{% endif %}{% if fsdeep.luks_devices %} | LUKS {{ fsdeep.luks_devices }}{% endif %}{% if fsdeep.btrfs_compression %} | BTRFS {{ fsdeep.btrfs_compression }}{% if fsdeep.btrfs_filesystems %} ({{ fsdeep.btrfs_filesystems }}){% endif %}{% endif %}{% if fsdeep.lvm_volumes %} | LVM {{ fsdeep.lvm_volumes }}{% endif %}{{ theme_reset }}
 {%- endif %}
-{%- if terminal and terminal.image_protocols %}
-{{ key_color_terminal | default(value=theme_keys) }}{{ icon_terminal | default(value="󰆍 ") }}{{ "Terminal" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_terminal | default(value=theme_values) }}{{ terminal.name }}{% if terminal.font %} | {{ terminal.font }}{% endif %}{% if terminal.truecolor %} | truecolor{% endif %}{% if terminal.image_protocols %} | {{ terminal.image_protocols }}{% endif %}{{ theme_reset }}
-{%- endif %}
-{%- if de and de != "unknown" %}
-{{ key_color_de | default(value=theme_keys) }}{{ icon_de | default(value="󰍹 ") }}{{ "DE" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_de | default(value=theme_values) }}{{ de }}{{ theme_reset }}
-{%- endif %}
-{%- if wm and wm.name and wm.name != "unknown" and show_wm %}
-{{ key_color_wm | default(value=theme_keys) }}{{ icon_wm | default(value="󰘦 ") }}{{ "WM" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_wm | default(value=theme_values) }}{{ wm.name }}{% if wm.theme %} | {{ wm.theme }}{% endif %}{{ theme_reset }}
+
+{%- if show_section_hardware %}
+{{ theme_section }}── Hardware ──{{ theme_reset }}
 {%- endif %}
 {%- if cpu %}
 {{ key_color_cpu | default(value=theme_keys) }}{{ icon_cpu }}{{ "CPU" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_cpu | default(value=theme_values) }}{{ cpu.model }} ({{ cpu.cores }} cores) @ {{ cpu.freq_mhz }} MHz{% if cpu.temp %} | {{ cpu.temp }}{% endif %}{{ theme_reset }}
@@ -96,37 +107,42 @@
 {%- for mount in disk %}
 {{ key_color_disk | default(value=theme_keys) }}{{ icon_disk }}{{ "Disk" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_disk | default(value=theme_values) }}{{ mount }}{% if display_progress_bars %} {{ mount | progress_bar(width=8) }}{% endif %}{{ theme_reset }}
 {%- endfor %}
-
-{%- if network %}
-{{ key_color_network | default(value=theme_keys) }}{{ icon_network }}{{ "Network" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_network | default(value=theme_values) }}{{ theme_reset }}
-{%- for iface in network %}
-{{ val_color_network | default(value=theme_values) }}  {{ iface.name }}: {{ iface.ipv4 }}{% if iface.ipv6 %}, {{ iface.ipv6 }}{% endif %}{% if iface.mac %} [{{ iface.mac }}]{% endif %}{{ theme_reset }}
-{%- endfor %}
-{%- endif %}
-
-{%- if display and display != "unknown" %}
-{{ key_color_display | default(value=theme_keys) }}{{ icon_resolution }}{{ "Display" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_display | default(value=theme_values) }}{{ display }}{{ theme_reset }}
-{%- endif %}
-{%- if resolution and resolution != "unknown" and show_resolution %}
-{{ key_color_resolution | default(value=theme_keys) }}{{ icon_resolution | default(value="󰍹 ") }}{{ "Resolution" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_resolution | default(value=theme_values) }}{{ resolution }}{{ theme_reset }}
-{%- endif %}
-{%- if wifi and wifi.ssid %}
-{{ key_color_wifi | default(value=theme_keys) }}{{ icon_network | default(value="󰤨 ") }}{{ "WiFi" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_wifi | default(value=theme_values) }}{{ wifi.ssid }}{% if wifi.signal %} {{ wifi.signal }}{% endif %}{% if wifi.frequency %} {{ wifi.frequency }}{% endif %}{% if wifi.security %} [{{ wifi.security }}]{% endif %}{{ theme_reset }}
-{%- endif %}
-{%- if publicip and publicip != "unknown" %}
-{{ key_color_publicip | default(value=theme_keys) }}{{ icon_network | default(value="󰖟 ") }}{{ "Public IP" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_publicip | default(value=theme_values) }}{% if osc8_support %}{{ publicip | osc8(url="https://ipinfo.io/" ~ publicip) }}{% else %}{{ publicip }}{% endif %}{{ theme_reset }}
-{%- endif %}
 {%- if battery %}
 {%- if battery.percent %}
-{{ key_color_battery | default(value=theme_keys) }}{{ icon_battery }}{{ "Battery" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_battery | default(value=theme_values) }}{{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}{% if display_progress_bars and battery.percent %} {{ battery.percent | progress_bar(width=8) }}{% endif %}{{ theme_reset }}
+{{ key_color_battery | default(value=theme_keys) }}{{ battery_glyph | default(value=icon_battery) }}{{ "Battery" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_battery | default(value=theme_values) }}{{ battery.percent }}{% if battery.status %} ({{ battery.status }}){% endif %}{% if display_progress_bars and battery.percent %} {{ battery.percent | progress_bar(width=8) }}{% endif %}{{ theme_reset }}
 {%- else %}
-{{ key_color_battery | default(value=theme_keys) }}{{ icon_battery }}{{ "Battery" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_battery | default(value=theme_values) }}{{ battery }}{{ theme_reset }}
+{{ key_color_battery | default(value=theme_keys) }}{{ battery_glyph | default(value=icon_battery) }}{{ "Battery" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_battery | default(value=theme_values) }}{{ battery }}{{ theme_reset }}
 {%- endif %}
 {%- endif %}
 {%- if temperature and temperature != "unknown" %}
 {%- if temperature.cpu %}
 {{ key_color_temperature | default(value=theme_keys) }}{{ icon_temp | default(value="󰏗 ") }}{{ "Temp" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_temperature | default(value=theme_values) }}CPU {{ temperature.cpu }}{% if temperature.gpu %} | GPU {{ temperature.gpu }}{% endif %}{% if temperature.fan %} | Fan {{ temperature.fan }}{% endif %}{{ theme_reset }}
 {%- endif %}
+{%- endif %}
+{%- if display and display != "unknown" %}
+{{ key_color_display | default(value=theme_keys) }}{{ icon_resolution }}{{ "Display" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_display | default(value=theme_values) }}{{ display }}{{ theme_reset }}
+{%- endif %}
+{%- if resolution and resolution != "unknown" and show_resolution %}
+{{ key_color_resolution | default(value=theme_keys) }}{{ icon_resolution | default(value="󰍹 ") }}{{ "Resolution" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_resolution | default(value=theme_values) }}{{ resolution }}{{ theme_reset }}
+{%- endif %}
+{%- if colors %}
+{{ key_color_colors | default(value=theme_keys) }}{{ "Colors" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_colors | default(value=theme_values) }}{{ colors | palette_display(style=display_palette_style) }}{{ theme_reset }}
+{%- endif %}
+
+{%- if show_section_network %}
+{{ theme_section }}── Network ──{{ theme_reset }}
+{%- endif %}
+{%- if network %}
+{{ key_color_network | default(value=theme_keys) }}{{ icon_network }}{{ "Network" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_network | default(value=theme_values) }}{{ theme_reset }}
+{%- for iface in network %}
+{{ val_color_network | default(value=theme_values) }}  {{ iface.name }}: {{ iface.ipv4 }}{% if iface.ipv6 %}, {{ iface.ipv6 }}{% endif %}{% if iface.mac %} [{{ iface.mac }}]{% endif %}{{ theme_reset }}
+{%- endfor %}
+{%- endif %}
+{%- if wifi and wifi.ssid %}
+{{ key_color_wifi | default(value=theme_keys) }}{{ icon_network | default(value="󰤨 ") }}{{ "WiFi" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_wifi | default(value=theme_values) }}{{ wifi.ssid }}{% if wifi.signal %} {{ wifi.signal }}{% endif %}{% if wifi.frequency %} {{ wifi.frequency }}{% endif %}{% if wifi.security %} [{{ wifi.security }}]{% endif %}{{ theme_reset }}
+{%- endif %}
+{%- if publicip and publicip != "unknown" %}
+{{ key_color_publicip | default(value=theme_keys) }}{{ icon_network | default(value="󰖟 ") }}{{ "Public IP" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_publicip | default(value=theme_values) }}{% if osc8_support %}{{ publicip | osc8(url="https://ipinfo.io/" ~ publicip) }}{% else %}{{ publicip }}{% endif %}{{ theme_reset }}
 {%- endif %}
 {%- if bluetooth and bluetooth.adapter %}
 {{ key_color_bluetooth | default(value=theme_keys) }}{{ icon_bluetooth | default(value="󰂯 ") }}{{ "Bluetooth" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_bluetooth | default(value=theme_values) }}{{ bluetooth.adapter }} [{{ bluetooth.state }}]{% if bluetooth.devices %} — {{ bluetooth.devices }}{% endif %}{{ theme_reset }}
@@ -136,8 +152,9 @@
 {%- if media and media.player %}
 {{ key_color_media | default(value=theme_keys) }}{{ icon_media | default(value="󰎆 ") }}{{ "Media" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_media | default(value=theme_values) }}{% if media.artist %}{{ media.artist }}{% if media.title %} — {{ media.title }}{% endif %}{% elif media.title %}{{ media.title }}{% else %}{{ media.player }}{% endif %}{% if media.status %} [{{ media.status }}]{% endif %}{{ theme_reset }}
 {%- endif %}
-{%- if colors %}
-{{ key_color_colors | default(value=theme_keys) }}{{ "Colors" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_colors | default(value=theme_values) }}{{ colors | palette_display(style=display_palette_style) }}{{ theme_reset }}
+
+{%- if show_section_processes %}
+{{ theme_section }}── Processes ──{{ theme_reset }}
 {%- endif %}
 {%- if processes %}
 {{ key_color_processes | default(value=theme_keys) }}{{ icon_processes }}{{ "Processes" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_processes | default(value=theme_values) }}{{ processes }}{{ theme_reset }}
