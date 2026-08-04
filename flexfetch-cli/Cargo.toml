@@ -22,6 +22,8 @@ clap = { version = "4", default-features = false, features = ["std", "color", "h
 serde_json = "1"
 toml = "0.8"
 ctrlc = "3"
+# statvfs probe for the monitor.rs disk-% fallback (Phase 5.5/5.6).
+libc = "0.2"
 # Live dashboard (--live): ratatui + crossterm are the only TUI deps, gated behind the
 # `live` feature so --no-default-features stays free of them (both are pure Rust, so the
 # musl cross-compile in CI is unaffected when the feature is on).
@@ -43,6 +45,17 @@ clap_complete = { version = "4", optional = true }
 # binary. image (png-only, same config as core) decodes the QR screenshot;
 # base64 carries the zstd blob.
 qrcode = { version = "0.14", optional = true }
+# Phase 5.5 metrics history: SQLite storage for periodic cpu/mem/disk/temp
+# snapshots (`--history-graph` / `--history-export` / `--daemon` recording).
+# `bundled` compiles SQLite from source so no system lib is needed; the feature
+# is opt-in because rusqlite links C (it stays out of the pure-Rust musl release
+# pipeline, like `music` and `qr`).
+rusqlite = { version = "0.32", optional = true, features = ["bundled"] }
+# Phase 5.6 critical-health notifications: notify-rust with the `z` (zbus)
+# backend is pure Rust on Linux/BSD — no dbus C dep (matches the `music` zbus
+# choice); macOS uses mac-notification-sys, Windows tauri-winrt-notification.
+# Opt-in so default/minimal/release builds stay lean.
+notify-rust = { version = "4", optional = true, default-features = false, features = ["z"] }
 # default-features = false drops rqrr's `img` feature (image 0.23, used only
 # for its GrayImage impl) — we feed it luminance via prepare_from_greyscale, so
 # the tree keeps just our single image 0.25 instead of a duplicate pair.
@@ -72,3 +85,10 @@ completions = ["dep:clap_complete"]
 # C dep, so it stays out of the pure-Rust musl release pipeline and the minimal
 # binary (see the dep comment above; `music` is likewise opt-in).
 qr = ["dep:qrcode", "dep:rqrr", "dep:zstd", "dep:base64", "dep:image"]
+# Phase 5.4 wallpaper auto-theming (`--auto-theme`): dominant colors from the
+# wallpaper become the theme. Opt-in (adds the image jpeg decoder).
+auto-theme = ["flexfetch-core/auto-theme"]
+# Phase 5.5 SQLite metrics history (`--history-graph`, `--history-export`).
+history = ["dep:rusqlite"]
+# Phase 5.6 critical health notifications daemon (`--daemon`).
+notifications = ["dep:notify-rust"]

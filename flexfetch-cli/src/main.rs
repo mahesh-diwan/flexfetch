@@ -7,6 +7,10 @@ use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::time::Duration;
 
+#[cfg(feature = "notifications")]
+mod daemon;
+#[cfg(feature = "history")]
+mod history;
 #[cfg(feature = "live")]
 mod live;
 #[cfg(feature = "qr")]
@@ -16,6 +20,10 @@ mod ssh;
 mod tools;
 #[cfg(feature = "live")]
 mod wizard;
+// Phase 5.5/5.6 shared health sampling (pure std; only compiled when a
+// consumer feature is on so default/minimal builds stay lean).
+#[cfg(any(feature = "history", feature = "notifications"))]
+mod monitor;
 
 #[cfg(feature = "completions")]
 #[derive(clap::Subcommand)]
@@ -187,9 +195,58 @@ struct Cli {
     #[arg(long)]
     update_db: bool,
 
+    /// Phase 5.4: derive the theme from the wallpaper's dominant colors
+    /// (requires the `auto-theme` feature; falls back to catppuccin otherwise).
+    #[arg(long)]
+    auto_theme: bool,
+
+    /// Phase 5.5: record cpu/mem/disk/temp snapshots to history.db every
+    /// --history-interval seconds until Ctrl+C (requires the `history` feature).
+    #[arg(long)]
+    history: bool,
+
+    /// Phase 5.5: record interval for --history / --daemon (seconds).
+    #[arg(long, default_value_t = 60)]
+    history_interval: u64,
+
+    /// Phase 5.5: print an ASCII sparkline of the recorded metric over the
+    /// last --hours (cpu|memory|disk|temp; requires the `history` feature).
+    #[arg(long)]
+    history_graph: Option<String>,
+
+    /// Phase 5.5: window for --history-graph, in hours.
+    #[arg(long, default_value_t = 24)]
+    hours: u64,
+
+    /// Phase 5.5: export the snapshots table to a CSV file.
+    #[arg(long)]
+    history_export: Option<PathBuf>,
+
+    /// Phase 5.6: critical health notifications daemon — poll every
+    /// --history-interval seconds, notify on threshold breach (requires the
+    /// `notifications` feature).
+    #[arg(long)]
+    daemon: bool,
+
+    /// Phase 5.6: threshold overrides, e.g. --threshold cpu=95,mem=88,temp=80.
+    #[arg(long)]
+    threshold: Vec<String>,
+
     #[cfg(feature = "completions")]
     #[command(subcommand)]
     command: Option<Commands>,
+}
+
+/// Parse the `--history-graph` metric argument (cpu|memory|disk|temp).
+#[cfg(feature = "history")]
+fn parse_history_metric(s: &str) -> Option<history::Metric> {
+    match s.trim().to_lowercase().as_str() {
+        "cpu" => Some(history::Metric::Cpu),
+        "memory" | "mem" => Some(history::Metric::Memory),
+        "disk" => Some(history::Metric::Disk),
+        "temp" | "temperature" => Some(history::Metric::Temp),
+        _ => None,
+    }
 }
 
 fn main() {
@@ -219,6 +276,12 @@ fn main() {
         features.push("completions");
         #[cfg(feature = "qr")]
         features.push("qr");
+        #[cfg(feature = "auto-theme")]
+        features.push("auto-theme");
+        #[cfg(feature = "history")]
+        features.push("history");
+        #[cfg(feature = "notifications")]
+        features.push("notifications");
         println!(
             "flexfetch {}\nFeatures: {}",
             env!("CARGO_PKG_VERSION"),
@@ -387,6 +450,110 @@ fn main() {
         #[cfg(not(feature = "live"))]
         {
             eprintln!("error: --live requires the `live` feature (build with --features live)");
+            std::process::exit(1);
+        }
+    }
+
+    // Phase 5.5 --history-graph: ASCII sparkline of a recorded metric.
+    if cli.history_graph.is_some() {
+        #[cfg(feature = "history")]
+        {
+            let metric_arg = cli.history_graph.as_deref().unwrap_or("");
+            let metric = match parse_history_metric(metric_arg) {
+                Some(m) => m,
+                None => {
+                    eprintln!(
+                        "error: --history-graph expects cpu|memory|disk|temp (got {metric_arg:?})"
+                    );
+                    std::process::exit(1);
+                }
+            };
+            match history::open(&ctx.cache_dir) {
+                Ok(conn) => {
+                    if let Err(e) = history::graph(&conn, metric, cli.hours as i64) {
+                        eprintln!("history error: {e}");
+                        std::process::exit(1);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("history error: {e}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        #[cfg(not(feature = "history"))]
+        {
+            eprintln!(
+                "error: --history-graph requires the `history` feature (build with --features history)"
+            );
+            std::process::exit(1);
+        }
+    }
+
+    // Phase 5.5 --history-export: dump the snapshots table to CSV.
+    if cli.history_export.is_some() {
+        #[cfg(feature = "history")]
+        {
+            let path = cli.history_export.as_deref().unwrap_or_else(|| {
+                eprintln!("error: --history-export requires a file path");
+                std::process::exit(1);
+            });
+            match history::open(&ctx.cache_dir) {
+                Ok(conn) => {
+                    if let Err(e) = history::export_csv(&conn, path) {
+                        eprintln!("history error: {e}");
+                        std::process::exit(1);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("history error: {e}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        #[cfg(not(feature = "history"))]
+        {
+            eprintln!(
+                "error: --history-export requires the `history` feature (build with --features history)"
+            );
+            std::process::exit(1);
+        }
+    }
+
+    // Phase 5.6 --daemon: critical health notifications until Ctrl+C.
+    if cli.daemon {
+        #[cfg(feature = "notifications")]
+        {
+            let thresholds = daemon::Thresholds::new(&cli.threshold);
+            daemon::run(ctx, cli.history_interval, thresholds);
+            return;
+        }
+        #[cfg(not(feature = "notifications"))]
+        {
+            eprintln!(
+                "error: --daemon requires the `notifications` feature (build with --features notifications)"
+            );
+            std::process::exit(1);
+        }
+    }
+
+    // Phase 5.5 --history: record snapshots to history.db until Ctrl+C.
+    if cli.history {
+        #[cfg(feature = "history")]
+        {
+            if let Err(e) = history::record_loop(ctx, cli.history_interval) {
+                eprintln!("history error: {e}");
+                std::process::exit(1);
+            }
+            return;
+        }
+        #[cfg(not(feature = "history"))]
+        {
+            eprintln!(
+                "error: --history requires the `history` feature (build with --features history)"
+            );
             std::process::exit(1);
         }
     }
@@ -589,6 +756,13 @@ fn resolve_modules(cli: &Cli, config: &Config) -> Vec<String> {
 fn apply_cli_overrides(cli: &Cli, config: &mut Config, pipe_mode: bool) {
     if let Some(ref theme) = cli.theme {
         config.display.theme = Some(theme.clone());
+    }
+    if cli.auto_theme {
+        // Phase 5.4: `--auto-theme` wins over a config theme, but loses to an
+        // explicit `--theme X` on the same invocation.
+        if cli.theme.is_none() {
+            config.display.theme = Some("auto".into());
+        }
     }
     if cli.no_gradient {
         config.display.gradient_title = false;

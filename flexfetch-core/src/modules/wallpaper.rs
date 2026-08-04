@@ -36,7 +36,10 @@ impl Module for WallpaperModule {
     }
 }
 
-fn detect_wallpaper() -> Option<String> {
+/// Detect the current wallpaper path per DE/WM (sway, hyprland, KDE, feh,
+/// nitrogen, variety, GNOME gsettings fallback). No spawns on the common paths.
+/// `pub(crate)`: reused by the Phase 5.4 `auto-theme` module.
+pub(crate) fn detect_wallpaper() -> Option<String> {
     let home = std::env::var("HOME").ok()?;
     let cfg = PathBuf::from(&home).join(".config");
 

@@ -573,6 +573,19 @@ pub fn resolve(config: &Config) -> ThemeStrings {
     let theme_arg = config.display.theme.as_deref().unwrap_or("");
     // Phase 7.8: `--theme random` (and `theme = "random"` in config) resolves
     // to a random preset each run.
+    // Phase 5.4: `--auto-theme` (and `theme = "auto"` in config) derives the
+    // theme from the wallpaper's dominant colors. Falls back to catppuccin when
+    // the feature is off or no usable palette can be extracted.
+    if theme_arg == "auto" {
+        #[cfg(feature = "auto-theme")]
+        if let Some(auto) = crate::autotheme::auto_theme() {
+            return auto;
+        }
+        // Feature off / extraction failed → behave like the default preset.
+        let fallback = Config::default_for_testing();
+        return resolve(&fallback);
+    }
+
     let resolved_name = if theme_arg == "random" {
         random_preset()
     } else {

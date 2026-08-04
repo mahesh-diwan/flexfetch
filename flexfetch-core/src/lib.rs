@@ -1,3 +1,5 @@
+#[cfg(feature = "auto-theme")]
+pub mod autotheme;
 pub mod cache;
 pub mod config;
 pub mod context;

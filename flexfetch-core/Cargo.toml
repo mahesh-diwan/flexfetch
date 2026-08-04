@@ -42,3 +42,8 @@ parallel = ["dep:rayon"]
 lua = ["dep:mlua"]
 image-logos = ["dep:image"]
 music = ["dep:zbus"]
+# Phase 5.4: wallpaper auto-theming (`--auto-theme`). Reuses the same optional
+# `image` dep as image-logos but additionally enables the jpeg decoder (wallpapers
+# are usually JPEG). When only this feature is on, image gets png (base) + jpeg;
+# feature unification adds both when image-logos is also enabled.
+auto-theme = ["dep:image", "image/jpeg"]
