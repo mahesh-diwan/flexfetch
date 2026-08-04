@@ -601,6 +601,12 @@ man doc/flexfetch.1
 
 **Does it work on macOS?** Yes. OS detection via `sw_vers`. macOS logo auto-detected.
 
+**Does it work on Windows?** Yes (Tier-2). OS/CPU info via the registry, memory via
+`GlobalMemoryStatusEx`, disk via `GetDiskFreeSpaceExW`, network via
+`GetAdaptersInfo` — zero subprocesses, and Windows Terminal/ConEmu are detected.
+Validated in CI on a `windows-latest` runner (the release feature set, pure-Rust
+deps).
+
 <br>
 
 ---

@@ -1,5 +1,8 @@
+#![cfg_attr(not(unix), allow(unused_mut))] // collectors mutate only on unix
+
 use crate::{Context, InfoValue, Module, Result};
 use std::collections::HashMap;
+#[cfg(unix)]
 use std::process::Command;
 
 pub struct BluetoothModule;

@@ -54,12 +54,8 @@ impl Module for NetworkModule {
                     if line.is_empty() || line.as_bytes()[0] == b' ' || line.as_bytes()[0] == b'\t'
                     {
                         if line.trim().starts_with("inet ") && !current_iface.is_empty() {
-                            let ip = line
-                                .trim()
-                                .split_whitespace()
-                                .nth(1)
-                                .unwrap_or("")
-                                .to_string();
+                            // split_whitespace already skips leading whitespace.
+                            let ip = line.split_whitespace().nth(1).unwrap_or("").to_string();
                             // Find and update the iface
                             for iface in &mut nets {
                                 if iface.get("name") == Some(&current_iface) {
@@ -84,6 +80,72 @@ impl Module for NetworkModule {
                         current_iface = iface.to_string();
                         nets.push(map);
                     }
+                }
+            }
+        }
+
+        // Phase 8.9 — Windows: GetAdaptersInfo (description + MAC + IPv4 list).
+        #[cfg(target_os = "windows")]
+        {
+            use std::ffi::CStr;
+            use windows_sys::Win32::NetworkManagement::IpHelper::{
+                GetAdaptersInfo, IP_ADAPTER_INFO,
+            };
+
+            // Grow-to-fit with a retry loop: the adapter list can change between
+            // the probe and the fetch (ERROR_BUFFER_OVERFLOW = 111). The buffer
+            // comes from Vec, whose allocator guarantees alignment >= max_align_t
+            // (>= the struct's 4-byte alignment).
+            let mut size: u32 = 0;
+            unsafe { GetAdaptersInfo(std::ptr::null_mut(), &mut size) };
+            let mut buf = vec![0u8; size.max(1) as usize];
+            loop {
+                let r = unsafe { GetAdaptersInfo(buf.as_mut_ptr() as *mut _, &mut size) };
+                if r == 111 {
+                    buf.resize(size as usize, 0);
+                    continue;
+                }
+                if r != 0 {
+                    break; // e.g. no adapters — skip gracefully
+                }
+                let mut p = buf.as_ptr() as *const IP_ADAPTER_INFO;
+                while !p.is_null() {
+                    let a = unsafe { &*p };
+                    let desc = unsafe { CStr::from_ptr(a.Description.as_ptr()) }
+                        .to_string_lossy()
+                        .to_string();
+                    let mac = (0..a.AddressLength as usize)
+                        .map(|i| format!("{:02x}", a.Address[i]))
+                        .collect::<Vec<_>>()
+                        .join(":");
+
+                    // First non-empty IPv4 in the linked list (IP_ADDR_STRING wraps
+                    // an IP_ADDRESS_STRING whose `String` field is a C string in a
+                    // fixed [i8; 16]).
+                    let mut ip4 = String::new();
+                    let mut addr = &a.IpAddressList;
+                    loop {
+                        let ip = unsafe { CStr::from_ptr(addr.IpAddress.String.as_ptr()) }
+                            .to_string_lossy()
+                            .to_string();
+                        if !ip.is_empty() {
+                            ip4 = ip;
+                            break;
+                        }
+                        if addr.Next.is_null() {
+                            break;
+                        }
+                        addr = unsafe { &*addr.Next };
+                    }
+
+                    let mut map = HashMap::new();
+                    map.insert("name".into(), desc);
+                    map.insert("ipv4".into(), ip4);
+                    map.insert("ipv6".into(), String::new());
+                    map.insert("mac".into(), mac);
+                    nets.push(map);
+
+                    p = a.Next;
                 }
             }
         }

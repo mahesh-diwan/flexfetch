@@ -470,6 +470,32 @@ cpu/mem/disk/temp crosses its threshold (mem/disk ≥ 90%, cpu ≥ 90%, temp ≥
 arming per metric so each critical episode notifies once; falls back to a
 stderr banner when no notifier is usable.
 
+### Task 8.9 — Windows Tier-2 — ✅ (Aug 2026)
+- `windows-sys` 0.61 as a **target-gated** dep in `flexfetch-core`
+  (`[target.'cfg(windows)'.dependencies]`, kept at the end of Cargo.toml so the
+  TOML tables don't re-scope; Linux/macOS builds — musl cross-compile + minimal
+  diet — never link it). New `win.rs` helpers (`wide`, HKLM registry
+  string/DWORD reads via `RegGetValueW`).
+- Collectors (all no-subprocess, matching the Phase 4.1 philosophy):
+  - `cpu` — model + clock from the CPU registry key, cores via `GetSystemInfo`.
+  - `memory` — `GlobalMemoryStatusEx` (phys + page-file/swap).
+  - `disk` — fixed drives from the `GetLogicalDrives` bitmask, usage via
+    `GetDiskFreeSpaceExW` (statvfs path gated to non-Windows).
+  - `network` — `GetAdaptersInfo` (description, MAC, IPv4 list).
+  - `os` — ProductName/DisplayVersion/CurrentVersion from the registry.
+  - `terminal` — ConEmu (`ConEmuANSI`/`ConEmuPID`) + Windows Terminal
+    (`WT_SESSION`) naming when the generic env lookup is empty.
+- Fixed 7 latent Windows-only build issues in existing modules (ungated
+  `libc::statvfs` in health, `Vec::new()` type-inference failures in
+  dns/resolution, unused imports in bluetooth/media/container) and one
+  macOS-only clippy lint (`trim` before `split_whitespace` in network.rs).
+- CI: `windows` job in ci.yml (windows-latest) — builds + tests + clippy with
+  the release feature set (`--no-default-features --features
+  live,image-logos,completions`, pure-Rust deps; C-backed features like
+  vendored Lua/rusqlite/zstd need MSVC tooling not on runner PATH). Locally
+  validated: core + cli clippy-clean for `x86_64-pc-windows-msvc` and
+  `x86_64-apple-darwin`.
+
 ### Task 8.12 — Plugin registry Ed25519 signing — 🟡 (Ed25519 verify ✅, Aug 2026)
 - `flexfetch-cli/src/registry.rs`: `TRUSTED_PUBLISHER_KEY` (base64 Ed25519
   public key const) + `verify_signature(bytes, sig_b64, pk_b64)` via
@@ -654,7 +680,7 @@ emit single `%`).
 
 | Task | What | Status |
 | ---- | ---- | ------ |
-| 8.9 | **Windows Tier-2**: `windows-sys` collectors (CPU/mem/disk/network), Windows Terminal/ConEmu/WezTerm detection, `windows-latest` CI target | ⬜ |
+| 8.9 | **Windows Tier-2**: `windows-sys` collectors (CPU/mem/disk/network), Windows Terminal/ConEmu/WezTerm detection, `windows-latest` CI target | ✅ (Aug 2026) |
 | 8.10 | **WSL detection**: `WSLInterop` marker → `OS: Ubuntu 24.04 (WSL2)` + Windows host version via `cmd.exe /c ver` | ✅ (Aug 2026) — `os.rs`: detects `/proc/sys/fs/binfmt_misc/WSLInterop` + `/proc/version` Microsoft markers → appends `(WSL1|WSL2)` to the OS row; reads Windows host version via `cmd.exe /c ver` (best-effort, silently ignored off-WSL) |
 
 ### Pillar N — Community & Governance
@@ -671,12 +697,12 @@ emit single `%`).
 | 1 | Visibility (low-effort wins) | 8.11 (hygiene), 8.8 (first-run) | ✅ (Aug 2026) |
 | 2 | Enterprise trust | 8.2 (audit pipeline), 8.1 (signed releases) | ✅ (Aug 2026) |
 | 3 | Quality gates | 8.4 (terminal matrix), 8.5 (fuzzing), 8.6 (benchmarks) | ✅ (Aug 2026) |
-| 4 | Platforms | 8.9 (Windows), 8.10 (WSL) | 🟡 (8.10 ✅; 8.9 pending) |
+| 4 | Platforms | 8.9 (Windows), 8.10 (WSL) | ✅ (Aug 2026) |
 | 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) | 🟡 (8.3 + 8.7 ✅; 8.12 Ed25519 verify ✅, WASM capability manifest pending) |
 
-**Remaining Phase 8: 8.9 (Windows Tier-2 — `windows-sys` collectors + msvc CI,
-reality-adapted to the zero-dep diet) and the WASM half of 8.12 (capability
-manifest — WASM is 4.12).** The Ed25519 half of 8.12 is ✅ (Aug 2026): the
+**Remaining Phase 8: the WASM half of 8.12 (capability manifest — WASM is
+4.12).** 8.9 Windows Tier-2 is ✅ (Aug 2026, see Task 8.9). The Ed25519 half
+of 8.12 is ✅ (Aug 2026): the
 client embeds the project's trusted publisher key
 (`TRUSTED_PUBLISHER_KEY` in `flexfetch-cli/src/registry.rs`) and verifies each
 entry's `signature` over the raw plugin bytes *before* the SHA-256 check

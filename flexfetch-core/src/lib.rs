@@ -13,6 +13,10 @@ pub mod module;
 pub mod module_registry;
 pub mod template;
 pub mod theme;
+// Phase 8.9 — Windows FFI helpers (registry reads, UTF-16 conversion). Only
+// compiled on Windows targets; Linux/macOS never see the module.
+#[cfg(target_os = "windows")]
+pub mod win;
 
 pub mod modules;
 

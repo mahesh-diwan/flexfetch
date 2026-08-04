@@ -1,3 +1,5 @@
+#![cfg_attr(not(unix), allow(unused_mut))] // collectors mutate only on unix
+
 use crate::{Context, InfoValue, Module, Result};
 
 pub struct ResolutionModule;
@@ -8,7 +10,9 @@ impl Module for ResolutionModule {
     }
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
-        let mut resolutions = Vec::new();
+        // Explicit element type: on Windows no push ever happens (the collectors
+        // are Linux-only), so inference cannot otherwise resolve the Vec.
+        let mut resolutions: Vec<String> = Vec::new();
 
         #[cfg(target_os = "linux")]
         {

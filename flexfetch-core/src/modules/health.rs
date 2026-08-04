@@ -12,6 +12,9 @@ fn read_u64_file(path: &str) -> Option<u64> {
 }
 
 /// Disk usage % for the root filesystem via libc::statvfs (no `df` subprocess).
+/// POSIX only (Windows has no statvfs; the health module degrades to the
+/// metrics that exist there).
+#[cfg(unix)]
 fn disk_usage_percent() -> Option<u8> {
     let c = std::ffi::CString::new("/").ok()?;
     let mut st: libc::statvfs = unsafe { std::mem::zeroed() };
@@ -85,6 +88,7 @@ impl Module for HealthModule {
         let mut score: i32 = 100;
         let mut notes: Vec<String> = Vec::new();
 
+        #[cfg(unix)]
         if let Some(pct) = disk_usage_percent() {
             map.insert("disk_pct".into(), format!("{pct}%"));
             if pct > 90 {

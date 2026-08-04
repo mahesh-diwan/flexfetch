@@ -1,5 +1,6 @@
 use crate::{Context, InfoValue, Module, Result};
 use std::collections::HashMap;
+#[cfg(unix)]
 use std::io::{Read, Write};
 use std::path::Path;
 

@@ -69,6 +69,21 @@ impl Module for TerminalModule {
             }
         }
 
+        // Phase 8.9 — Windows: name the terminal when the generic env lookup
+        // came up empty (Windows Terminal sets WT_SESSION; ConEmu sets
+        // ConEmuANSI/ConEmuPID). WezTerm/Windows Terminal via TERM_PROGRAM are
+        // already handled by the generic path above.
+        #[cfg(target_os = "windows")]
+        {
+            if map.get("name").map(|n| n == "unknown").unwrap_or(true) {
+                if std::env::var("ConEmuANSI").is_ok() || std::env::var("ConEmuPID").is_ok() {
+                    map.insert("name".into(), "ConEmu".into());
+                } else if std::env::var("WT_SESSION").is_ok() {
+                    map.insert("name".into(), "Windows Terminal".into());
+                }
+            }
+        }
+
         // OSC-8 hyperlink support: kitty, wezterm, foot, alacritty, iTerm2,
         // konsole, ghostty, vscode all support it. Env-gated, non-blocking.
         let hyperlink_capable = [

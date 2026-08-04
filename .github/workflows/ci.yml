@@ -53,6 +53,43 @@ jobs:
       - name: Run clippy (warnings are errors)
         run: cargo clippy --workspace --all-targets -- -D warnings
 
+  # Phase 8.9: Windows Tier-2 gate — build + test + clippy on a real Windows
+  # runner with the release feature set (pure-Rust deps only: the C-backed
+  # features — vendored Lua, bundled rusqlite, zstd — need MSVC build tools
+  # that plain runner steps don't have on PATH; the Windows release pipeline
+  # ships the same config). Exercises the new windows-sys collectors (CPU via
+  # GetSystemInfo + registry, memory via GlobalMemoryStatusEx, disk via
+  # GetDiskFreeSpaceExW, network via GetAdaptersInfo) and the terminal/WSL
+  # detection on actual Windows.
+  windows:
+    name: windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      # flexfetch-lua is excluded (unconditional vendored-mlua C build); core's
+      # no-default-features run covers the plain-renderer path on Windows.
+      - name: Run tests (core + cli, release feature set)
+        run: |
+          cargo test -p flexfetch-core --no-default-features
+          cargo test -p flexfetch-cli --no-default-features --features live,image-logos,completions
+
+      - name: Clippy (warnings are errors)
+        run: |
+          cargo clippy -p flexfetch-core --no-default-features --all-targets -- -D warnings
+          cargo clippy -p flexfetch-cli --no-default-features --features live,image-logos,completions --all-targets -- -D warnings
+
   fmt:
     name: fmt
     runs-on: ubuntu-latest

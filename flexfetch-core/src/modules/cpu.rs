@@ -107,6 +107,26 @@ impl Module for CpuModule {
             }
         }
 
+        // Phase 8.9 — Windows: model/clock from the CPU registry key, logical
+        // cores via GetSystemInfo. No subprocesses.
+        #[cfg(target_os = "windows")]
+        {
+            use windows_sys::Win32::System::SystemInformation::{GetSystemInfo, SYSTEM_INFO};
+
+            unsafe {
+                let mut si: SYSTEM_INFO = std::mem::zeroed();
+                GetSystemInfo(&mut si);
+                map.insert("cores".into(), si.dwNumberOfProcessors.to_string());
+            }
+            const CPU_KEY: &str = r"HARDWARE\DESCRIPTION\System\CentralProcessor\0";
+            if let Some(model) = crate::win::read_registry_string(CPU_KEY, "ProcessorNameString") {
+                map.insert("model".into(), model);
+            }
+            if let Some(mhz) = crate::win::read_registry_dword(CPU_KEY, "~MHz") {
+                map.insert("freq_mhz".into(), mhz.to_string());
+            }
+        }
+
         if map.is_empty() {
             return Ok(InfoValue::Scalar("unknown".into()));
         }

@@ -120,6 +120,52 @@ impl Module for MemoryModule {
             }
         }
 
+        // Phase 8.9 — Windows: GlobalMemoryStatusEx (one syscall, no subprocess).
+        #[cfg(target_os = "windows")]
+        {
+            use windows_sys::Win32::System::SystemInformation::{
+                GlobalMemoryStatusEx, MEMORYSTATUSEX,
+            };
+
+            let mut ms: MEMORYSTATUSEX = unsafe { std::mem::zeroed() };
+            ms.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
+            if unsafe { GlobalMemoryStatusEx(&mut ms) } != 0 {
+                let total = ms.ullTotalPhys;
+                let used = total.saturating_sub(ms.ullAvailPhys);
+                if total > 0 {
+                    let percent = (used as f64 / total as f64 * 100.0).min(100.0) as u32;
+                    map.insert(
+                        "total".into(),
+                        format!("{:.1} GiB", total as f64 / 1073741824.0),
+                    );
+                    map.insert(
+                        "used".into(),
+                        format!("{:.1} GiB", used as f64 / 1073741824.0),
+                    );
+                    map.insert("percent_int".into(), (percent.min(100) as u8).to_string());
+                    map.insert("percent".into(), format!("{percent}%"));
+
+                    // Page file ≈ swap.
+                    let swap_total = ms.ullTotalPageFile;
+                    let swap_used = swap_total.saturating_sub(ms.ullAvailPageFile);
+                    if swap_total > 0 {
+                        map.insert(
+                            "swap_total".into(),
+                            format!("{:.1} GiB", swap_total as f64 / 1073741824.0),
+                        );
+                        map.insert(
+                            "swap_used".into(),
+                            format!("{:.1} GiB", swap_used as f64 / 1073741824.0),
+                        );
+                        map.insert(
+                            "swap_percent".into(),
+                            format!("{}%", swap_used * 100 / swap_total),
+                        );
+                    }
+                }
+            }
+        }
+
         if map.is_empty() {
             return Ok(InfoValue::Scalar("unknown".into()));
         }

@@ -1074,6 +1074,7 @@ dependencies = [
  "tera",
  "toml",
  "unicode-width",
+ "windows-sys",
  "zbus",
 ]
 

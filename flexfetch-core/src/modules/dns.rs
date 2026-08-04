@@ -1,3 +1,5 @@
+#![cfg_attr(not(unix), allow(unused_mut))] // collectors mutate only on unix
+
 use crate::{Context, InfoValue, Module, Result};
 use std::collections::HashMap;
 
@@ -9,7 +11,9 @@ impl Module for DnsModule {
     }
 
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
-        let mut servers = Vec::new();
+        // Explicit element type: on Windows no push ever happens (the collectors
+        // are Linux/macOS), so inference cannot otherwise resolve the Vec.
+        let mut servers: Vec<String> = Vec::new();
         let mut domain = String::new();
 
         #[cfg(target_os = "linux")]

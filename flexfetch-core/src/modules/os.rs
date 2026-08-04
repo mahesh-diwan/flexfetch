@@ -96,6 +96,21 @@ impl Module for OsModule {
             }
         }
 
+        // Phase 8.9 — Windows: name/version from the registry (CurrentVersion key).
+        #[cfg(target_os = "windows")]
+        {
+            map.insert("name".into(), "Windows".into());
+            const VER_KEY: &str = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+            if let Some(product) = crate::win::read_registry_string(VER_KEY, "ProductName") {
+                map.insert("pretty_name".into(), product);
+            }
+            let version = crate::win::read_registry_string(VER_KEY, "DisplayVersion")
+                .or_else(|| crate::win::read_registry_string(VER_KEY, "CurrentVersion"));
+            if let Some(v) = version {
+                map.insert("version".into(), v);
+            }
+        }
+
         map.insert("arch".into(), std::env::consts::ARCH.to_string());
         Ok(InfoValue::Map(map))
     }
