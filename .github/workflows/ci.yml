@@ -308,7 +308,7 @@ jobs:
       # GitHub Actions cache fallback then gets throttled (HTTP 418), leaving nix
       # with no substituters — the nix-flake job failed on every main run.
       # nix-installer-action alone sets up nix with the public cache.nixos.org.
-      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Build default package (release config)
         # -L surfaces the derivation's build log (vendor/compile errors) so a
