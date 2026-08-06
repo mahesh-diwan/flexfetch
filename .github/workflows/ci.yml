@@ -311,10 +311,13 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v16
 
       - name: Build default package (release config)
-        run: nix build .#default --no-link
+        # -L surfaces the derivation's build log (vendor/compile errors) so a
+        # sandbox-side failure is visible in the action log instead of just
+        # 'builder failed with exit code 1'.
+        run: nix build -L .#default --no-link
 
       - name: Build minimal package
-        run: nix build .#minimal --no-link
+        run: nix build -L .#minimal --no-link
 
       - name: Check the flake evaluates (incl. Home Manager module)
-        run: nix flake check
+        run: nix flake check -L

@@ -726,6 +726,9 @@ fn main() {
         return;
     }
 
+    // `mut`: only the plugin merge (lua/wasm-plugins features) mutates `info`;
+    // the minimal build has neither, so silence the lint there.
+    #[allow(unused_mut)]
     let mut info = registry.run_selected(&modules, &ctx, template_content);
 
     // Phase 4.12: auto-load Lua/WASM plugins from the plugins dir and merge
@@ -780,6 +783,9 @@ fn main() {
                 }
             }
             print!("\x1b[2J\x1b[H");
+            // `mut`: only the plugin merge (lua/wasm-plugins features) mutates
+            // `fresh`; the minimal build has neither, so silence the lint.
+            #[allow(unused_mut)]
             let mut fresh =
                 registry.run_selected_cached(&modules, &ctx, template_content, &mut snapshot);
             // Phase 4.12: plugins are static per session (like the cached
