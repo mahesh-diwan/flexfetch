@@ -302,9 +302,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # magic-nix-cache-action@v9 was removed: its v9 default points at the
+      # FlakeHub cache, which needs netrc credentials the runner doesn't have
+      # ("Cannot find netrc credentials for https://api.flakehub.com/"), and the
+      # GitHub Actions cache fallback then gets throttled (HTTP 418), leaving nix
+      # with no substituters — the nix-flake job failed on every main run.
+      # nix-installer-action alone sets up nix with the public cache.nixos.org.
       - uses: DeterminateSystems/nix-installer-action@v16
-
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
 
       - name: Build default package (release config)
         run: nix build .#default --no-link

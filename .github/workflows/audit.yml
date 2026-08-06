@@ -39,7 +39,12 @@ jobs:
 
       # cargo-deny fails the job on license violations / banned crates /
       # duplicate-version problems configured in deny.toml.
+      #
+      # NOTE: the action already passes --manifest-path itself; forwarding one
+      # via `arguments` duplicated the flag and made cargo-deny abort with
+      # "the argument '--manifest-path <MANIFEST_PATH>' cannot be used multiple
+      # times" (the daily Security Audit failure). The action runs from the
+      # workspace root, so the manifest is auto-discovered — no arguments needed.
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check all
-          arguments: --manifest-path Cargo.toml

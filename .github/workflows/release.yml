@@ -11,6 +11,15 @@ permissions:
 jobs:
   build:
     name: ${{ matrix.name }}
+    # Cosign secrets live at job level so the signing steps can gate on them via
+    # `env.…` instead of `secrets.…` in `if:` — GitHub fails validation of any
+    # workflow that puts `secrets.` in an `if:` condition on dependabot-triggered
+    # runs (secrets are empty there), which reddened release.yml at 0s on the
+    # dependabot action-bump branch. env.… is simply empty when unset, so the
+    # steps skip cleanly and signing remains opt-in via the repo secrets.
+    env:
+      COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
     strategy:
       fail-fast: false
       matrix:
@@ -165,14 +174,11 @@ jobs:
       - name: Install cosign
         # Signing is skipped gracefully until the repo secrets are configured
         # (see SECURITY.md) — a release without the key is still checksummed.
-        if: startsWith(github.ref, 'refs/tags/v') && secrets.COSIGN_PRIVATE_KEY != ''
+        if: startsWith(github.ref, 'refs/tags/v') && env.COSIGN_PRIVATE_KEY != ''
         uses: sigstore/cosign-installer@v3
 
       - name: Sign artifacts (cosign)
-        if: startsWith(github.ref, 'refs/tags/v') && secrets.COSIGN_PRIVATE_KEY != ''
-        env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        if: startsWith(github.ref, 'refs/tags/v') && env.COSIGN_PRIVATE_KEY != ''
         run: |
           cd dist
           for f in *.tar.gz *.sha256 *.cdx.json; do
