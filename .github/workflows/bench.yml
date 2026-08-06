@@ -48,8 +48,30 @@ jobs:
       - name: Run criterion benchmarks
         run: cargo bench -p flexfetch-cli --bench cold_start -- --output-format bencher | tee output.txt
 
+      # The benchmark action fetches origin/gh-pages before it can push data;
+      # on a fresh repo that branch does not exist and the fetch aborts the whole
+      # job ("couldn't find remote ref gh-pages"). Create it once, empty, so the
+      # publish step below always has something to fetch. Idempotent.
+      - name: Ensure gh-pages branch exists
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git ls-remote --exit-code origin gh-pages >/dev/null 2>&1; then
+            git checkout --orphan gh-pages
+            git rm -rf . >/dev/null 2>&1 || true
+            printf '# flexfetch benchmark data\n' > README.md
+            git add README.md
+            git commit -m "chore: initialize gh-pages for benchmark charts"
+            git push origin gh-pages
+            git checkout -f "$GITHUB_SHA"
+          fi
+
       # Pushes the criterion results + size chart to the gh-pages branch.
+      # Best-effort: the chart data is a nice-to-have, so a transient push
+      # failure (force-push race, etc.) must not red the run — the size gate in
+      # the step above is the actual regression check.
       - name: Publish to GitHub Pages
+        continue-on-error: true
         uses: benchmark-action/github-action-benchmark@v1
         with:
           tool: 'cargo'
