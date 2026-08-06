@@ -6,7 +6,7 @@
 
 <p align="center">
   <em>Your system info, your rules.</em><br>
-  Lua plugins · Tera templates · 27 theme presets · 527+ ASCII logos · Written in Rust
+  Lua + WASM plugins · Tera templates · 27 theme presets · 527+ ASCII logos · Written in Rust
 </p>
 
 <p align="center">
@@ -67,7 +67,7 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 
 |     | Feature             | What it means                                                                                                                      |
 | --- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 🔌  | **Lua plugins**     | Write info modules in Lua. Drop a `.lua` file in `~/.config/flexfetch/plugins/` and it appears in output. No compilation. No Bash. *(Source builds include Lua; prebuilt binaries exclude it.)* |
+| 🔌  | **Lua + WASM plugins** | Write info modules in Lua (drop a `.lua` file in `~/.config/flexfetch/plugins/`) or sandboxed WebAssembly (`.wasm`, fuel + memory limited, capability-gated imports — opt-in via `--features wasm-plugins`). No compilation. No Bash. |
 | 📝  | **Tera templates**  | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info with right-aligned keys. |
 | 🎭  | **27 theme presets**| Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, Rose Pine, Monokai, One Dark, Kanagawa + more. Switch with `--theme`. Per-field overrides with named colors. |
 | ⚡  | **Rust + Rayon**    | Parallel detection. Static binary, zero runtime deps. ~1.5 MB minimal / ~6 MB full. No Python, no Node, no Bash.                     |
@@ -160,6 +160,42 @@ return {
 List plugins: `flexfetch --list-plugins`. Shrink the binary at build time with `cargo build --release -p flexfetch-cli --no-default-features` — this drops Lua, the live dashboard, image logos, the Tera template engine (plain `├─` fallback renderer), and Rayon (sequential collection) for a **~1.5 MB** minimal binary. Note: prebuilt binaries from `install.sh`/Releases are built without Lua and without tera/rayon but WITH the live dashboard, image logos, and shell-completion generation; source builds (`cargo install --git`) include everything by default (default builds compile vendored Lua, so a C compiler is required).
 
 Built with [mlua](https://github.com/khvzak/mlua) 0.10 (Lua 5.4).
+
+<br>
+
+---
+
+## WASM Plugins
+
+Write plugins in any language that compiles to `wasm32-unknown-unknown`
+(Rust, C, Zig, …). Drop a `.wasm` file in `~/.config/flexfetch/plugins/` and it
+appears in output — **sandboxed**: fuel-limited execution, a hard memory cap,
+and host imports that are capability-gated (a plugin can only call what it was
+granted; by default that's `log` + env reads — no filesystem, no commands).
+
+Build with the opt-in feature (wasmtime is a heavy dependency tree, so it stays
+out of default/minimal builds):
+
+```bash
+cargo build --release --features wasm-plugins
+```
+
+**ABI (v1)** — export `memory` + `flexfetch_plugin()` returning a packed
+`(len << 32) | ptr` to a JSON doc in your memory (`{"value": "x"}` for a scalar,
+a flat object for a map, an array for a list). Available host imports, in the
+`flexfetch` namespace:
+
+| Function      | Capability | Notes                                    |
+| ------------- | ---------- | ---------------------------------------- |
+| `log`         | always     | writes to flexfetch's stderr             |
+| `env_get`     | `Env`      | read an env var (default sandbox grants) |
+| `read_file`   | `File`     | read a file (NOT granted by default)     |
+| `run_command` | `Command`  | run a shell command (NOT granted by default) |
+
+A plugin that imports something it wasn't granted fails to load (and is
+skipped with a debug note) — broken or malicious plugins can't take down the
+fetch. Lua and WASM plugins mix freely; both render into the output's Plugins
+section. Publish either through `flexfetch plugin search|install|update`.
 
 <br>
 

@@ -252,7 +252,7 @@ This replaces the earlier "deferred — not needed" note in 3.1.
 | 4.9 | **Diff mode** (`--diff <host1> <host2>`): compare local/remote/JSON datasets, 3-column aligned table, semantic highlight, HTML/MD export | `diff` (default) | ⬜ |
 | 4.10 | **Infrastructure exports**: `--format ansible|terraform|csv|prometheus` + `--discover` mDNS service discovery | `export-infra` (default) | ⬜ |
 | 4.11 | **QR config sharing**: `--qr` renders base64+zstd config as terminal QR (unicode blocks), `--import-qr` reads via rqrr | `qr` | ✅ (Aug 2026) |
-| 4.12 | **WASM plugin runtime**: wasmtime behind `wasm-plugins` (off), WIT collector contract, fuel-limited sandboxed `.wasm` plugins in `~/.config/flexfetch/plugins/` | `wasm-plugins` (off) | ⬜ |
+| 4.12 | **WASM plugin runtime**: wasmtime behind `wasm-plugins` (off), WIT collector contract, fuel-limited sandboxed `.wasm` plugins in `~/.config/flexfetch/plugins/` | `wasm-plugins` (off) | ✅ (Aug 2026) |
 
 ### Pillar D — Marketing hooks
 
@@ -339,6 +339,40 @@ back into the config path (existing file backed up, `rqrr` decode, `image` png-o
 for the reader). Whole feature gated behind `qr` (opt-in — `zstd-sys` is a C dep, so
 it stays out of the pure-Rust musl release pipeline and the minimal binary). CI
 coverage: the `qr-feature` job runs tests + clippy with `--features qr`.
+
+### Task 4.12 — WASM plugin runtime — ✅ done (Aug 2026)
+`flexfetch-wasm/` — a new crate (deliberately **not** a workspace member, same
+pattern as `fuzz/`: wasmtime + cranelift is one of the heaviest trees in the
+ecosystem and would slow every `cargo build --workspace`/CI job). It is a
+plain path dep of `flexfetch-cli`, pulled only by the `wasm-plugins` feature
+(off by default): `cargo build -p flexfetch-cli --features wasm-plugins`.
+
+- **Sandbox**: fuel-limited execution (`Config::consume_fuel`, out-of-fuel
+traps), hard memory cap (`StoreLimitsBuilder` — enforced at instantiate AND on
+every `memory.grow`), and **capability-gated host imports** — a plugin only
+gets the `flexfetch` namespace functions its granted `Capability` set allows
+(`Env`/`File`/`Command`; default sandbox grants `Env` only, so a module that
+imports `run_command` without the capability fails at instantiate time).
+- **ABI (v1)**: exports `memory` + `flexfetch_plugin() -> i64` (packed
+  `(len << 32) | ptr` to a JSON doc in plugin memory, `{"value": "x"}` scalar
+  convention — mirrors the Lua API); optional `flexfetch_plugin_name`.
+  `wasm32-unknown-unknown` core modules only (no WASI — the sandbox gives
+  them nothing except the host imports).
+- **Auto-loading** (`flexfetch-cli/src/plugins.rs`): every run scans
+  `~/.config/flexfetch/plugins/`, runs `*.wasm` through the runtime (and, via
+  the newly wired `lua` feature, `*.lua` through `flexfetch-lua` — the plugin
+  loading gap from Phase 5.7 is now closed end-to-end), and flattens the
+  results into one `plugins` table rendered by the template's Plugins block
+  (default.tera + `show_section_plugins` + plain-renderer rows). One broken
+  plugin is skipped with a debug note, never fatal. `--watch` caches plugin
+  results in its snapshot (run once, like the static modules).
+- This completes 8.12's WASM half: the capability-gated imports ARE the
+  capability manifest (fs/network/env), so the signed-install → sandboxed-run
+  trust chain covers WASM plugins end-to-end.
+- Tests: 7 in flexfetch-wasm (scalar/map results, denied-import link failure,
+  fuel trap, memory-cap enforcement, out-of-bounds result, env capability) + 3
+  in flexfetch-cli (row rendering from a WAT-compiled plugin via the `wat`
+  dev-dep, broken-plugin skip, capability-denied skip).
 
 ### Task 4.1 (remainder) — hyperfine cold-start CI gate — ✅ done (Aug 2026)
 `ci.yml` gained a `perf-gate` job: builds the minimal release
@@ -496,7 +530,7 @@ stderr banner when no notifier is usable.
   validated: core + cli clippy-clean for `x86_64-pc-windows-msvc` and
   `x86_64-apple-darwin`.
 
-### Task 8.12 — Plugin registry Ed25519 signing — 🟡 (Ed25519 verify ✅, Aug 2026)
+### Task 8.12 — Plugin registry Ed25519 signing — ✅ (Aug 2026)
 - `flexfetch-cli/src/registry.rs`: `TRUSTED_PUBLISHER_KEY` (base64 Ed25519
   public key const) + `verify_signature(bytes, sig_b64, pk_b64)` via
   `ed25519-compact` (pure Rust, no C deps — ~200 KB in the minimal binary,
@@ -513,7 +547,12 @@ stderr banner when no notifier is usable.
 - Tests: signature round-trip (accept / tamper-reject / wrong-key-reject /
   garbage-never-panics) + std base64 decode round-trip. Registry entries
   parse `signature` (optional).
-- Pending: WASM capability manifest (fs/network/env) — blocked on 4.12.
+- WASM capability manifest — ✅: the `flexfetch-wasm` runtime (4.12)
+  implements capability-gated host imports as its manifest — a plugin is
+  granted `Env`/`File`/`Command` capabilities by the sandbox config and
+  anything not granted fails at link/instantiate time, so the registry's
+  trust story now covers WASM plugins end-to-end (signed install + sandboxed
+  execution).
 
 ### Task 5.7 — Plugin registry — ✅ (Aug 2026)
 `flexfetch-cli/src/registry.rs` (pure std + `toml`, no new deps):
@@ -688,7 +727,7 @@ emit single `%`).
 | Task | What | Status |
 | ---- | ---- | ------ |
 | 8.11 | **Repo hygiene**: issue templates (bug report w/ `--bug-report` field + terminal dropdown), PR template with checklist, `CONTRIBUTING.md` (DCO), `CODE_OF_CONDUCT.md`, `GOVERNANCE.md`, social preview via `--demo --export png` | ✅ (Aug 2026) — `bug_report.yml` (with `--bug-report` guidance + terminal dropdown), `feature_request.yml` (ROADMAP-aware), `config.yml` (roadmap link), `PULL_REQUEST_TEMPLATE.md` (verification checklist incl. feature-off path), `CONTRIBUTING.md` (diet rules + DCO `-s`), `CODE_OF_CONDUCT.md`, `GOVERNANCE.md` (BDFL + core team). Social preview PNG: generate via `flexfetch --demo --export png` (documented; note `--bug-report` itself is 8.7, template asks for `--version`/env instead until then) |
-| 8.12 | **Plugin registry hardening**: Ed25519 signed manifests (`publisher_key` + `signature`), client-side verify, WASM capability manifest (fs/network/env) | 🟡 (Ed25519 verify ✅; WASM capability manifest pending 4.12) |
+| 8.12 | **Plugin registry hardening**: Ed25519 signed manifests (`publisher_key` + `signature`), client-side verify, WASM capability manifest (fs/network/env) | ✅ (Aug 2026) |
 
 ### Execution priority
 
@@ -698,17 +737,18 @@ emit single `%`).
 | 2 | Enterprise trust | 8.2 (audit pipeline), 8.1 (signed releases) | ✅ (Aug 2026) |
 | 3 | Quality gates | 8.4 (terminal matrix), 8.5 (fuzzing), 8.6 (benchmarks) | ✅ (Aug 2026) |
 | 4 | Platforms | 8.9 (Windows), 8.10 (WSL) | ✅ (Aug 2026) |
-| 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) | 🟡 (8.3 + 8.7 ✅; 8.12 Ed25519 verify ✅, WASM capability manifest pending) |
+| 5 | Deep | 8.3 (schema migration), 8.7 (telemetry), 8.12 (plugin signing) | ✅ (Aug 2026) |
 
-**Remaining Phase 8: the WASM half of 8.12 (capability manifest — WASM is
-4.12).** 8.9 Windows Tier-2 is ✅ (Aug 2026, see Task 8.9). The Ed25519 half
-of 8.12 is ✅ (Aug 2026): the
-client embeds the project's trusted publisher key
-(`TRUSTED_PUBLISHER_KEY` in `flexfetch-cli/src/registry.rs`) and verifies each
-entry's `signature` over the raw plugin bytes *before* the SHA-256 check
-(`verify_signature`, `ed25519-compact` — small, pure Rust); unsigned entries
-fall back to sha256-only with a notice; a publisher tool ships at
-`flexfetch-cli/examples/registry_sign.rs` (prints base64 pubkey + signature).
+**Remaining Phase 8: none — all of Phase 8 is ✅ (Aug 2026).** 8.9 Windows
+Tier-2 ✅ (see Task 8.9), 8.12 ✅ end-to-end: the Ed25519 half is the
+`TRUSTED_PUBLISHER_KEY` + `verify_signature` client check (`ed25519-compact`,
+see Task 8.12) and the WASM half is 4.12's capability-gated runtime (see Task
+4.12) — a signed install now lands in a sandbox that can't touch anything the
+plugin wasn't granted. Remaining roadmap work is all external-channel
+publishing: Week 9 distribution (5.1 `flake.lock` commit on a nix machine,
+5.9 AUR/Homebrew publish, 5.11 GHCR publish) and the opt-in Pillar A–D
+features still marked ⬜ (4.2/4.3/4.4-4.8/4.13-4.16 — all behind off-by-default
+gates, none required for v2.0).e64 pubkey + signature).
 The pasted plan's `color_eyre`/`dirs`/`schemars`/`windows-sys`/`tracing`
 crates are NOT adopted as-is — the project's zero-dependency + feature-gate
 diet (rejected list below) applies; each task is reality-adapted on landing.

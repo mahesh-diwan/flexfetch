@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-flexfetch-core = { path = "../flexfetch-core" }
+# default-features = false so a `--no-default-features --features lua` build
+# doesn't get core's tera/rayon pulled in by feature unification.
+flexfetch-core = { path = "../flexfetch-core", default-features = false }
 # vendored: bundles Lua 5.4 from source so builds need no system Lua headers
 mlua = { version = "0.10", features = ["lua54", "vendored"] }

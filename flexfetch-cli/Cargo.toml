@@ -73,6 +73,15 @@ image = { version = "0.25", optional = true, default-features = false, features 
 # release diet fine (only a few KB in the minimal binary; the registry module
 # is always compiled).
 ed25519-compact = "2"
+# Phase 4.12: sandboxed WASM plugin runtime (wasmtime + cranelift — one of the
+# heaviest trees in the ecosystem). Not a workspace member (same pattern as
+# fuzz/); only built when the `wasm-plugins` feature is on, so default and
+# minimal builds never touch it.
+flexfetch-wasm = { path = "../flexfetch-wasm", optional = true }
+# Phase 4.12: Lua plugin runtime (mlua, vendored Lua 5.4). Purely optional —
+# the `lua` feature (default on) pulls it in so `.lua` plugins in the plugins
+# dir auto-load; `--no-default-features` drops it entirely.
+flexfetch-lua = { path = "../flexfetch-lua", optional = true }
 
 [dev-dependencies]
 # Phase 8.6: micro-benchmarks (`cargo bench`). Dev-only — does not affect the
@@ -81,10 +90,17 @@ criterion = "0.5"
 
 # Phase 8.5: property-based tests for the pure helpers (dev-only).
 proptest = "1"
+# Phase 4.12: WAT->wasm compiler for plugin-loading tests (pure Rust, no
+# wasm32 target needed).
+wat = "1"
 
 [features]
 default = ["lua", "live", "image-logos", "tera", "parallel", "completions"]
-lua = ["flexfetch-core/lua"]
+lua = ["dep:flexfetch-lua", "flexfetch-core/lua"]
+# Phase 4.12: sandboxed WASM plugin runtime. Off by default (wasmtime is a
+# heavy dependency tree); plugins in ~/.config/flexfetch/plugins/*.wasm are
+# executed with fuel + memory limits and capability-gated host imports.
+wasm-plugins = ["dep:flexfetch-wasm"]
 live = ["dep:ratatui", "dep:crossterm", "lockfree"]
 # Phase 4.2: sampler-thread + overwrite-channel architecture for --live.
 lockfree = ["dep:crossbeam-channel"]

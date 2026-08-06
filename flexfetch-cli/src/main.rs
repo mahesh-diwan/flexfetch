@@ -15,6 +15,10 @@ mod history;
 mod live;
 #[cfg(feature = "qr")]
 mod qr;
+// Phase 4.12: plugin auto-loading (Lua + WASM) — only compiled when at least
+// one plugin runtime is enabled.
+#[cfg(any(feature = "lua", feature = "wasm-plugins"))]
+mod plugins;
 mod registry;
 mod simd;
 mod ssh;
@@ -322,6 +326,8 @@ fn main() {
         features.push("history");
         #[cfg(feature = "notifications")]
         features.push("notifications");
+        #[cfg(feature = "wasm-plugins")]
+        features.push("wasm-plugins");
         println!(
             "flexfetch {}\nFeatures: {}",
             env!("CARGO_PKG_VERSION"),
@@ -720,7 +726,14 @@ fn main() {
         return;
     }
 
-    let info = registry.run_selected(&modules, &ctx, template_content);
+    let mut info = registry.run_selected(&modules, &ctx, template_content);
+
+    // Phase 4.12: auto-load Lua/WASM plugins from the plugins dir and merge
+    // them in as a `plugins` table (rendered by the template's Plugins block).
+    #[cfg(any(feature = "lua", feature = "wasm-plugins"))]
+    if let Some(plugins) = plugins::collect_plugins(&ctx) {
+        info.add("plugins", plugins);
+    }
 
     // Handle --export flag
     if let Some(ref format) = cli.export {
@@ -767,8 +780,21 @@ fn main() {
                 }
             }
             print!("\x1b[2J\x1b[H");
-            let fresh =
+            let mut fresh =
                 registry.run_selected_cached(&modules, &ctx, template_content, &mut snapshot);
+            // Phase 4.12: plugins are static per session (like the cached
+            // modules) — run once, serve from the snapshot on later ticks.
+            #[cfg(any(feature = "lua", feature = "wasm-plugins"))]
+            {
+                if let Some(cached) = snapshot.get("plugins") {
+                    if !cached.is_empty() {
+                        fresh.add("plugins", cached.clone());
+                    }
+                } else if let Some(plugins) = plugins::collect_plugins(&ctx) {
+                    snapshot.insert("plugins".into(), plugins.clone());
+                    fresh.add("plugins", plugins);
+                }
+            }
             render_output(&fresh, &config, &cli);
             std::io::Write::flush(&mut std::io::stdout()).ok();
             std::thread::sleep(Duration::from_secs(cli.watch_interval));
@@ -1558,4 +1584,6 @@ fn list_modules() {
     }
     println!("\nLayout directives (template-only): title, separator");
     println!("\nPlugins: place .lua files in ~/.config/flexfetch/plugins/");
+    #[cfg(feature = "wasm-plugins")]
+    println!("         place .wasm files in ~/.config/flexfetch/plugins/ (build with --features wasm-plugins)");
 }

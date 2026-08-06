@@ -159,3 +159,12 @@
 {%- if processes %}
 {{ key_color_processes | default(value=theme_keys) }}{{ icon_processes }}{{ "Processes" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_processes | default(value=theme_values) }}{{ processes }}{{ theme_reset }}
 {%- endif %}
+
+{%- if plugins and plugins|length > 0 %}
+{%- if show_section_plugins %}
+{{ theme_section }}── Plugins ──{{ theme_reset }}
+{%- endif %}
+{%- for p in plugins %}
+{{ theme_keys }}{{ p.label | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ theme_values }}{{ p.value }}{{ theme_reset }}
+{%- endfor %}
+{%- endif %}

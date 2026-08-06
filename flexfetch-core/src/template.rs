@@ -547,6 +547,9 @@ impl TeraEngine {
             ("project", serde_json::Value::Object(serde_json::Map::new())),
             ("context", serde_json::Value::Object(serde_json::Map::new())),
             ("health", serde_json::Value::Object(serde_json::Map::new())),
+            // Phase 4.12: plugin table (rows {label, value}); empty array is
+            // falsy in Tera so the Plugins block renders nothing without one.
+            ("plugins", serde_json::Value::Array(vec![])),
         ];
         for (module, placeholder) in all_modules {
             if !info.entries.iter().any(|(k, _)| *k == module) {
@@ -617,6 +620,10 @@ impl TeraEngine {
         ctx.insert(
             "show_section_processes",
             &(config.display.sections && has_any(&["processes"])),
+        );
+        ctx.insert(
+            "show_section_plugins",
+            &(config.display.sections && has_any(&["plugins"])),
         );
 
         // Phase 7.7: Nerd Font auto-detect — when the terminal isn't known to
