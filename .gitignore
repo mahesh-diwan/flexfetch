@@ -3,3 +3,7 @@
 # `--locked` for reproducible builds — the Dockerfile COPY . . needs it).
 # mdBook build output (book/book.toml sets build-dir = target)
 book/target
+# Generated site output (the Docs & Site workflow builds the book into
+# site/docs before deploying — regenerate locally with:
+#   mdbook build book --dest-dir site/docs
+site/docs

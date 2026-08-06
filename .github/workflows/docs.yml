@@ -1,12 +1,13 @@
-name: Docs
+name: Docs & Site
 on:
   push:
     branches: [main]
-    paths: ["book/**", ".github/workflows/docs.yml"]
+    paths: ["site/**", "book/**", ".github/workflows/docs.yml"]
   workflow_dispatch:
 
-# Deploy via the built-in Pages action; the site is published from the
-# gh-pages branch. Enable Pages (Deploy from branch: gh-pages) once.
+# Deploy via the built-in Pages action (Pages is configured with the source
+# "GitHub Actions"). The landing page lives at site/ (static HTML/CSS/JS) and
+# the mdBook is built into site/docs, so both ship as a single artifact.
 permissions:
   contents: read
   pages: write
@@ -18,7 +19,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build mdBook
+    name: Build site + mdBook
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,13 +27,16 @@ jobs:
       - name: Install mdBook
         run: cargo install mdbook --locked --no-default-features
 
-      - name: Build book
-        run: mdbook build book
+      # book.toml sets build-dir = "target"; the CLI --dest-dir flag overrides
+      # the config. --dest-dir is resolved relative to the working directory
+      # (the checkout root), so site/docs lands inside the site dir.
+      - name: Build book into site/docs
+        run: mdbook build book --dest-dir site/docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: book/target
+          path: site
 
   deploy:
     name: Deploy to GitHub Pages
