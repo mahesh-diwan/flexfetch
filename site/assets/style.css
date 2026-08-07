@@ -318,11 +318,15 @@ a:hover {
 }
 
 .hero-grid {
-  display: grid;
-  grid-template-columns: 0.42fr 0.58fr;
-  gap: 48px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
   padding-top: 56px;
+}
+.hero-text {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 h1 {
@@ -1221,10 +1225,6 @@ footer {
 
 /* ---------- responsive ---------- */
 @media (max-width: 1024px) {
-  .hero-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
   .hero-sub {
     max-width: none;
   }
@@ -1268,7 +1268,6 @@ footer {
   }
 
   .hero-grid {
-    grid-template-columns: 1fr;
     gap: 32px;
   }
   .hero {
