@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786120856104,
+  "lastUpdate": 1786121227322,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -611,6 +611,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11300241,
             "range": "± 109448",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "2151a24cbbb46d49bbfdab05622f98918722dc59",
+          "message": "site: hero — terminal on top, stacked layout\n\nTerminal moved above hero text, full-width, no side-by-side squeeze.\nText centered below. Responsive grid references cleaned up.",
+          "timestamp": "2026-08-07T22:13:43+05:30",
+          "tree_id": "44b33a9c27fe5ffe49561aa9e918c5eb08d42057",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/2151a24cbbb46d49bbfdab05622f98918722dc59"
+        },
+        "date": 1786121226782,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11135972,
+            "range": "± 169747",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11132013,
+            "range": "± 157215",
             "unit": "ns/iter"
           }
         ]
