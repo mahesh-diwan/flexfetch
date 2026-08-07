@@ -6,10 +6,6 @@ use std::collections::HashMap;
 pub struct DnsModule;
 
 impl Module for DnsModule {
-    fn name(&self) -> &'static str {
-        "dns"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Explicit element type: on Windows no push ever happens (the collectors
         // are Linux/macOS), so inference cannot otherwise resolve the Vec.

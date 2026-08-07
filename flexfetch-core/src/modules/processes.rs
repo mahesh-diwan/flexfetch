@@ -3,10 +3,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct ProcessesModule;
 
 impl Module for ProcessesModule {
-    fn name(&self) -> &'static str {
-        "processes"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let count = process_count();
         Ok(InfoValue::Scalar(count))

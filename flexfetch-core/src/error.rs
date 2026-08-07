@@ -7,10 +7,6 @@ pub enum Error {
     Config(String),
     Template(String),
     Lua(String),
-    Module {
-        name: &'static str,
-        source: Box<Error>,
-    },
 }
 
 impl fmt::Display for Error {
@@ -21,7 +17,6 @@ impl fmt::Display for Error {
             Error::Config(s) => write!(f, "config: {s}"),
             Error::Template(s) => write!(f, "template: {s}"),
             Error::Lua(s) => write!(f, "lua: {s}"),
-            Error::Module { name, source } => write!(f, "module {name}: {source}"),
         }
     }
 }

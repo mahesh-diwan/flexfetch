@@ -14,10 +14,6 @@ fn run_git(args: &[&str]) -> Option<String> {
 }
 
 impl Module for GitModule {
-    fn name(&self) -> &'static str {
-        "git"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

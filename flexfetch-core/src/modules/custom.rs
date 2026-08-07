@@ -5,10 +5,6 @@ use std::process::Command;
 pub struct CustomCommandsModule;
 
 impl Module for CustomCommandsModule {
-    fn name(&self) -> &'static str {
-        "custom"
-    }
-
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let run_one = |(key, custom): (&String, &crate::config::CustomModule)| {
             let parts: Vec<&str> = custom.command.split_whitespace().collect();

@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct OsModule;
 
 impl Module for OsModule {
-    fn name(&self) -> &'static str {
-        "os"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

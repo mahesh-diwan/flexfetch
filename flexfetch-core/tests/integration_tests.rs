@@ -17,7 +17,6 @@ fn test_config_default() {
     assert!(config.display.gradient_title);
     assert!(config.display.progress_bars);
     assert_eq!(config.display.box_style, "rounded");
-    assert!(!config.display.pixel_logo);
     assert_eq!(config.display.palette_style, "blocks");
     assert_eq!(config.display.frame, "none");
 }

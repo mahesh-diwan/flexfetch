@@ -14,6 +14,8 @@
 //! `[[plugins]]` entry, alongside `sha256`). Signatures cover the raw plugin
 //! bytes, so the client verifies them before the SHA-256 check.
 
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine as _;
 use ed25519_compact::{KeyPair, Seed};
 use std::process::ExitCode;
 
@@ -50,8 +52,8 @@ fn main() -> ExitCode {
     // `None` noise keeps signatures deterministic across machines/runs.
     let signature = keypair.sk.sign(&bytes, None);
 
-    println!("{}", base64_std(keypair.pk.as_ref()));
-    println!("{}", base64_std(signature.as_ref()));
+    println!("{}", BASE64_STANDARD.encode(keypair.pk.as_ref()));
+    println!("{}", BASE64_STANDARD.encode(signature.as_ref()));
     eprintln!(
         "signed {file} ({} bytes); paste the second line into the registry entry",
         signature.as_ref().len()
@@ -81,32 +83,4 @@ fn hex_nibble(b: u8) -> Option<u8> {
         b'A'..=b'F' => Some(b - b'A' + 10),
         _ => None,
     }
-}
-
-/// Minimal standard base64 encode (no extra dep for the example; the main
-/// binary already has `base64` behind the `qr` feature, so self-contain here).
-fn base64_std(input: &[u8]) -> String {
-    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut out = String::with_capacity(input.len().div_ceil(3) * 4);
-    for chunk in input.chunks(3) {
-        let b = [
-            chunk[0],
-            *chunk.get(1).unwrap_or(&0),
-            *chunk.get(2).unwrap_or(&0),
-        ];
-        let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
-        out.push(TABLE[(n >> 18) as usize & 63] as char);
-        out.push(TABLE[(n >> 12) as usize & 63] as char);
-        if chunk.len() > 1 {
-            out.push(TABLE[(n >> 6) as usize & 63] as char);
-        } else {
-            out.push('=');
-        }
-        if chunk.len() > 2 {
-            out.push(TABLE[n as usize & 63] as char);
-        } else {
-            out.push('=');
-        }
-    }
-    out
 }

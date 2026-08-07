@@ -18,10 +18,6 @@ struct CpuStats {
 pub struct CpuModule;
 
 impl Module for CpuModule {
-    fn name(&self) -> &'static str {
-        "cpu"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

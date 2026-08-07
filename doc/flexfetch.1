@@ -1,4 +1,4 @@
-.TH FLEXFETCH 1 "August 2026" "flexfetch 0.18.0" "User Commands"
+.TH FLEXFETCH 1 "August 2026" "flexfetch 0.20.0" "User Commands"
 .SH NAME
 flexfetch \- fast, flexible system information tool
 .SH SYNOPSIS
@@ -96,10 +96,6 @@ Seconds between watch refreshes (default 2).
 Real\-time dashboard: CPU/memory gauges with sparklines, top processes,
 and network rates. Requires a terminal. Requires the \fBlive\fR feature.
 .TP
-.BI \-\-record " " \fIPATH\fR
-Record the \fB--live\fR dashboard to an asciinema v2 cast file
-(replay with \fBasciinema play PATH\fR). Requires the \fBlive\fR feature.
-.TP
 .BR completions " " \fISHELL\fR
 Print shell completions for \fIbash\fR, \fIzsh\fR, \fIfish\fR, etc.
 Requires the \fBcompletions\fR feature (default on).
@@ -144,9 +140,6 @@ Disable progress bar rendering.
 .TP
 .BI \-\-box-style " " \fISTYLE\fR
 Box rendering style: rounded, sharp, double, heavy.
-.TP
-.B \-\-pixel-logo
-Enable pixel art logo.
 .TP
 .BI \-\-palette-style " " \fISTYLE\fR
 Color palette style: gradient, solid, ansi.

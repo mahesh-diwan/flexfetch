@@ -3,10 +3,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct PackagesModule;
 
 impl Module for PackagesModule {
-    fn name(&self) -> &'static str {
-        "packages"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut results: Vec<(String, usize)> = Vec::new();
 

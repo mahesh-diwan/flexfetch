@@ -1,27 +1,6 @@
+use crate::ansi::{ANSI_BRIGHT_COLORS, ANSI_COLORS};
 use crate::{Config, InfoValue, SystemInfo};
 use std::path::Path;
-
-// ANSI color table: index → RGB
-const ANSI_COLORS: &[[u8; 3]] = &[
-    [0, 0, 0],       // 30 black
-    [170, 0, 0],     // 31 red
-    [0, 170, 0],     // 32 green
-    [170, 85, 0],    // 33 yellow
-    [0, 0, 170],     // 34 blue
-    [170, 0, 170],   // 35 magenta
-    [0, 170, 170],   // 36 cyan
-    [170, 170, 170], // 37 white
-];
-const ANSI_BRIGHT_COLORS: &[[u8; 3]] = &[
-    [85, 85, 85],    // 90 bright black
-    [255, 85, 85],   // 91 bright red
-    [85, 255, 85],   // 92 bright green
-    [255, 255, 85],  // 93 bright yellow
-    [85, 85, 255],   // 94 bright blue
-    [255, 85, 255],  // 95 bright magenta
-    [85, 255, 255],  // 96 bright cyan
-    [255, 255, 255], // 97 bright white
-];
 
 fn theme_bg_color(config: &Config) -> [u8; 3] {
     match config.display.theme.as_deref().unwrap_or("") {
@@ -31,13 +10,29 @@ fn theme_bg_color(config: &Config) -> [u8; 3] {
 }
 
 #[derive(Clone)]
-struct Span<'a> {
-    text: &'a str,
+struct Span {
+    text: String,
     color: [u8; 3],
 }
 
+/// Render the template and split the ANSI-colored output into per-line spans.
+/// Returns the raw rendered text (for width math), the line groups, and the
+/// max visible character count per raw line — the shared setup of every
+/// ANSI-based exporter.
+fn render_lines(
+    info: &SystemInfo,
+    config: &Config,
+) -> crate::Result<(String, Vec<Vec<Span>>, usize)> {
+    let engine = crate::template::TeraEngine::new_default();
+    let text = engine.render(info, config)?;
+    let max_chars = text.lines().map(|l| l.chars().count()).max().unwrap_or(40);
+    let spans = parse_ansi(&text);
+    let lines = spans_per_line(&spans);
+    Ok((text, lines, max_chars))
+}
+
 /// Parse ANSI-colored text into spans with RGB colors.
-fn parse_ansi(text: &str) -> Vec<Span<'_>> {
+fn parse_ansi(text: &str) -> Vec<Span> {
     let mut spans = Vec::new();
     let mut current_color = [170, 170, 170]; // default gray
     let mut last = 0;
@@ -49,7 +44,7 @@ fn parse_ansi(text: &str) -> Vec<Span<'_>> {
             // Flush text before this escape
             if last < i {
                 spans.push(Span {
-                    text: &text[last..i],
+                    text: text[last..i].to_string(),
                     color: current_color,
                 });
             }
@@ -134,7 +129,7 @@ fn parse_ansi(text: &str) -> Vec<Span<'_>> {
     // Flush remaining text
     if last < bytes.len() {
         spans.push(Span {
-            text: &text[last..],
+            text: text[last..].to_string(),
             color: current_color,
         });
     }
@@ -149,15 +144,15 @@ fn html_escape(s: &str) -> String {
 }
 
 /// Split spans into per-line groups.
-fn spans_per_line<'a>(spans: &[Span<'a>]) -> Vec<Vec<Span<'a>>> {
-    let mut lines: Vec<Vec<Span<'a>>> = Vec::new();
+fn spans_per_line(spans: &[Span]) -> Vec<Vec<Span>> {
+    let mut lines: Vec<Vec<Span>> = Vec::new();
     let mut current = Vec::new();
     for span in spans {
-        let mut remaining = span.text;
+        let mut remaining = span.text.as_str();
         while let Some(nl_pos) = remaining.find('\n') {
             if nl_pos > 0 {
                 current.push(Span {
-                    text: &remaining[..nl_pos],
+                    text: remaining[..nl_pos].to_string(),
                     color: span.color,
                 });
             }
@@ -167,7 +162,7 @@ fn spans_per_line<'a>(spans: &[Span<'a>]) -> Vec<Vec<Span<'a>>> {
         }
         if !remaining.is_empty() {
             current.push(Span {
-                text: remaining,
+                text: remaining.to_string(),
                 color: span.color,
             });
         }
@@ -178,37 +173,20 @@ fn spans_per_line<'a>(spans: &[Span<'a>]) -> Vec<Vec<Span<'a>>> {
     lines
 }
 
-fn spans_to_html_line(spans: &[Span<'_>]) -> String {
+/// Render one line's spans as `<tag prefix#rrggbb>text</tag>` (html vs svg
+/// differ only in the tag name and the color attribute prefix).
+fn spans_to_tag_line(spans: &[Span], tag: &str, color_prefix: &str) -> String {
     let mut out = String::new();
     for span in spans {
         if span.text.is_empty() {
             continue;
         }
-        let escaped = html_escape(span.text);
+        let escaped = html_escape(&span.text);
         if span.color == [170, 170, 170] {
             out.push_str(&escaped);
         } else {
             out.push_str(&format!(
-                "<span style=\"color:#{:02x}{:02x}{:02x}\">{}</span>",
-                span.color[0], span.color[1], span.color[2], escaped
-            ));
-        }
-    }
-    out
-}
-
-fn spans_to_svg_line(spans: &[Span<'_>]) -> String {
-    let mut out = String::new();
-    for span in spans {
-        if span.text.is_empty() {
-            continue;
-        }
-        let escaped = html_escape(span.text);
-        if span.color == [170, 170, 170] {
-            out.push_str(&escaped);
-        } else {
-            out.push_str(&format!(
-                "<tspan fill=\"#{:02x}{:02x}{:02x}\">{}</tspan>",
+                "<{tag} {color_prefix}#{:02x}{:02x}{:02x}\">{}</{tag}>",
                 span.color[0], span.color[1], span.color[2], escaped
             ));
         }
@@ -217,14 +195,10 @@ fn spans_to_svg_line(spans: &[Span<'_>]) -> String {
 }
 
 pub fn export_svg(info: &SystemInfo, config: &Config) -> crate::Result<String> {
-    let engine = crate::template::TeraEngine::new_default();
-    let text = engine.render(info, config)?;
-    let spans = parse_ansi(&text);
-    let lines = spans_per_line(&spans);
+    let (_text, lines, max_chars) = render_lines(info, config)?;
     let line_count = lines.len();
     let line_height = 20u32;
     let char_width = 9u32;
-    let max_chars = text.lines().map(|l| l.chars().count()).max().unwrap_or(40);
     let width = (max_chars as u32) * char_width + 40;
     let height = (line_count as u32) * line_height + 40;
 
@@ -240,7 +214,7 @@ pub fn export_svg(info: &SystemInfo, config: &Config) -> crate::Result<String> {
 
     for (i, line_spans) in lines.iter().enumerate() {
         let y = 30 + i as u32 * line_height;
-        let inner = spans_to_svg_line(line_spans);
+        let inner = spans_to_tag_line(line_spans, "tspan", "fill=\"");
         svg.push_str(&format!(
             r#"<text font-family="monospace" font-size="14" x="20" y="{y}">{inner}</text>"#
         ));
@@ -251,10 +225,7 @@ pub fn export_svg(info: &SystemInfo, config: &Config) -> crate::Result<String> {
 }
 
 pub fn export_html(info: &SystemInfo, config: &Config) -> crate::Result<String> {
-    let engine = crate::template::TeraEngine::new_default();
-    let text = engine.render(info, config)?;
-    let spans = parse_ansi(&text);
-    let lines = spans_per_line(&spans);
+    let (_, lines, _) = render_lines(info, config)?;
 
     let bg_rgb = theme_bg_color(config);
     let bg_hex = format!("#{:02x}{:02x}{:02x}", bg_rgb[0], bg_rgb[1], bg_rgb[2]);
@@ -265,12 +236,12 @@ pub fn export_html(info: &SystemInfo, config: &Config) -> crate::Result<String> 
         "#cdd6f4"
     };
 
-    let mut body = String::with_capacity(text.len() * 2);
+    let mut body = String::new();
     for (i, line_spans) in lines.iter().enumerate() {
         if i > 0 {
             body.push('\n');
         }
-        body.push_str(&spans_to_html_line(line_spans));
+        body.push_str(&spans_to_tag_line(line_spans, "span", "style=\"color:"));
     }
 
     Ok(format!(
@@ -306,12 +277,8 @@ pub fn export_html(info: &SystemInfo, config: &Config) -> crate::Result<String> 
 
 #[cfg(feature = "image-logos")]
 pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Result<()> {
-    let engine = crate::template::TeraEngine::new_default();
-    let text = engine.render(info, config)?;
-    let spans = parse_ansi(&text);
-    let lines = spans_per_line(&spans);
+    let (_, lines, max_chars) = render_lines(info, config)?;
     let line_count = lines.len();
-    let max_chars = text.lines().map(|l| l.chars().count()).max().unwrap_or(40);
 
     let char_w = 9u32;
     let char_h = 18u32;
@@ -578,30 +545,17 @@ fn prom_number(s: &str) -> String {
 }
 
 pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<String> {
-    let engine = crate::template::TeraEngine::new_default();
-    let text = engine.render(info, config)?;
+    let (text, lines, _) = render_lines(info, config)?;
 
-    // Strip all ANSI escape sequences for plain text
-    let mut result = String::with_capacity(text.len());
-    let bytes = text.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == 0x1b && i + 1 < bytes.len() && bytes[i + 1] == b'[' {
-            // Skip CSI sequence: \x1b[...<letter>
-            i += 2;
-            while i < bytes.len() {
-                match bytes[i] {
-                    b'A'..=b'Z' | b'a'..=b'z' => {
-                        i += 1;
-                        break;
-                    }
-                    _ => i += 1,
-                }
-            }
-        } else {
-            result.push(bytes[i] as char);
-            i += 1;
-        }
+    // ANSI codes already stripped by parse_ansi — reassemble the plain-text
+    // lines. Re-add a trailing newline if the rendered text ended on one.
+    let mut result = lines
+        .iter()
+        .map(|line| line.iter().map(|s| s.text.as_str()).collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n");
+    if text.ends_with('\n') {
+        result.push('\n');
     }
     Ok(result)
 }
@@ -638,7 +592,7 @@ mod tests {
     #[test]
     fn spans_per_line_splits() {
         let spans = vec![Span {
-            text: "hello\nworld",
+            text: "hello\nworld".to_string(),
             color: [255, 0, 0],
         }];
         let lines = spans_per_line(&spans);

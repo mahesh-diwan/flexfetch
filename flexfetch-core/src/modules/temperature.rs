@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct TemperatureModule;
 
 impl Module for TemperatureModule {
-    fn name(&self) -> &'static str {
-        "temperature"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

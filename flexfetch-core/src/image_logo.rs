@@ -17,7 +17,6 @@ pub enum ImageProtocol {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogoMode {
     Image,
-    Ascii,
     Auto,
 }
 
@@ -99,20 +98,6 @@ impl ImageLogo {
         let encoded = base64::engine::general_purpose::STANDARD.encode(&image_data);
 
         match mode {
-            LogoMode::Ascii => {
-                // Use ASCII art fallback
-                let name = self
-                    .path
-                    .split('/')
-                    .next_back()
-                    .unwrap_or("")
-                    .strip_suffix(".png")
-                    .unwrap_or("");
-                let logo = detect(name);
-                let lines: Vec<String> = logo.lines.iter().map(|s| s.to_string()).collect();
-                let rendered = render(logo, lines.len());
-                rendered.join("\n")
-            }
             LogoMode::Auto => {
                 match protocol {
                     ImageProtocol::None => {

@@ -7,10 +7,6 @@ use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::time::Duration;
 
-#[cfg(feature = "notifications")]
-mod daemon;
-#[cfg(feature = "history")]
-mod history;
 #[cfg(feature = "live")]
 mod live;
 #[cfg(feature = "qr")]
@@ -20,15 +16,10 @@ mod qr;
 #[cfg(any(feature = "lua", feature = "wasm-plugins"))]
 mod plugins;
 mod registry;
-mod simd;
 mod ssh;
 mod tools;
 #[cfg(feature = "live")]
 mod wizard;
-// Phase 5.5/5.6 shared health sampling (pure std; only compiled when a
-// consumer feature is on so default/minimal builds stay lean).
-#[cfg(any(feature = "history", feature = "notifications"))]
-mod monitor;
 // Phase 8.7 observability: panic hook + --bug-report dump + RUST_LOG gating.
 mod telemetry;
 
@@ -139,9 +130,6 @@ struct Cli {
     box_style: Option<String>,
 
     #[arg(long)]
-    pixel_logo: bool,
-
-    #[arg(long)]
     palette_style: Option<String>,
 
     #[arg(long)]
@@ -156,21 +144,6 @@ struct Cli {
     /// Live dashboard: real-time CPU/memory gauges, top processes, network rates
     #[arg(long)]
     live: bool,
-
-    /// Phase 5.10: record the --live dashboard to an asciinema v2 cast file
-    /// (e.g. --live --record flexfetch.cast; replay with `asciinema play`).
-    #[cfg(feature = "live")]
-    #[arg(long)]
-    record: Option<PathBuf>,
-
-    /// SIMD CPU micro-benchmark (Phase 4.3): vectorized integer benchmark with
-    /// runtime AVX2/SSE4/NEON detection, scalar fallback.
-    #[arg(long)]
-    bench_cpu: bool,
-
-    /// SIMD memory-bandwidth micro-benchmark (Phase 4.3).
-    #[arg(long)]
-    bench_memory: bool,
 
     /// Smart fetch: add $PWD context (git branch/status, project type, container/venv/SSH)
     #[arg(long)]
@@ -224,11 +197,6 @@ struct Cli {
     #[arg(long)]
     hook: Option<String>,
 
-    /// Print a tmux.conf snippet that auto-runs the fetch in new idle panes
-    /// (Phase 5.3 — pair with the bundled `flexfetch-tmux` helper binary).
-    #[arg(long)]
-    tmux_config: bool,
-
     /// Refresh the crowdsourced hardware database (Phase 5.8): downloads the
     /// latest PCI/USB name map to the cache dir; falls back to the bundled
     /// seed when offline.
@@ -239,38 +207,6 @@ struct Cli {
     /// (requires the `auto-theme` feature; falls back to catppuccin otherwise).
     #[arg(long)]
     auto_theme: bool,
-
-    /// Phase 5.5: record cpu/mem/disk/temp snapshots to history.db every
-    /// --history-interval seconds until Ctrl+C (requires the `history` feature).
-    #[arg(long)]
-    history: bool,
-
-    /// Phase 5.5: record interval for --history / --daemon (seconds).
-    #[arg(long, default_value_t = 60)]
-    history_interval: u64,
-
-    /// Phase 5.5: print an ASCII sparkline of the recorded metric over the
-    /// last --hours (cpu|memory|disk|temp; requires the `history` feature).
-    #[arg(long)]
-    history_graph: Option<String>,
-
-    /// Phase 5.5: window for --history-graph, in hours.
-    #[arg(long, default_value_t = 24)]
-    hours: u64,
-
-    /// Phase 5.5: export the snapshots table to a CSV file.
-    #[arg(long)]
-    history_export: Option<PathBuf>,
-
-    /// Phase 5.6: critical health notifications daemon — poll every
-    /// --history-interval seconds, notify on threshold breach (requires the
-    /// `notifications` feature).
-    #[arg(long)]
-    daemon: bool,
-
-    /// Phase 5.6: threshold overrides, e.g. --threshold cpu=95,mem=88,temp=80.
-    #[arg(long)]
-    threshold: Vec<String>,
 
     /// Phase 8.8: showcase mode — every module + every visual feature, for
     /// screenshots / social previews / `install.sh` first-run demos.
@@ -284,18 +220,6 @@ struct Cli {
 
     #[command(subcommand)]
     command: Option<Commands>,
-}
-
-/// Parse the `--history-graph` metric argument (cpu|memory|disk|temp).
-#[cfg(feature = "history")]
-fn parse_history_metric(s: &str) -> Option<history::Metric> {
-    match s.trim().to_lowercase().as_str() {
-        "cpu" => Some(history::Metric::Cpu),
-        "memory" | "mem" => Some(history::Metric::Memory),
-        "disk" => Some(history::Metric::Disk),
-        "temp" | "temperature" => Some(history::Metric::Temp),
-        _ => None,
-    }
 }
 
 fn main() {
@@ -330,10 +254,6 @@ fn main() {
         features.push("qr");
         #[cfg(feature = "auto-theme")]
         features.push("auto-theme");
-        #[cfg(feature = "history")]
-        features.push("history");
-        #[cfg(feature = "notifications")]
-        features.push("notifications");
         #[cfg(feature = "wasm-plugins")]
         features.push("wasm-plugins");
         println!(
@@ -404,12 +324,6 @@ fn main() {
         return;
     }
 
-    // --tmux-config: print the tmux.conf snippet (pure output, no deps).
-    if cli.tmux_config {
-        tools::print_tmux_config();
-        return;
-    }
-
     // --update-db: refresh the crowdsourced hardware database (needs curl).
     if cli.update_db {
         match flexfetch_core::hardware_db::refresh() {
@@ -447,7 +361,7 @@ fn main() {
         }
     }
 
-    let config_dir = get_config_dir();
+    let config_dir = tools::config_dir();
     let cache_dir = get_cache_dir();
 
     let config_path = cli.config.as_ref().map(std::path::Path::new);
@@ -522,7 +436,7 @@ fn main() {
         #[cfg(feature = "live")]
         {
             let watch_path = config_file_path(&cli);
-            if let Err(e) = live::run(ctx, watch_path, cli.record.clone()) {
+            if let Err(e) = live::run(ctx, watch_path) {
                 eprintln!("live dashboard error: {e}");
                 std::process::exit(1);
             }
@@ -531,110 +445,6 @@ fn main() {
         #[cfg(not(feature = "live"))]
         {
             eprintln!("error: --live requires the `live` feature (build with --features live)");
-            std::process::exit(1);
-        }
-    }
-
-    // Phase 5.5 --history-graph: ASCII sparkline of a recorded metric.
-    if cli.history_graph.is_some() {
-        #[cfg(feature = "history")]
-        {
-            let metric_arg = cli.history_graph.as_deref().unwrap_or("");
-            let metric = match parse_history_metric(metric_arg) {
-                Some(m) => m,
-                None => {
-                    eprintln!(
-                        "error: --history-graph expects cpu|memory|disk|temp (got {metric_arg:?})"
-                    );
-                    std::process::exit(1);
-                }
-            };
-            match history::open(&ctx.cache_dir) {
-                Ok(conn) => {
-                    if let Err(e) = history::graph(&conn, metric, cli.hours as i64) {
-                        eprintln!("history error: {e}");
-                        std::process::exit(1);
-                    }
-                }
-                Err(e) => {
-                    eprintln!("history error: {e}");
-                    std::process::exit(1);
-                }
-            }
-            return;
-        }
-        #[cfg(not(feature = "history"))]
-        {
-            eprintln!(
-                "error: --history-graph requires the `history` feature (build with --features history)"
-            );
-            std::process::exit(1);
-        }
-    }
-
-    // Phase 5.5 --history-export: dump the snapshots table to CSV.
-    if cli.history_export.is_some() {
-        #[cfg(feature = "history")]
-        {
-            let path = cli.history_export.as_deref().unwrap_or_else(|| {
-                eprintln!("error: --history-export requires a file path");
-                std::process::exit(1);
-            });
-            match history::open(&ctx.cache_dir) {
-                Ok(conn) => {
-                    if let Err(e) = history::export_csv(&conn, path) {
-                        eprintln!("history error: {e}");
-                        std::process::exit(1);
-                    }
-                }
-                Err(e) => {
-                    eprintln!("history error: {e}");
-                    std::process::exit(1);
-                }
-            }
-            return;
-        }
-        #[cfg(not(feature = "history"))]
-        {
-            eprintln!(
-                "error: --history-export requires the `history` feature (build with --features history)"
-            );
-            std::process::exit(1);
-        }
-    }
-
-    // Phase 5.6 --daemon: critical health notifications until Ctrl+C.
-    if cli.daemon {
-        #[cfg(feature = "notifications")]
-        {
-            let thresholds = daemon::Thresholds::new(&cli.threshold);
-            daemon::run(ctx, cli.history_interval, thresholds);
-            return;
-        }
-        #[cfg(not(feature = "notifications"))]
-        {
-            eprintln!(
-                "error: --daemon requires the `notifications` feature (build with --features notifications)"
-            );
-            std::process::exit(1);
-        }
-    }
-
-    // Phase 5.5 --history: record snapshots to history.db until Ctrl+C.
-    if cli.history {
-        #[cfg(feature = "history")]
-        {
-            if let Err(e) = history::record_loop(ctx, cli.history_interval) {
-                eprintln!("history error: {e}");
-                std::process::exit(1);
-            }
-            return;
-        }
-        #[cfg(not(feature = "history"))]
-        {
-            eprintln!(
-                "error: --history requires the `history` feature (build with --features history)"
-            );
             std::process::exit(1);
         }
     }
@@ -676,27 +486,10 @@ fn main() {
         for (host, info) in &results {
             println!("\x1b[1;36m== {host} ==\x1b[0m");
             match info {
-                Ok(info) => render_info(info, &config, &cli),
+                Ok(info) => render_output(info, &config, &cli, true),
                 Err(e) => eprintln!("  error: {e}"),
             }
             println!();
-        }
-        return;
-    }
-
-    // --bench-cpu / --bench-memory: SIMD micro-benchmarks (Phase 4.3)
-    if cli.bench_cpu || cli.bench_memory {
-        let iterations = cli.benchmark.unwrap_or(5).max(1);
-        if cli.bench_cpu {
-            let (level, best) = simd::bench_cpu(iterations);
-            println!("CPU SIMD benchmark ({iterations} iterations):");
-            println!("  path:  {level:?}");
-            println!("  best:  {:?}", best);
-        }
-        if cli.bench_memory {
-            let (gb_s, best) = simd::bench_memory(iterations);
-            println!("Memory write bandwidth ({iterations} iterations, 64 MiB buffer):");
-            println!("  best:  {gb_s:.2} GiB/s ({:?})", best);
         }
         return;
     }
@@ -819,7 +612,7 @@ fn main() {
                     fresh.add("plugins", plugins);
                 }
             }
-            render_output(&fresh, &config, &cli);
+            render_output(&fresh, &config, &cli, false);
             std::io::Write::flush(&mut std::io::stdout()).ok();
             std::thread::sleep(Duration::from_secs(cli.watch_interval));
         }
@@ -827,7 +620,7 @@ fn main() {
         return;
     }
 
-    render_output(&info, &config, &cli);
+    render_output(&info, &config, &cli, false);
 }
 
 /// Resolve the module list from CLI flags/presets/config (shared by the main
@@ -934,9 +727,6 @@ fn apply_cli_overrides(cli: &Cli, config: &mut Config, pipe_mode: bool) {
     if let Some(ref s) = cli.box_style {
         config.display.box_style = s.clone();
     }
-    if cli.pixel_logo {
-        config.display.pixel_logo = true;
-    }
     if let Some(ref s) = cli.palette_style {
         config.display.palette_style = s.clone();
     }
@@ -954,7 +744,7 @@ fn config_file_path(cli: &Cli) -> Option<PathBuf> {
     if let Some(p) = &cli.config {
         return Some(PathBuf::from(p));
     }
-    let default = get_config_dir().join("config.toml");
+    let default = tools::config_dir().join("config.toml");
     if default.exists() {
         Some(default)
     } else {
@@ -1044,56 +834,6 @@ fn info_value_summary(v: &InfoValue) -> String {
         }
         InfoValue::List(l) => l.join(", "),
         InfoValue::Table(t) => format!("{} rows", t.len()),
-    }
-}
-
-fn render_info(info: &SystemInfo, config: &Config, cli: &Cli) {
-    match cli.format.as_str() {
-        "json" => {
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&info.to_json()).unwrap_or_else(|_| "{}".into())
-            );
-        }
-        "ansible" => match flexfetch_core::export::export_ansible(info) {
-            Ok(s) => println!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "terraform" => match flexfetch_core::export::export_terraform(info) {
-            Ok(s) => println!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "csv" => match flexfetch_core::export::export_csv(info) {
-            Ok(s) => println!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "prometheus" => match flexfetch_core::export::export_prometheus(info) {
-            Ok(s) => println!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "github" => match flexfetch_core::export::export_github(info) {
-            Ok(s) => println!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        _ => {
-            let engine = TeraEngine::new_default();
-            match engine.render(info, config) {
-                Ok(output) => {
-                    let out = if config.display.frame != "none" {
-                        let theme = flexfetch_core::theme::resolve(config);
-                        flexfetch_core::template::frame_wrap(
-                            &output,
-                            &config.display.frame,
-                            &theme.section,
-                        )
-                    } else {
-                        output
-                    };
-                    println!("{out}");
-                }
-                Err(e) => eprintln!("template error: {e}"),
-            }
-        }
     }
 }
 
@@ -1237,7 +977,7 @@ fn benchmark(
     }
 }
 
-fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli) {
+fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli, ssh: bool) {
     match cli.format.as_str() {
         "json" => {
             println!(
@@ -1245,7 +985,7 @@ fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli) 
                 serde_json::to_string_pretty(&info.to_json()).unwrap_or_else(|_| "{}".into())
             );
         }
-        "markdown" | "md" => match flexfetch_core::export::export_markdown(info, config) {
+        "markdown" | "md" if !ssh => match flexfetch_core::export::export_markdown(info, config) {
             Ok(md) => print!("{md}"),
             Err(e) => eprintln!("export error: {e}"),
         },
@@ -1270,10 +1010,9 @@ fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli) 
             Err(e) => eprintln!("export error: {e}"),
         },
         _ => {
-            // --flash: the plain terminal path gets the always-compiled flash
-            // renderer (no Tera compile, no theme/logo/frame). --demo is a
-            // showcase mode and keeps its normal full-color render.
-            if cli.flash && !cli.demo {
+            // --ssh targets render through the full template engine even on
+            // --flash (render_info legacy behavior — no flash fast-path).
+            if !ssh && cli.flash && !cli.demo {
                 println!("{}", flexfetch_core::template::render_flash(info));
                 return;
             }
@@ -1356,14 +1095,11 @@ fn handle_export(
 
 fn module_group(name: &str) -> Vec<String> {
     match name {
-        "flash" => vec![
-            "title".into(),
-            "separator".into(),
-            "os".into(),
-            "kernel".into(),
-            "uptime".into(),
-            "memory".into(),
-        ],
+        "flash" => {
+            let mut v = module_group("minimal");
+            v.push("memory".into());
+            v
+        }
         "minimal" => vec![
             "title".into(),
             "separator".into(),
@@ -1463,7 +1199,7 @@ fn load_preset(name: &str) -> Vec<String> {
     }
 
     // Check user presets (~/.config/flexfetch/presets/<name>.toml)
-    let presets_dir = get_config_dir().join("presets");
+    let presets_dir = tools::config_dir().join("presets");
     let preset_path = presets_dir.join(format!("{name}.toml"));
     if let Ok(content) = std::fs::read_to_string(&preset_path) {
         if let Ok(doc) = toml::from_str::<toml::Value>(&content) {
@@ -1489,7 +1225,7 @@ fn list_presets() {
     }
 
     // Check user presets directory
-    let presets_dir = get_config_dir().join("presets");
+    let presets_dir = tools::config_dir().join("presets");
     if presets_dir.exists() {
         if let Ok(entries) = std::fs::read_dir(&presets_dir) {
             let user_presets: Vec<_> = entries
@@ -1517,21 +1253,11 @@ fn list_presets() {
     }
 }
 
-fn get_config_dir() -> std::path::PathBuf {
-    std::env::var("XDG_CONFIG_HOME")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|_| {
-            let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
-            std::path::PathBuf::from(home).join(".config")
-        })
-        .join("flexfetch")
-}
-
 fn generate_config() {
     let config = Config::default_for_testing();
     let toml = toml::to_string_pretty(&config).unwrap_or_default();
     println!("{toml}");
-    let config_dir = get_config_dir();
+    let config_dir = tools::config_dir();
     if let Err(e) = std::fs::create_dir_all(&config_dir) {
         eprintln!("error creating config dir: {e}");
         return;
@@ -1557,7 +1283,7 @@ fn write_imported_config(cli: &Cli, toml_str: &str) {
         .config
         .as_ref()
         .map(PathBuf::from)
-        .unwrap_or_else(|| get_config_dir().join("config.toml"));
+        .unwrap_or_else(|| tools::config_dir().join("config.toml"));
     if let Some(parent) = path.parent() {
         if let Err(e) = std::fs::create_dir_all(parent) {
             eprintln!("error creating config dir: {e}");

@@ -6,10 +6,6 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 pub struct WeatherModule;
 
 impl Module for WeatherModule {
-    fn name(&self) -> &'static str {
-        "weather"
-    }
-
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Phase 4.14: hand-rolled HTTP/1.1 over TcpStream — no reqwest/hyper.
         // wttr.in serves plain HTTP on :80 (verified; MET Norway is HTTPS-only

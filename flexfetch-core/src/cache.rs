@@ -60,30 +60,17 @@ impl Cache {
             // Atomic write: write to temp file then rename
             let temp_path = self.path.with_extension("json.tmp");
             #[cfg(unix)]
-            {
-                use std::os::unix::fs::OpenOptionsExt;
-                let result = std::fs::OpenOptions::new()
-                    .write(true)
-                    .create(true)
-                    .truncate(true)
-                    .mode(0o600)
-                    .open(&temp_path)
-                    .and_then(|mut f| {
-                        use std::io::Write;
-                        f.write_all(json.as_bytes())
-                    });
-
-                if result.is_ok() {
-                    let _ = std::fs::rename(&temp_path, &self.path);
-                }
-            }
-
-            #[cfg(not(unix))]
-            {
-                let result = std::fs::write(&temp_path, &json);
-                if result.is_ok() {
-                    let _ = std::fs::rename(&temp_path, &self.path);
-                }
+            use std::os::unix::fs::OpenOptionsExt;
+            let mut opts = std::fs::OpenOptions::new();
+            opts.write(true).create(true).truncate(true);
+            #[cfg(unix)]
+            opts.mode(0o600);
+            let result = opts.open(&temp_path).and_then(|mut f| {
+                use std::io::Write;
+                f.write_all(json.as_bytes())
+            });
+            if result.is_ok() {
+                let _ = std::fs::rename(&temp_path, &self.path);
             }
         }
     }

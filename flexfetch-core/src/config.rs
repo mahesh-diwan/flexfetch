@@ -27,9 +27,6 @@ pub struct Config {
     pub display: DisplayConfig,
 
     #[serde(default)]
-    pub cache: CacheConfig,
-
-    #[serde(default)]
     pub custom: HashMap<String, CustomModule>,
 
     #[serde(default)]
@@ -40,7 +37,6 @@ pub struct Config {
 pub struct ModuleConfig {
     pub color_keys: Option<String>,
     pub color_values: Option<String>,
-    pub label: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
@@ -91,9 +87,6 @@ pub struct DisplayConfig {
 
     #[serde(default = "DisplayConfig::default_box_style")]
     pub box_style: String,
-
-    #[serde(default = "DisplayConfig::default_pixel_logo")]
-    pub pixel_logo: bool,
 
     #[serde(default = "DisplayConfig::default_palette_style")]
     pub palette_style: String,
@@ -151,12 +144,6 @@ pub struct DisplayConfig {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct CacheConfig {
-    #[serde(default = "CacheConfig::default_ttl")]
-    pub ttl: u64,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CustomModule {
     pub command: String,
     #[serde(default)]
@@ -180,9 +167,6 @@ impl DisplayConfig {
     }
     pub fn default_box_style() -> String {
         "rounded".into()
-    }
-    pub fn default_pixel_logo() -> bool {
-        false
     }
     pub fn default_palette_style() -> String {
         "blocks".into()
@@ -270,7 +254,6 @@ impl Default for DisplayConfig {
             gradient_title: Self::default_gradient_title(),
             progress_bars: Self::default_progress_bars(),
             box_style: Self::default_box_style(),
-            pixel_logo: Self::default_pixel_logo(),
             palette_style: Self::default_palette_style(),
             frame: Self::default_frame(),
             logo_gradient: Self::default_logo_gradient(),
@@ -293,20 +276,6 @@ impl Default for DisplayConfig {
             icon_processes: Self::default_icon_processes(),
             icon_end: Self::default_icon_end(),
             icon_temp: Self::default_icon_temp(),
-        }
-    }
-}
-
-impl CacheConfig {
-    pub fn default_ttl() -> u64 {
-        60
-    }
-}
-
-impl Default for CacheConfig {
-    fn default() -> Self {
-        CacheConfig {
-            ttl: Self::default_ttl(),
         }
     }
 }
@@ -400,7 +369,6 @@ impl Config {
             plugins_dir: None,
             template: Config::default_template(),
             display: DisplayConfig::default(),
-            cache: CacheConfig::default(),
             custom: HashMap::new(),
             modules_config: HashMap::new(),
         }
@@ -499,7 +467,6 @@ fn merge_config(base: Config, override_config: Config) -> Config {
             gradient_title: override_config.display.gradient_title,
             progress_bars: override_config.display.progress_bars,
             box_style: override_config.display.box_style,
-            pixel_logo: override_config.display.pixel_logo,
             palette_style: override_config.display.palette_style,
             frame: override_config.display.frame,
             logo_gradient: override_config.display.logo_gradient,
@@ -523,7 +490,6 @@ fn merge_config(base: Config, override_config: Config) -> Config {
             icon_end: override_config.display.icon_end,
             icon_temp: override_config.display.icon_temp,
         },
-        cache: override_config.cache,
         custom: if !override_config.custom.is_empty() {
             override_config.custom
         } else {

@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct NetworkModule;
 
 impl Module for NetworkModule {
-    fn name(&self) -> &'static str {
-        "network"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Explicit type: on macOS the `&mut nets` read loop precedes the first
         // `push`, so inference can't resolve the element type there.

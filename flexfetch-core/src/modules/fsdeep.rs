@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct FsDeepModule;
 
 impl Module for FsDeepModule {
-    fn name(&self) -> &'static str {
-        "fsdeep"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Phase 4.6: filesystem deep dive — pure sysfs/file reads, zero spawns.
         // Every probe degrades gracefully (missing paths → empty map → omitted).

@@ -5,10 +5,6 @@ use std::path::PathBuf;
 pub struct WallpaperModule;
 
 impl Module for WallpaperModule {
-    fn name(&self) -> &'static str {
-        "wallpaper"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Phase 4.8: wallpaper path + desktop context from per-DE config files
         // (no spawns on the common paths — gsettings only as a GNOME fallback).

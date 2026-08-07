@@ -1,3 +1,4 @@
+mod ansi;
 #[cfg(feature = "auto-theme")]
 pub mod autotheme;
 pub mod cache;

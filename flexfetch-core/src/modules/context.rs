@@ -26,10 +26,6 @@ fn detect_container() -> Option<String> {
 }
 
 impl Module for ContextModule {
-    fn name(&self) -> &'static str {
-        "context"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

@@ -290,13 +290,7 @@ fn save_config(wizard: &Wizard) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn config_dir() -> std::path::PathBuf {
-    std::env::var("XDG_CONFIG_HOME")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|_| {
-            let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
-            std::path::PathBuf::from(home).join(".config")
-        })
-        .join("flexfetch")
+    crate::tools::config_dir()
 }
 
 // ---------------------------------------------------------------------------

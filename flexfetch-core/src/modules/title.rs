@@ -3,10 +3,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct TitleModule;
 
 impl Module for TitleModule {
-    fn name(&self) -> &'static str {
-        "title"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let user = std::env::var("USER")
             .or_else(|_| std::env::var("LOGNAME"))

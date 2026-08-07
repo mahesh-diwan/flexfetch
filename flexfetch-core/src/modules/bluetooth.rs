@@ -8,10 +8,6 @@ use std::process::Command;
 pub struct BluetoothModule;
 
 impl Module for BluetoothModule {
-    fn name(&self) -> &'static str {
-        "bluetooth"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

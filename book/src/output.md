@@ -42,7 +42,6 @@ Options:
   -o, --output <FILE>            Export output path
       --no-gradient | --no-progress
       --box-style <STYLE>        rounded|double|dotted|thick|ascii
-      --pixel-logo               Use block image logos
       --palette-style <STYLE>    blocks|squares|dots
       --frame <STYLE>            none|single|double
       --watch [--watch-interval N]

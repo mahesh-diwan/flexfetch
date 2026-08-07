@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct MemoryModule;
 
 impl Module for MemoryModule {
-    fn name(&self) -> &'static str {
-        "memory"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

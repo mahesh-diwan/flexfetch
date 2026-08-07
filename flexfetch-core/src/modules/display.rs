@@ -4,10 +4,6 @@ use std::process::Command;
 pub struct DisplayModule;
 
 impl Module for DisplayModule {
-    fn name(&self) -> &'static str {
-        "display"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Try wlr-randr first (Wayland-native)
         if let Some(v) = try_wlr_randr() {

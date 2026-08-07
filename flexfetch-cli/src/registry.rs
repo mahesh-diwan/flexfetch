@@ -39,13 +39,7 @@ pub struct PluginEntry {
 /// The directory installed plugins live in (matches the `--list-modules`
 /// hint: `~/.config/flexfetch/plugins/`).
 pub fn plugins_dir() -> PathBuf {
-    let xdg = std::env::var("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
-            PathBuf::from(home).join(".config")
-        });
-    xdg.join("flexfetch").join("plugins")
+    crate::tools::config_dir().join("plugins")
 }
 
 /// Download the registry TOML and parse it (best-effort field extraction; no
@@ -338,30 +332,12 @@ fn verify_signature(bytes: &[u8], signature_b64: &str, pubkey_b64: &str) -> Resu
         .map_err(|e| format!("Ed25519 verify failed: {e}"))
 }
 
-/// Minimal standard-base64 decoder (std only; the `base64` crate is gated
-/// behind the `qr` feature, so the registry keeps itself dependency-light).
+/// Decode standard base64 via the `base64` crate (replaces the hand-rolled
+/// decoder; `base64` is a plain dependency now).
 fn base64_decode(input: &str) -> Option<Vec<u8>> {
-    let mut out = Vec::with_capacity(input.len() / 4 * 3);
-    let mut buf: u32 = 0;
-    let mut bits = 0u32;
-    for &c in input.as_bytes() {
-        let val = match c {
-            b'A'..=b'Z' => c - b'A',
-            b'a'..=b'z' => c - b'a' + 26,
-            b'0'..=b'9' => c - b'0' + 52,
-            b'+' => 62,
-            b'/' => 63,
-            b'=' => break,
-            _ => return None,
-        };
-        buf = (buf << 6) | u32::from(val);
-        bits += 6;
-        if bits >= 8 {
-            bits -= 8;
-            out.push((buf >> bits) as u8);
-        }
-    }
-    Some(out)
+    use base64::prelude::BASE64_STANDARD;
+    use base64::Engine as _;
+    BASE64_STANDARD.decode(input).ok()
 }
 
 /// sha256 of a file, via sha256sum (Linux) or shasum -a 256 (macOS).
@@ -476,32 +452,11 @@ sha256 = "abc"
         assert_eq!(base64_decode("YWJj"), Some(b"abc".to_vec())); // "abc"
     }
 
-    /// Test-only std base64 encoder (mirrors the registry_sign example).
+    /// Test-only base64 encoder (via the `base64` crate).
     fn base64_encode_std(input: &[u8]) -> String {
-        const TABLE: &[u8; 64] =
-            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        let mut out = String::with_capacity(input.len().div_ceil(3) * 4);
-        for chunk in input.chunks(3) {
-            let b = [
-                chunk[0],
-                *chunk.get(1).unwrap_or(&0),
-                *chunk.get(2).unwrap_or(&0),
-            ];
-            let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
-            out.push(TABLE[(n >> 18) as usize & 63] as char);
-            out.push(TABLE[(n >> 12) as usize & 63] as char);
-            if chunk.len() > 1 {
-                out.push(TABLE[(n >> 6) as usize & 63] as char);
-            } else {
-                out.push('=');
-            }
-            if chunk.len() > 2 {
-                out.push(TABLE[n as usize & 63] as char);
-            } else {
-                out.push('=');
-            }
-        }
-        out
+        use base64::prelude::BASE64_STANDARD;
+        use base64::Engine as _;
+        BASE64_STANDARD.encode(input)
     }
 
     #[test]

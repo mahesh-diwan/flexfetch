@@ -5,10 +5,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct ResolutionModule;
 
 impl Module for ResolutionModule {
-    fn name(&self) -> &'static str {
-        "resolution"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Explicit element type: on Windows no push ever happens (the collectors
         // are Linux-only), so inference cannot otherwise resolve the Vec.

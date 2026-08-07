@@ -466,12 +466,6 @@ drops ratatui/crossterm entirely for the minimal binary. Similarly, image logos
 on); without it, image logos fall back to ASCII (kitty/iTerm2 still work) and PNG
 export prints a clear "requires the image-logos feature" message.
 
-**Record the dashboard** as an asciinema v2 cast (share/replay with `asciinema play`):
-
-```bash
-flexfetch --live --record session.cast
-```
-
 <br>
 
 ---
@@ -518,23 +512,6 @@ steps:
 The composite action (`packaging/flexfetch-action/action.yml`) installs flexfetch
 when missing and runs `flexfetch --format github`. The raw export is also
 available standalone: `flexfetch -f github`.
-
-<br>
-
----
-
-## Tmux Integration
-
-Show a compact fetch in every new idle tmux pane:
-
-```bash
-flexfetch --tmux-config >> ~/.tmux.conf
-```
-
-The snippet (`run-shell ~/.local/bin/flexfetch-tmux`) runs the bundled
-`flexfetch-tmux` helper in each new pane — it only prints the fetch when the
-pane is idle (its current command is a shell), so long-running commands are
-never disturbed. The helper is installed next to the main binary by `install.sh`.
 
 <br>
 

@@ -12,7 +12,19 @@ pub struct ThemeStrings {
     pub gradient_colors: Vec<[u8; 3]>,
 }
 
-struct Theme {
+/// Truecolor RGB per slot for each preset. Only consulted when the terminal
+/// supports 24-bit color; the 16-color ANSI strings remain the fallback.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ThemeRgb {
+    pub title: [u8; 3],
+    pub keys: [u8; 3],
+    pub values: [u8; 3],
+    pub sep: [u8; 3],
+    pub section: [u8; 3],
+}
+
+struct ThemeEntry {
+    name: &'static str,
     title: &'static str,
     keys: &'static str,
     values: &'static str,
@@ -20,11 +32,478 @@ struct Theme {
     section: &'static str,
     reset: &'static str,
     gradient_colors: &'static [[u8; 3]],
+    rgb: ThemeRgb,
 }
 
 const RESET: &str = "\x1b[0m";
 
-const NONE: Theme = Theme {
+/// Single source of truth for every built-in theme: preset name, the 16-color
+/// ANSI strings per slot, the gradient stops, and the truecolor RGB per slot.
+/// `preset_names`, `preset_rgb`, and `resolve` are all derived from this table.
+const THEMES: &[ThemeEntry] = &[
+    ThemeEntry {
+        name: "catppuccin",
+        title: "\x1b[1;95m",
+        keys: "\x1b[94m",
+        values: "\x1b[96m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;94m",
+        reset: RESET,
+        gradient_colors: &[[203, 166, 247], [245, 224, 220], [137, 180, 250]],
+        rgb: ThemeRgb {
+            title: [203, 166, 247],
+            keys: [137, 180, 250],
+            values: [148, 226, 213],
+            sep: [108, 112, 134],
+            section: [137, 180, 250],
+        },
+    },
+    ThemeEntry {
+        name: "dracula",
+        title: "\x1b[1;95m",
+        keys: "\x1b[95m",
+        values: "\x1b[96m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;96m",
+        reset: RESET,
+        gradient_colors: &[[189, 147, 249], [255, 121, 198], [139, 233, 253]],
+        rgb: ThemeRgb {
+            title: [255, 121, 198],
+            keys: [189, 147, 249],
+            values: [139, 233, 253],
+            sep: [98, 114, 164],
+            section: [189, 147, 249],
+        },
+    },
+    ThemeEntry {
+        name: "nord",
+        title: "\x1b[1;94m",
+        keys: "\x1b[94m",
+        values: "\x1b[92m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;92m",
+        reset: RESET,
+        gradient_colors: &[[143, 188, 187], [136, 192, 208], [163, 190, 140]],
+        rgb: ThemeRgb {
+            title: [136, 192, 208],
+            keys: [129, 161, 193],
+            values: [163, 190, 140],
+            sep: [76, 86, 106],
+            section: [129, 161, 193],
+        },
+    },
+    ThemeEntry {
+        name: "gruvbox",
+        title: "\x1b[1;93m",
+        keys: "\x1b[93m",
+        values: "\x1b[92m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;93m",
+        reset: RESET,
+        gradient_colors: &[[250, 189, 47], [184, 184, 184], [131, 165, 152]],
+        rgb: ThemeRgb {
+            title: [250, 189, 47],
+            keys: [184, 187, 38],
+            values: [131, 165, 152],
+            sep: [146, 131, 116],
+            section: [184, 187, 38],
+        },
+    },
+    ThemeEntry {
+        name: "tokyo-night",
+        title: "\x1b[1;95m",
+        keys: "\x1b[94m",
+        values: "\x1b[96m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;95m",
+        reset: RESET,
+        gradient_colors: &[[187, 154, 247], [122, 162, 247], [125, 207, 255]],
+        rgb: ThemeRgb {
+            title: [187, 154, 247],
+            keys: [122, 162, 247],
+            values: [125, 207, 255],
+            sep: [86, 95, 137],
+            section: [122, 162, 247],
+        },
+    },
+    ThemeEntry {
+        name: "solarized-dark",
+        title: "\x1b[1;33m",
+        keys: "\x1b[36m",
+        values: "\x1b[34m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;33m",
+        reset: RESET,
+        gradient_colors: &[[181, 137, 0], [42, 161, 152], [38, 139, 210]],
+        rgb: ThemeRgb {
+            title: [181, 137, 0],
+            keys: [38, 139, 210],
+            values: [42, 161, 152],
+            sep: [147, 161, 161],
+            section: [38, 139, 210],
+        },
+    },
+    ThemeEntry {
+        name: "solarized-light",
+        title: "\x1b[1;31m",
+        keys: "\x1b[34m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;31m",
+        reset: RESET,
+        gradient_colors: &[[203, 75, 22], [38, 139, 210], [42, 161, 152]],
+        rgb: ThemeRgb {
+            title: [203, 75, 22],
+            keys: [38, 139, 210],
+            values: [42, 161, 152],
+            sep: [131, 148, 150],
+            section: [38, 139, 210],
+        },
+    },
+    ThemeEntry {
+        name: "rose-pine",
+        title: "\x1b[1;36m",
+        keys: "\x1b[36m",
+        values: "\x1b[35m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;36m",
+        reset: RESET,
+        gradient_colors: &[[235, 111, 146], [246, 193, 119], [156, 207, 216]],
+        rgb: ThemeRgb {
+            title: [235, 111, 146],
+            keys: [156, 207, 216],
+            values: [196, 167, 231],
+            sep: [110, 106, 134],
+            section: [156, 207, 216],
+        },
+    },
+    ThemeEntry {
+        name: "rose-pine-dawn",
+        title: "\x1b[1;34m",
+        keys: "\x1b[36m",
+        values: "\x1b[35m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;34m",
+        reset: RESET,
+        gradient_colors: &[[184, 90, 120], [204, 159, 95], [121, 164, 171]],
+        rgb: ThemeRgb {
+            title: [215, 130, 126],
+            keys: [86, 148, 159],
+            values: [144, 122, 169],
+            sep: [152, 147, 165],
+            section: [86, 148, 159],
+        },
+    },
+    ThemeEntry {
+        name: "everforest-dark",
+        title: "\x1b[1;32m",
+        keys: "\x1b[34m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;32m",
+        reset: RESET,
+        gradient_colors: &[[163, 190, 140], [127, 187, 164], [211, 198, 170]],
+        rgb: ThemeRgb {
+            title: [167, 192, 128],
+            keys: [127, 187, 179],
+            values: [131, 192, 146],
+            sep: [122, 132, 120],
+            section: [127, 187, 179],
+        },
+    },
+    ThemeEntry {
+        name: "everforest-light",
+        title: "\x1b[1;32m",
+        keys: "\x1b[34m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;32m",
+        reset: RESET,
+        gradient_colors: &[[133, 160, 112], [96, 158, 139], [178, 162, 138]],
+        rgb: ThemeRgb {
+            title: [141, 161, 1],
+            keys: [58, 148, 197],
+            values: [53, 167, 124],
+            sep: [166, 176, 160],
+            section: [58, 148, 197],
+        },
+    },
+    ThemeEntry {
+        name: "bamboo",
+        title: "\x1b[1;31m",
+        keys: "\x1b[32m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;31m",
+        reset: RESET,
+        gradient_colors: &[[220, 90, 90], [120, 190, 120], [100, 180, 210]],
+        rgb: ThemeRgb {
+            title: [224, 104, 72],
+            keys: [104, 168, 112],
+            values: [88, 152, 168],
+            sep: [136, 138, 144],
+            section: [104, 168, 112],
+        },
+    },
+    ThemeEntry {
+        name: "oxocarbon-dark",
+        title: "\x1b[1;36m",
+        keys: "\x1b[36m",
+        values: "\x1b[35m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;36m",
+        reset: RESET,
+        gradient_colors: &[[35, 165, 189], [169, 123, 255], [235, 188, 55]],
+        rgb: ThemeRgb {
+            title: [8, 189, 186],
+            keys: [51, 177, 255],
+            values: [255, 126, 182],
+            sep: [82, 82, 82],
+            section: [51, 177, 255],
+        },
+    },
+    ThemeEntry {
+        name: "one-dark",
+        title: "\x1b[1;35m",
+        keys: "\x1b[31m",
+        values: "\x1b[32m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;35m",
+        reset: RESET,
+        gradient_colors: &[[198, 120, 221], [224, 108, 117], [152, 195, 121]],
+        rgb: ThemeRgb {
+            title: [198, 120, 221],
+            keys: [97, 175, 239],
+            values: [152, 195, 121],
+            sep: [92, 99, 112],
+            section: [97, 175, 239],
+        },
+    },
+    ThemeEntry {
+        name: "one-light",
+        title: "\x1b[1;35m",
+        keys: "\x1b[31m",
+        values: "\x1b[32m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;35m",
+        reset: RESET,
+        gradient_colors: &[[165, 93, 194], [209, 83, 97], [120, 169, 96]],
+        rgb: ThemeRgb {
+            title: [166, 38, 164],
+            keys: [228, 86, 73],
+            values: [80, 161, 79],
+            sep: [160, 161, 167],
+            section: [228, 86, 73],
+        },
+    },
+    ThemeEntry {
+        name: "tokyo-night-storm",
+        title: "\x1b[1;35m",
+        keys: "\x1b[34m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;35m",
+        reset: RESET,
+        gradient_colors: &[[187, 154, 247], [125, 207, 255], [187, 154, 247]],
+        rgb: ThemeRgb {
+            title: [187, 154, 247],
+            keys: [122, 162, 247],
+            values: [125, 207, 255],
+            sep: [86, 95, 137],
+            section: [122, 162, 247],
+        },
+    },
+    ThemeEntry {
+        name: "catppuccin-mocha",
+        title: "\x1b[1;35m",
+        keys: "\x1b[34m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;35m",
+        reset: RESET,
+        gradient_colors: &[[203, 166, 247], [245, 224, 220], [137, 180, 250]],
+        rgb: ThemeRgb {
+            title: [203, 166, 247],
+            keys: [137, 180, 250],
+            values: [148, 226, 213],
+            sep: [108, 112, 134],
+            section: [137, 180, 250],
+        },
+    },
+    ThemeEntry {
+        name: "catppuccin-frappe",
+        title: "\x1b[1;35m",
+        keys: "\x1b[34m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;35m",
+        reset: RESET,
+        gradient_colors: &[[202, 158, 230], [242, 213, 207], [140, 170, 238]],
+        rgb: ThemeRgb {
+            title: [202, 158, 230],
+            keys: [140, 170, 238],
+            values: [129, 200, 190],
+            sep: [115, 121, 148],
+            section: [140, 170, 238],
+        },
+    },
+    ThemeEntry {
+        name: "catppuccin-macchiato",
+        title: "\x1b[1;35m",
+        keys: "\x1b[34m",
+        values: "\x1b[36m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;35m",
+        reset: RESET,
+        gradient_colors: &[[198, 160, 246], [238, 212, 209], [138, 173, 244]],
+        rgb: ThemeRgb {
+            title: [198, 160, 246],
+            keys: [138, 173, 244],
+            values: [139, 213, 202],
+            sep: [110, 115, 141],
+            section: [138, 173, 244],
+        },
+    },
+    ThemeEntry {
+        name: "monokai",
+        title: "\x1b[1;93m",
+        keys: "\x1b[1;92m",
+        values: "\x1b[91m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;93m",
+        reset: RESET,
+        gradient_colors: &[[229, 192, 123], [166, 226, 118], [249, 38, 114]],
+        rgb: ThemeRgb {
+            title: [230, 219, 116],
+            keys: [166, 226, 46],
+            values: [249, 38, 114],
+            sep: [117, 113, 94],
+            section: [166, 226, 46],
+        },
+    },
+    ThemeEntry {
+        name: "monokai-pro",
+        title: "\x1b[1;95m",
+        keys: "\x1b[1;96m",
+        values: "\x1b[93m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;95m",
+        reset: RESET,
+        gradient_colors: &[[171, 123, 224], [120, 204, 220], [252, 183, 88]],
+        rgb: ThemeRgb {
+            title: [255, 216, 102],
+            keys: [169, 220, 118],
+            values: [120, 220, 232],
+            sep: [114, 112, 114],
+            section: [169, 220, 118],
+        },
+    },
+    ThemeEntry {
+        name: "ayu-dark",
+        title: "\x1b[1;93m",
+        keys: "\x1b[1;96m",
+        values: "\x1b[92m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;93m",
+        reset: RESET,
+        gradient_colors: &[[230, 193, 70], [100, 210, 200], [171, 233, 124]],
+        rgb: ThemeRgb {
+            title: [255, 180, 84],
+            keys: [57, 186, 230],
+            values: [170, 217, 76],
+            sep: [92, 103, 115],
+            section: [57, 186, 230],
+        },
+    },
+    ThemeEntry {
+        name: "ayu-mirage",
+        title: "\x1b[1;95m",
+        keys: "\x1b[1;96m",
+        values: "\x1b[93m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;95m",
+        reset: RESET,
+        gradient_colors: &[[202, 150, 220], [100, 210, 200], [255, 204, 102]],
+        rgb: ThemeRgb {
+            title: [255, 204, 102],
+            keys: [115, 208, 255],
+            values: [212, 191, 255],
+            sep: [92, 103, 115],
+            section: [115, 208, 255],
+        },
+    },
+    ThemeEntry {
+        name: "palenight",
+        title: "\x1b[1;93m",
+        keys: "\x1b[1;96m",
+        values: "\x1b[92m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;93m",
+        reset: RESET,
+        gradient_colors: &[[199, 146, 234], [85, 180, 222], [171, 233, 124]],
+        rgb: ThemeRgb {
+            title: [255, 203, 107],
+            keys: [130, 170, 255],
+            values: [199, 146, 234],
+            sep: [103, 110, 149],
+            section: [130, 170, 255],
+        },
+    },
+    ThemeEntry {
+        name: "material-ocean",
+        title: "\x1b[1;93m",
+        keys: "\x1b[1;96m",
+        values: "\x1b[91m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;93m",
+        reset: RESET,
+        gradient_colors: &[[255, 183, 77], [0, 230, 230], [255, 82, 82]],
+        rgb: ThemeRgb {
+            title: [255, 203, 107],
+            keys: [130, 170, 255],
+            values: [137, 221, 255],
+            sep: [82, 89, 117],
+            section: [130, 170, 255],
+        },
+    },
+    ThemeEntry {
+        name: "kanagawa",
+        title: "\x1b[1;91m",
+        keys: "\x1b[1;96m",
+        values: "\x1b[92m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;91m",
+        reset: RESET,
+        gradient_colors: &[[232, 63, 86], [114, 191, 201], [166, 209, 137]],
+        rgb: ThemeRgb {
+            title: [195, 64, 67],
+            keys: [126, 156, 216],
+            values: [106, 149, 137],
+            sep: [114, 113, 105],
+            section: [126, 156, 216],
+        },
+    },
+    ThemeEntry {
+        name: "mellow-purple",
+        title: "\x1b[1;95m",
+        keys: "\x1b[1;96m",
+        values: "\x1b[92m",
+        sep: "\x1b[90m",
+        section: "\x1b[1;95m",
+        reset: RESET,
+        gradient_colors: &[[178, 102, 255], [0, 210, 210], [166, 226, 118]],
+        rgb: ThemeRgb {
+            title: [210, 166, 255],
+            keys: [179, 161, 230],
+            values: [156, 230, 212],
+            sep: [138, 136, 184],
+            section: [179, 161, 230],
+        },
+    },
+];
+
+const NONE: ThemeEntry = ThemeEntry {
+    name: "",
     title: "",
     keys: "",
     values: "",
@@ -32,250 +511,18 @@ const NONE: Theme = Theme {
     section: "",
     reset: "",
     gradient_colors: &[],
+    rgb: ThemeRgb {
+        title: [0, 0, 0],
+        keys: [0, 0, 0],
+        values: [0, 0, 0],
+        sep: [0, 0, 0],
+        section: [0, 0, 0],
+    },
 };
-const CATPPUCCIN: Theme = Theme {
-    title: "\x1b[1;95m",
-    keys: "\x1b[94m",
-    values: "\x1b[96m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;94m",
-    reset: RESET,
-    gradient_colors: &[[203, 166, 247], [245, 224, 220], [137, 180, 250]],
-};
-const DRACULA: Theme = Theme {
-    title: "\x1b[1;95m",
-    keys: "\x1b[95m",
-    values: "\x1b[96m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;96m",
-    reset: RESET,
-    gradient_colors: &[[189, 147, 249], [255, 121, 198], [139, 233, 253]],
-};
-const NORD: Theme = Theme {
-    title: "\x1b[1;94m",
-    keys: "\x1b[94m",
-    values: "\x1b[92m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;92m",
-    reset: RESET,
-    gradient_colors: &[[143, 188, 187], [136, 192, 208], [163, 190, 140]],
-};
-const GRUVBOX: Theme = Theme {
-    title: "\x1b[1;93m",
-    keys: "\x1b[93m",
-    values: "\x1b[92m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;93m",
-    reset: RESET,
-    gradient_colors: &[[250, 189, 47], [184, 184, 184], [131, 165, 152]],
-};
-const TOKYO_NIGHT: Theme = Theme {
-    title: "\x1b[1;95m",
-    keys: "\x1b[94m",
-    values: "\x1b[96m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;95m",
-    reset: RESET,
-    gradient_colors: &[[187, 154, 247], [122, 162, 247], [125, 207, 255]],
-};
-const SOLARIZED_DARK: Theme = Theme {
-    title: "\x1b[1;33m",
-    keys: "\x1b[36m",
-    values: "\x1b[34m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;33m",
-    reset: RESET,
-    gradient_colors: &[[181, 137, 0], [42, 161, 152], [38, 139, 210]],
-};
-const SOLARIZED_LIGHT: Theme = Theme {
-    title: "\x1b[1;31m",
-    keys: "\x1b[34m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;31m",
-    reset: RESET,
-    gradient_colors: &[[203, 75, 22], [38, 139, 210], [42, 161, 152]],
-};
-const ROSE_PINE: Theme = Theme {
-    title: "\x1b[1;36m",
-    keys: "\x1b[36m",
-    values: "\x1b[35m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;36m",
-    reset: RESET,
-    gradient_colors: &[[235, 111, 146], [246, 193, 119], [156, 207, 216]],
-};
-const ROSE_PINE_DAWN: Theme = Theme {
-    title: "\x1b[1;34m",
-    keys: "\x1b[36m",
-    values: "\x1b[35m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;34m",
-    reset: RESET,
-    gradient_colors: &[[184, 90, 120], [204, 159, 95], [121, 164, 171]],
-};
-const EVERFOREST_DARK: Theme = Theme {
-    title: "\x1b[1;32m",
-    keys: "\x1b[34m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;32m",
-    reset: RESET,
-    gradient_colors: &[[163, 190, 140], [127, 187, 164], [211, 198, 170]],
-};
-const EVERFOREST_LIGHT: Theme = Theme {
-    title: "\x1b[1;32m",
-    keys: "\x1b[34m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;32m",
-    reset: RESET,
-    gradient_colors: &[[133, 160, 112], [96, 158, 139], [178, 162, 138]],
-};
-const BAMBOO: Theme = Theme {
-    title: "\x1b[1;31m",
-    keys: "\x1b[32m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;31m",
-    reset: RESET,
-    gradient_colors: &[[220, 90, 90], [120, 190, 120], [100, 180, 210]],
-};
-const OXOCARBON_DARK: Theme = Theme {
-    title: "\x1b[1;36m",
-    keys: "\x1b[36m",
-    values: "\x1b[35m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;36m",
-    reset: RESET,
-    gradient_colors: &[[35, 165, 189], [169, 123, 255], [235, 188, 55]],
-};
-const ONE_DARK: Theme = Theme {
-    title: "\x1b[1;35m",
-    keys: "\x1b[31m",
-    values: "\x1b[32m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;35m",
-    reset: RESET,
-    gradient_colors: &[[198, 120, 221], [224, 108, 117], [152, 195, 121]],
-};
-const ONE_LIGHT: Theme = Theme {
-    title: "\x1b[1;35m",
-    keys: "\x1b[31m",
-    values: "\x1b[32m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;35m",
-    reset: RESET,
-    gradient_colors: &[[165, 93, 194], [209, 83, 97], [120, 169, 96]],
-};
-const TOKYO_NIGHT_STORM: Theme = Theme {
-    title: "\x1b[1;35m",
-    keys: "\x1b[34m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;35m",
-    reset: RESET,
-    gradient_colors: &[[187, 154, 247], [125, 207, 255], [187, 154, 247]],
-};
-const CATPPUCCIN_MOCHA: Theme = Theme {
-    title: "\x1b[1;35m",
-    keys: "\x1b[34m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;35m",
-    reset: RESET,
-    gradient_colors: &[[203, 166, 247], [245, 224, 220], [137, 180, 250]],
-};
-const CATPPUCCIN_FRAPPE: Theme = Theme {
-    title: "\x1b[1;35m",
-    keys: "\x1b[34m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;35m",
-    reset: RESET,
-    gradient_colors: &[[202, 158, 230], [242, 213, 207], [140, 170, 238]],
-};
-const CATPPUCCIN_MACCHIATO: Theme = Theme {
-    title: "\x1b[1;35m",
-    keys: "\x1b[34m",
-    values: "\x1b[36m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;35m",
-    reset: RESET,
-    gradient_colors: &[[198, 160, 246], [238, 212, 209], [138, 173, 244]],
-};
-const MONOKAI: Theme = Theme {
-    title: "\x1b[1;93m",
-    keys: "\x1b[1;92m",
-    values: "\x1b[91m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;93m",
-    reset: RESET,
-    gradient_colors: &[[229, 192, 123], [166, 226, 118], [249, 38, 114]],
-};
-const MONOKAI_PRO: Theme = Theme {
-    title: "\x1b[1;95m",
-    keys: "\x1b[1;96m",
-    values: "\x1b[93m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;95m",
-    reset: RESET,
-    gradient_colors: &[[171, 123, 224], [120, 204, 220], [252, 183, 88]],
-};
-const AYU_DARK: Theme = Theme {
-    title: "\x1b[1;93m",
-    keys: "\x1b[1;96m",
-    values: "\x1b[92m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;93m",
-    reset: RESET,
-    gradient_colors: &[[230, 193, 70], [100, 210, 200], [171, 233, 124]],
-};
-const AYU_MIRAGE: Theme = Theme {
-    title: "\x1b[1;95m",
-    keys: "\x1b[1;96m",
-    values: "\x1b[93m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;95m",
-    reset: RESET,
-    gradient_colors: &[[202, 150, 220], [100, 210, 200], [255, 204, 102]],
-};
-const PALENIGHT: Theme = Theme {
-    title: "\x1b[1;93m",
-    keys: "\x1b[1;96m",
-    values: "\x1b[92m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;93m",
-    reset: RESET,
-    gradient_colors: &[[199, 146, 234], [85, 180, 222], [171, 233, 124]],
-};
-const MATERIAL_OCEAN: Theme = Theme {
-    title: "\x1b[1;93m",
-    keys: "\x1b[1;96m",
-    values: "\x1b[91m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;93m",
-    reset: RESET,
-    gradient_colors: &[[255, 183, 77], [0, 230, 230], [255, 82, 82]],
-};
-const KANAGAWA: Theme = Theme {
-    title: "\x1b[1;91m",
-    keys: "\x1b[1;96m",
-    values: "\x1b[92m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;91m",
-    reset: RESET,
-    gradient_colors: &[[232, 63, 86], [114, 191, 201], [166, 209, 137]],
-};
-const MELLOW_PURPLE: Theme = Theme {
-    title: "\x1b[1;95m",
-    keys: "\x1b[1;96m",
-    values: "\x1b[92m",
-    sep: "\x1b[90m",
-    section: "\x1b[1;95m",
-    reset: RESET,
-    gradient_colors: &[[178, 102, 255], [0, 210, 210], [166, 226, 118]],
-};
+
+fn find_preset(name: &str) -> Option<&'static ThemeEntry> {
+    THEMES.iter().find(|t| t.name == name)
+}
 
 pub fn resolve_ansi(code_or_name: &str) -> String {
     if code_or_name.starts_with('\x1b') || code_or_name.starts_with("\\u001b") {
@@ -322,37 +569,10 @@ pub fn supports_truecolor() -> bool {
 }
 
 /// All built-in theme preset names (used by `--list-themes` and `--theme random`).
-/// Keep in sync with the `resolve` match arms below.
+/// Derived from the `THEMES` table — the single source of truth.
 pub fn preset_names() -> &'static [&'static str] {
-    &[
-        "catppuccin",
-        "dracula",
-        "nord",
-        "gruvbox",
-        "tokyo-night",
-        "solarized-dark",
-        "solarized-light",
-        "rose-pine",
-        "rose-pine-dawn",
-        "everforest-dark",
-        "everforest-light",
-        "bamboo",
-        "oxocarbon-dark",
-        "one-dark",
-        "one-light",
-        "tokyo-night-storm",
-        "catppuccin-mocha",
-        "catppuccin-frappe",
-        "catppuccin-macchiato",
-        "monokai",
-        "monokai-pro",
-        "ayu-dark",
-        "ayu-mirage",
-        "palenight",
-        "material-ocean",
-        "kanagawa",
-        "mellow-purple",
-    ]
+    static NAMES: std::sync::OnceLock<Vec<&'static str>> = std::sync::OnceLock::new();
+    NAMES.get_or_init(|| THEMES.iter().map(|t| t.name).collect())
 }
 
 /// Pick a pseudo-random preset (Phase 7.8 `--theme random`). Uses a small
@@ -368,210 +588,18 @@ pub fn random_preset() -> &'static str {
     names[idx]
 }
 
-/// Truecolor RGB per slot for each preset (Phase 7.1). Only consulted when the
-/// terminal supports 24-bit color; the 16-color ANSI consts remain the fallback.
-struct ThemeRgb {
-    title: [u8; 3],
-    keys: [u8; 3],
-    values: [u8; 3],
-    sep: [u8; 3],
-    section: [u8; 3],
+/// Truecolor RGB per slot for a preset (Phase 7.1). Only consulted when the
+/// terminal supports 24-bit color; the 16-color ANSI strings remain the
+/// fallback. Unknown names (including "random"/"auto", handled by callers)
+/// return None.
+fn preset_rgb(name: &str) -> Option<ThemeRgb> {
+    find_preset(name).map(|t| t.rgb)
 }
 
-fn preset_rgb(name: &str) -> Option<ThemeRgb> {
-    let hex = |s: &str| -> [u8; 3] {
-        let h = s.trim_start_matches('#');
-        [
-            u8::from_str_radix(&h[0..2], 16).unwrap_or(0),
-            u8::from_str_radix(&h[2..4], 16).unwrap_or(0),
-            u8::from_str_radix(&h[4..6], 16).unwrap_or(0),
-        ]
-    };
-    Some(match name {
-        "catppuccin" => ThemeRgb {
-            title: hex("#cba6f7"),
-            keys: hex("#89b4fa"),
-            values: hex("#94e2d5"),
-            sep: hex("#6c7086"),
-            section: hex("#89b4fa"),
-        },
-        "dracula" => ThemeRgb {
-            title: hex("#ff79c6"),
-            keys: hex("#bd93f9"),
-            values: hex("#8be9fd"),
-            sep: hex("#6272a4"),
-            section: hex("#bd93f9"),
-        },
-        "nord" => ThemeRgb {
-            title: hex("#88c0d0"),
-            keys: hex("#81a1c1"),
-            values: hex("#a3be8c"),
-            sep: hex("#4c566a"),
-            section: hex("#81a1c1"),
-        },
-        "gruvbox" => ThemeRgb {
-            title: hex("#fabd2f"),
-            keys: hex("#b8bb26"),
-            values: hex("#83a598"),
-            sep: hex("#928374"),
-            section: hex("#b8bb26"),
-        },
-        "tokyo-night" | "tokyo-night-storm" => ThemeRgb {
-            title: hex("#bb9af7"),
-            keys: hex("#7aa2f7"),
-            values: hex("#7dcfff"),
-            sep: hex("#565f89"),
-            section: hex("#7aa2f7"),
-        },
-        "solarized-dark" => ThemeRgb {
-            title: hex("#b58900"),
-            keys: hex("#268bd2"),
-            values: hex("#2aa198"),
-            sep: hex("#93a1a1"),
-            section: hex("#268bd2"),
-        },
-        "solarized-light" => ThemeRgb {
-            title: hex("#cb4b16"),
-            keys: hex("#268bd2"),
-            values: hex("#2aa198"),
-            sep: hex("#839496"),
-            section: hex("#268bd2"),
-        },
-        "rose-pine" => ThemeRgb {
-            title: hex("#eb6f92"),
-            keys: hex("#9ccfd8"),
-            values: hex("#c4a7e7"),
-            sep: hex("#6e6a86"),
-            section: hex("#9ccfd8"),
-        },
-        "rose-pine-dawn" => ThemeRgb {
-            title: hex("#d7827e"),
-            keys: hex("#56949f"),
-            values: hex("#907aa9"),
-            sep: hex("#9893a5"),
-            section: hex("#56949f"),
-        },
-        "everforest-dark" => ThemeRgb {
-            title: hex("#a7c080"),
-            keys: hex("#7fbbb3"),
-            values: hex("#83c092"),
-            sep: hex("#7a8478"),
-            section: hex("#7fbbb3"),
-        },
-        "everforest-light" => ThemeRgb {
-            title: hex("#8da101"),
-            keys: hex("#3a94c5"),
-            values: hex("#35a77c"),
-            sep: hex("#a6b0a0"),
-            section: hex("#3a94c5"),
-        },
-        "bamboo" => ThemeRgb {
-            title: hex("#e06848"),
-            keys: hex("#68a870"),
-            values: hex("#5898a8"),
-            sep: hex("#888a90"),
-            section: hex("#68a870"),
-        },
-        "oxocarbon-dark" => ThemeRgb {
-            title: hex("#08bdba"),
-            keys: hex("#33b1ff"),
-            values: hex("#ff7eb6"),
-            sep: hex("#525252"),
-            section: hex("#33b1ff"),
-        },
-        "one-dark" => ThemeRgb {
-            title: hex("#c678dd"),
-            keys: hex("#61afef"),
-            values: hex("#98c379"),
-            sep: hex("#5c6370"),
-            section: hex("#61afef"),
-        },
-        "one-light" => ThemeRgb {
-            title: hex("#a626a4"),
-            keys: hex("#e45649"),
-            values: hex("#50a14f"),
-            sep: hex("#a0a1a7"),
-            section: hex("#e45649"),
-        },
-        "catppuccin-mocha" => ThemeRgb {
-            title: hex("#cba6f7"),
-            keys: hex("#89b4fa"),
-            values: hex("#94e2d5"),
-            sep: hex("#6c7086"),
-            section: hex("#89b4fa"),
-        },
-        "catppuccin-frappe" => ThemeRgb {
-            title: hex("#ca9ee6"),
-            keys: hex("#8caaee"),
-            values: hex("#81c8be"),
-            sep: hex("#737994"),
-            section: hex("#8caaee"),
-        },
-        "catppuccin-macchiato" => ThemeRgb {
-            title: hex("#c6a0f6"),
-            keys: hex("#8aadf4"),
-            values: hex("#8bd5ca"),
-            sep: hex("#6e738d"),
-            section: hex("#8aadf4"),
-        },
-        "monokai" => ThemeRgb {
-            title: hex("#e6db74"),
-            keys: hex("#a6e22e"),
-            values: hex("#f92672"),
-            sep: hex("#75715e"),
-            section: hex("#a6e22e"),
-        },
-        "monokai-pro" => ThemeRgb {
-            title: hex("#ffd866"),
-            keys: hex("#a9dc76"),
-            values: hex("#78dce8"),
-            sep: hex("#727072"),
-            section: hex("#a9dc76"),
-        },
-        "ayu-dark" => ThemeRgb {
-            title: hex("#ffb454"),
-            keys: hex("#39bae6"),
-            values: hex("#aad94c"),
-            sep: hex("#5c6773"),
-            section: hex("#39bae6"),
-        },
-        "ayu-mirage" => ThemeRgb {
-            title: hex("#ffcc66"),
-            keys: hex("#73d0ff"),
-            values: hex("#d4bfff"),
-            sep: hex("#5c6773"),
-            section: hex("#73d0ff"),
-        },
-        "palenight" => ThemeRgb {
-            title: hex("#ffcb6b"),
-            keys: hex("#82aaff"),
-            values: hex("#c792ea"),
-            sep: hex("#676e95"),
-            section: hex("#82aaff"),
-        },
-        "material-ocean" => ThemeRgb {
-            title: hex("#ffcb6b"),
-            keys: hex("#82aaff"),
-            values: hex("#89ddff"),
-            sep: hex("#525975"),
-            section: hex("#82aaff"),
-        },
-        "kanagawa" => ThemeRgb {
-            title: hex("#c34043"),
-            keys: hex("#7e9cd8"),
-            values: hex("#6a9589"),
-            sep: hex("#727169"),
-            section: hex("#7e9cd8"),
-        },
-        "mellow-purple" => ThemeRgb {
-            title: hex("#d2a6ff"),
-            keys: hex("#b3a1e6"),
-            values: hex("#9ce6d4"),
-            sep: hex("#8a88b8"),
-            section: hex("#b3a1e6"),
-        },
-        _ => return None,
-    })
+/// ANSI truecolor code for one color slot (bold flag sets the bright prefix).
+pub(crate) fn truecolor(rgb: [u8; 3], bold: bool) -> String {
+    let pre = if bold { "\x1b[1;38;2;" } else { "\x1b[38;2;" };
+    format!("{pre}{};{};{}m", rgb[0], rgb[1], rgb[2])
 }
 
 pub fn resolve(config: &Config) -> ThemeStrings {
@@ -596,38 +624,9 @@ pub fn resolve(config: &Config) -> ThemeStrings {
     } else {
         theme_arg
     };
-    let preset = match resolved_name {
-        "catppuccin" => &CATPPUCCIN,
-        "dracula" => &DRACULA,
-        "nord" => &NORD,
-        "gruvbox" => &GRUVBOX,
-        "tokyo-night" => &TOKYO_NIGHT,
-        "solarized-dark" => &SOLARIZED_DARK,
-        "solarized-light" => &SOLARIZED_LIGHT,
-        "rose-pine" => &ROSE_PINE,
-        "rose-pine-dawn" => &ROSE_PINE_DAWN,
-        "everforest-dark" => &EVERFOREST_DARK,
-        "everforest-light" => &EVERFOREST_LIGHT,
-        "bamboo" => &BAMBOO,
-        "oxocarbon-dark" => &OXOCARBON_DARK,
-        "one-dark" => &ONE_DARK,
-        "one-light" => &ONE_LIGHT,
-        "tokyo-night-storm" => &TOKYO_NIGHT_STORM,
-        "catppuccin-mocha" => &CATPPUCCIN_MOCHA,
-        "catppuccin-frappe" => &CATPPUCCIN_FRAPPE,
-        "catppuccin-macchiato" => &CATPPUCCIN_MACCHIATO,
-        "monokai" => &MONOKAI,
-        "monokai-pro" => &MONOKAI_PRO,
-        "ayu-dark" => &AYU_DARK,
-        "ayu-mirage" => &AYU_MIRAGE,
-        "palenight" => &PALENIGHT,
-        "material-ocean" => &MATERIAL_OCEAN,
-        "kanagawa" => &KANAGAWA,
-        "mellow-purple" => &MELLOW_PURPLE,
-        _ => &NONE,
-    };
+    let preset = find_preset(resolved_name).unwrap_or(&NONE);
 
-    let truecolor = supports_truecolor();
+    let truecolor_support = supports_truecolor();
     let rgb = preset_rgb(resolved_name);
     // Pick a color code for one slot: explicit config override wins; else
     // truecolor RGB when the terminal supports it; else the 16-color ANSI.
@@ -637,9 +636,8 @@ pub fn resolve(config: &Config) -> ThemeStrings {
                 return resolve_ansi(c);
             }
             if let Some(rgb) = rgbc {
-                if truecolor {
-                    let pre = if bold { "\x1b[1;38;2;" } else { "\x1b[38;2;" };
-                    return format!("{pre}{};{};{}m", rgb[0], rgb[1], rgb[2]);
+                if truecolor_support {
+                    return truecolor(rgb, bold);
                 }
             }
             ansi.to_string()

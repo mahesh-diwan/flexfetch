@@ -7,10 +7,6 @@ use std::path::Path;
 pub struct ContainerModule;
 
 impl Module for ContainerModule {
-    fn name(&self) -> &'static str {
-        "container"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Phase 4.15: deep container introspection. Only meaningful inside a
         // container (or when a docker/podman socket is mounted).

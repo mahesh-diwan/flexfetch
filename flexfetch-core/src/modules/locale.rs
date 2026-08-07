@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct LocaleModule;
 
 impl Module for LocaleModule {
-    fn name(&self) -> &'static str {
-        "locale"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let lang = std::env::var("LANG").unwrap_or_default();
         let encoding = std::env::var("LC_CTYPE")

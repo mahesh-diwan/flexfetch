@@ -5,10 +5,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct GpuModule;
 
 impl Module for GpuModule {
-    fn name(&self) -> &'static str {
-        "gpu"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut gpus = Vec::new();
 

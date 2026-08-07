@@ -7,25 +7,18 @@
 
 use crate::theme::ThemeStrings;
 
-/// ANSI truecolor code for one color slot (bold flag sets the bright prefix).
-fn truecolor(rgb: [u8; 3], bold: bool) -> String {
-    let pre = if bold { "\x1b[1;38;2;" } else { "\x1b[38;2;" };
-    format!("{pre}{};{};{}m", rgb[0], rgb[1], rgb[2])
-}
-
 /// Cache file name: `/tmp/flexfetch-autotheme-<hash>` where the hash covers the
 /// wallpaper path + mtime so a wallpaper change picks a fresh key.
 fn cache_path(wallpaper: &str, mtime: std::time::SystemTime) -> std::path::PathBuf {
+    use std::hash::{Hash, Hasher};
     let m = mtime
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for b in format!("{wallpaper}:{m}").bytes() {
-        h ^= u64::from(b);
-        h = h.wrapping_mul(0x100_0000_01b3);
-    }
-    std::path::PathBuf::from("/tmp").join(format!("flexfetch-autotheme-{h:016x}"))
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    wallpaper.hash(&mut hasher);
+    m.hash(&mut hasher);
+    std::path::PathBuf::from("/tmp").join(format!("flexfetch-autotheme-{:016x}", hasher.finish()))
 }
 
 /// Read a cached palette (`r,g,b` per line). Returns None on any parse issue.
@@ -135,11 +128,11 @@ fn extract_palette(path: &str) -> Option<Vec<[u8; 3]>> {
 /// title = bold #1, keys = #1, values = #2, sep = #3 (dim), section = #1.
 /// gradient uses the same palette stops, so the logo blends with the wallpaper.
 fn build_theme(colors: &[[u8; 3]]) -> ThemeStrings {
-    let title = truecolor(colors[0], true);
-    let keys = truecolor(colors[0], false);
-    let values = truecolor(colors[1], false);
-    let sep = truecolor(colors.get(2).copied().unwrap_or([90, 90, 90]), false);
-    let section = truecolor(colors[0], true);
+    let title = crate::theme::truecolor(colors[0], true);
+    let keys = crate::theme::truecolor(colors[0], false);
+    let values = crate::theme::truecolor(colors[1], false);
+    let sep = crate::theme::truecolor(colors.get(2).copied().unwrap_or([90, 90, 90]), false);
+    let section = crate::theme::truecolor(colors[0], true);
     ThemeStrings {
         title,
         keys,

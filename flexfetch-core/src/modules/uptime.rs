@@ -3,10 +3,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct UptimeModule;
 
 impl Module for UptimeModule {
-    fn name(&self) -> &'static str {
-        "uptime"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let secs = uptime_secs().unwrap_or(0);
         Ok(InfoValue::Scalar(format_uptime(secs)))

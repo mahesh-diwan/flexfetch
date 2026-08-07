@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# flexfetch installer — single-file, POSIX-adjacent (bash arrays for the
-# animation), sha256-fail-closed. Only install channel (see ROADMAP §5).
+# flexfetch installer — single-file, sha256-fail-closed. Only install channel
+# (see ROADMAP §5). curl -# shows real download progress; no cursor games, no
+# traps — just plain status lines.
 set -eu
 
 REPO="mahesh-diwan/flexfetch"
@@ -19,114 +20,6 @@ else
 	C_GREEN=""
 	C_RESET=""
 fi
-
-# Pac-Man animation frames (fallback to dots if Unicode fails)
-if [ -t 1 ] && printf '\u2B24' 2>/dev/null | grep -q ''; then
-	PACMAN_FRAMES=("🌕 ⬤ ⬤ ⬤ ⬤ ⬤" "🌗  ⬤ ⬤ ⬤ ⬤ ⬤" "🌘   ⬤ ⬤ ⬤ ⬤" "🌑    ⬤ ⬤ ⬤" "🌑     ⬤ ⬤" "🌑      ⬤" "🌘       " "🌗        ")
-else
-	PACMAN_FRAMES=("." ".." "..." "...." "....." "...." "..." "..")
-fi
-
-# Pac-Man animation function
-pacman_animate() {
-	local msg="$1"
-	local i=0
-	local frames=${#PACMAN_FRAMES[@]}
-
-	# Only animate if stdout is a terminal
-	if [ ! -t 1 ]; then
-		echo "$msg"
-		return
-	fi
-
-	# Hide cursor
-	printf '\033[?25l'
-
-	while :; do
-		printf '\r\033[K%s %s' "${PACMAN_FRAMES[i]}" "$msg"
-		i=$(((i + 1) % frames))
-		sleep 0.15
-	done
-}
-
-# Stop pacman animation
-pacman_stop() {
-	local pid=$1
-	kill "$pid" 2>/dev/null || true
-	wait "$pid" 2>/dev/null || true
-	# Show cursor and clear line (must end 0: non-tty exits 1 under set -e)
-	{ [ -t 1 ] && printf '\033[?25h\r\033[K'; } || true
-}
-
-# Animated download progress: real bytes/size/percent/speed; degrades to the
-# plain spinner when stat or awk is missing.
-pacman_progress() {
-	local msg="$1"
-	local dest="$2"
-	local total="$3"
-	local i=0
-	local frames=${#PACMAN_FRAMES[@]}
-	local stat_cmd="stat -c %s"
-	local cur=0 prev=0 now=0 prev_time=0
-
-	# Only animate if stdout is a terminal
-	if [ ! -t 1 ]; then
-		echo "$msg"
-		return
-	fi
-
-	# Fall back to the plain spinner if we cannot compute real progress
-	if ! command -v awk >/dev/null 2>&1 || ! command -v stat >/dev/null 2>&1; then
-		pacman_animate "$msg"
-		return
-	fi
-
-	[ "$OS_ALIAS" = "macos" ] && stat_cmd="stat -f %z"
-
-	# Hide cursor
-	printf '\033[?25l'
-
-	prev_time=$(date +%s 2>/dev/null || echo 0)
-	while :; do
-		cur=$($stat_cmd "$dest" 2>/dev/null || echo 0)
-		now=$(date +%s 2>/dev/null || echo 0)
-		printf '\r\033[K%s %s %s' "${PACMAN_FRAMES[i]}" "$msg" "$(
-			awk -v c="$cur" -v t="$total" -v p="$prev" -v pt="$prev_time" -v n="$now" '
-            function hum(b) {
-                if (b >= 1048576) return sprintf("%.1f MiB", b / 1048576)
-                if (b >= 1024)    return sprintf("%.1f KiB", b / 1024)
-                return sprintf("%d B", b)
-            }
-            BEGIN {
-                sp = (n > pt) ? (c - p) / (n - pt) : 0
-                if (sp < 0) sp = 0
-                if (t > 0) {
-                    pct = int((c * 100) / t)
-                    if (pct > 100) pct = 100
-                    printf "%s / %s (%d%%)  %s/s", hum(c), hum(t), pct, hum(sp)
-                } else {
-                    printf "%s  %s/s", hum(c), hum(sp)
-                }
-            }'
-		)"
-		i=$(((i + 1) % frames))
-		prev=$cur
-		prev_time=$now
-		sleep 0.15
-	done
-}
-
-# Cleanup on interrupt
-cleanup() {
-	[ -n "${PACMAN_PID:-}" ] && pacman_stop "$PACMAN_PID"
-	[ -n "${TMPDIR:-}" ] && rm -rf "$TMPDIR"
-	exit 1
-}
-trap cleanup INT TERM
-
-# Safety net: never leave the terminal cursor hidden, whatever the exit path.
-restore_cursor() { { [ -t 1 ] && printf '\033[?25h\r\033[K'; } || true; }
-trap 'restore_cursor' EXIT
 
 # Detect OS and arch (artifact names: flexfetch-<os>-<arch>.tar.gz)
 OS_ALIAS="linux"
@@ -214,7 +107,9 @@ CHECKSUM_URL="$URL.sha256"
 
 TMPDIR=$(mktemp -d)
 
-# Download with retry
+# Download with retry. curl -# is curl's own progress bar — it renders on
+# stderr, which in a real `curl | sh` install is the user's terminal. stdout
+# stays clean either way (the plain status lines only).
 download() {
 	local url="$1"
 	local dest="$2"
@@ -222,7 +117,7 @@ download() {
 
 	while [ $attempt -le $MAX_RETRIES ]; do
 		if command -v curl >/dev/null 2>&1; then
-			curl -sfL "$url" -o "$dest" 2>/dev/null && return 0
+			curl -fL --progress-bar "$url" -o "$dest" && return 0
 		elif command -v wget >/dev/null 2>&1; then
 			wget -q "$url" -O "$dest" 2>/dev/null && return 0
 		else
@@ -235,32 +130,13 @@ download() {
 	return 1
 }
 
-# Best-effort expected size for the progress display (empty if unknown)
-TOTAL_SIZE=""
-if command -v curl >/dev/null 2>&1; then
-	TOTAL_SIZE=$(curl -sfIL "$URL" 2>/dev/null | tr -d '\r' |
-		awk 'tolower($1) ~ /^content-length:/ {print $2}' | tail -1 || true)
-elif command -v wget >/dev/null 2>&1; then
-	TOTAL_SIZE=$(wget -q --spider --server-response "$URL" 2>&1 | tr -d '\r' |
-		awk 'tolower($1) ~ /^content-length:/ {print $2}' | tail -1 || true)
-fi
-case "$TOTAL_SIZE" in
-'' | *[!0-9]*) TOTAL_SIZE="" ;;
-esac
-
-# Start animated download progress in background
-pacman_progress "Downloading..." "$TMPDIR/$BIN.tar.gz" "$TOTAL_SIZE" &
-PACMAN_PID=$!
-
+echo "Downloading $BIN $TAG..."
 if ! download "$URL" "$TMPDIR/$BIN.tar.gz"; then
-	pacman_stop "$PACMAN_PID"
 	echo "Error: download failed after $MAX_RETRIES attempts"
 	echo "  URL: $URL"
 	echo "  Try: curl -sfL $URL -o $BIN.tar.gz"
 	exit 1
 fi
-
-pacman_stop "$PACMAN_PID"
 
 # Validate download (check if it's a valid gzip file)
 if ! file "$TMPDIR/$BIN.tar.gz" | grep -qi gzip; then
@@ -269,6 +145,7 @@ if ! file "$TMPDIR/$BIN.tar.gz" | grep -qi gzip; then
 	exit 1
 fi
 
+echo "Verifying checksum..."
 # Verify checksum (fail closed on mismatch; skip only if no sha tool exists)
 verify_checksum() {
 	if command -v sha256sum >/dev/null 2>&1; then
@@ -319,6 +196,7 @@ verify_checksum() {
 verify_checksum
 
 # Extract
+echo "Installing $BIN..."
 if ! tar xzf "$TMPDIR/$BIN.tar.gz" -C "$TMPDIR" 2>/dev/null; then
 	echo "Error: failed to extract archive"
 	exit 1
@@ -365,8 +243,7 @@ if [ "$TARGET" = "$LOCAL_DIR/$BIN" ] && ! echo ":$PATH:" | grep -q ":${LOCAL_DIR
 	echo "    export PATH=\"\$PATH:$LOCAL_DIR\""
 fi
 
-# Clean up the temp dir on the happy path too (the INT/TERM trap only fires on
-# signals, and cleanup() exits 1 so it must not run on a successful install).
+# Clean up the temp dir
 rm -rf "$TMPDIR"
 
 # Final banner with the real on-disk size.
@@ -376,8 +253,7 @@ printf '%s%s✓ %s %s installed to %s (%s KiB)%s\n' \
 	"$C_GREEN" "$C_BOLD" "$BIN" "$TAG" "$TARGET" "$SIZE_KB" "$C_RESET"
 
 # Phase 8.8: first-run payoff — show a live fetch immediately when the install
-# happens in an interactive terminal (curl | sh always has stdout piped, so this
-# only triggers for real ttys).
+# happens in an interactive terminal.
 if [ -t 1 ]; then
 	echo ""
 	"$TARGET" --minimal 2>/dev/null || true

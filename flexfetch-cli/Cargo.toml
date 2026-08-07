@@ -7,13 +7,6 @@ edition.workspace = true
 name = "flexfetch"
 path = "src/main.rs"
 
-# Tmux auto-fetch helper (Phase 5.3): pure std, shows a compact fetch in idle
-# panes. Install.sh places it next to the main binary so `--tmux-config` works
-# out of the box.
-[[bin]]
-name = "flexfetch-tmux"
-path = "src/bin/flexfetch-tmux.rs"
-
 # Phase 8.6: criterion cold-start benchmark (dev-only, never shipped).
 [[bench]]
 name = "cold_start"
@@ -27,8 +20,6 @@ clap = { version = "4", default-features = false, features = ["std", "color", "h
 serde_json = "1"
 toml = "0.8"
 ctrlc = "3"
-# statvfs probe for the monitor.rs disk-% fallback (Phase 5.5/5.6).
-libc = "0.2"
 # Live dashboard (--live): ratatui + crossterm are the only TUI deps, gated behind the
 # `live` feature so --no-default-features stays free of them (both are pure Rust, so the
 # musl cross-compile in CI is unaffected when the feature is on).
@@ -38,7 +29,7 @@ crossterm = { version = "0.29", optional = true }
 # SystemSnapshots through a bounded(1) crossbeam overwrite channel so the
 # renderer never blocks on /proc collection — stale snapshots are dropped
 # automatically when the renderer is slow. Pure Rust, so musl cross-builds
-# are unaffected. Gated behind `lockfree`, which `live` implies.
+# are unaffected.
 crossbeam-channel = { version = "0.5", optional = true }
 # Shell completion generator (`completions <shell>` subcommand). Behind a feature so
 # --no-default-features stays lean; clap_complete is small but pulls clap's full tree.
@@ -47,26 +38,16 @@ clap_complete = { version = "4", optional = true }
 # `--import-qr <image>` reads it back via rqrr. qrcode (encode) + rqrr (decode)
 # are pure Rust, but zstd-sys is a C dep — so the whole feature is opt-in (like
 # `music`): it stays out of the pure-Rust musl release builds and the minimal
-# binary. image (png-only, same config as core) decodes the QR screenshot;
-# base64 carries the zstd blob.
+# binary. image (png-only, same config as core) decodes the QR screenshot.
 qrcode = { version = "0.14", optional = true }
-# Phase 5.5 metrics history: SQLite storage for periodic cpu/mem/disk/temp
-# snapshots (`--history-graph` / `--history-export` / `--daemon` recording).
-# `bundled` compiles SQLite from source so no system lib is needed; the feature
-# is opt-in because rusqlite links C (it stays out of the pure-Rust musl release
-# pipeline, like `music` and `qr`).
-rusqlite = { version = "0.32", optional = true, features = ["bundled"] }
-# Phase 5.6 critical-health notifications: notify-rust with the `z` (zbus)
-# backend is pure Rust on Linux/BSD — no dbus C dep (matches the `music` zbus
-# choice); macOS uses mac-notification-sys, Windows tauri-winrt-notification.
-# Opt-in so default/minimal/release builds stay lean.
-notify-rust = { version = "4", optional = true, default-features = false, features = ["z"] }
 # default-features = false drops rqrr's `img` feature (image 0.23, used only
 # for its GrayImage impl) — we feed it luminance via prepare_from_greyscale, so
 # the tree keeps just our single image 0.25 instead of a duplicate pair.
 rqrr = { version = "0.3", default-features = false, optional = true }
 zstd = { version = "0.13", optional = true }
-base64 = { version = "0.21", optional = true }
+# base64 is a plain (non-optional) dep now: registry.rs signature verification
+# always needs it (the hand-rolled decoder is gone). Already in Cargo.lock.
+base64 = "0.22"
 image = { version = "0.25", optional = true, default-features = false, features = ["png"] }
 # Phase 8.12: Ed25519 signature verification for the plugin registry (client
 # side). Small, self-contained, pure Rust — no C deps — and it feeds the
@@ -96,14 +77,15 @@ wat = "1"
 
 [features]
 default = ["lua", "live", "image-logos", "tera", "parallel", "completions"]
-lua = ["dep:flexfetch-lua", "flexfetch-core/lua"]
+# TODO(agentB): flexfetch-core dropped its `lua` feature (core/Cargo.toml no
+# longer exposes it); the forward below was removed. flexfetch-lua is still a
+# workspace member and built via dep:flexfetch-lua.
+lua = ["dep:flexfetch-lua"]
 # Phase 4.12: sandboxed WASM plugin runtime. Off by default (wasmtime is a
 # heavy dependency tree); plugins in ~/.config/flexfetch/plugins/*.wasm are
 # executed with fuel + memory limits and capability-gated host imports.
 wasm-plugins = ["dep:flexfetch-wasm"]
-live = ["dep:ratatui", "dep:crossterm", "lockfree"]
-# Phase 4.2: sampler-thread + overwrite-channel architecture for --live.
-lockfree = ["dep:crossbeam-channel"]
+live = ["dep:ratatui", "dep:crossterm", "dep:crossbeam-channel"]
 # Image logos (sixel/block) + PNG export need the `image` crate; the minimal
 # `--no-default-features` build drops it entirely (see ROADMAP 0.2 remaining diet work).
 image-logos = ["flexfetch-core/image-logos"]
@@ -118,11 +100,7 @@ completions = ["dep:clap_complete"]
 # QR config sharing (Phase 4.11): `--qr` / `--import-qr`. Opt-in — zstd-sys is a
 # C dep, so it stays out of the pure-Rust musl release pipeline and the minimal
 # binary (see the dep comment above; `music` is likewise opt-in).
-qr = ["dep:qrcode", "dep:rqrr", "dep:zstd", "dep:base64", "dep:image"]
+qr = ["dep:qrcode", "dep:rqrr", "dep:zstd", "dep:image"]
 # Phase 5.4 wallpaper auto-theming (`--auto-theme`): dominant colors from the
 # wallpaper become the theme. Opt-in (adds the image jpeg decoder).
 auto-theme = ["flexfetch-core/auto-theme"]
-# Phase 5.5 SQLite metrics history (`--history-graph`, `--history-export`).
-history = ["dep:rusqlite"]
-# Phase 5.6 critical health notifications daemon (`--daemon`).
-notifications = ["dep:notify-rust"]

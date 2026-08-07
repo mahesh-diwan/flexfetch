@@ -5,10 +5,6 @@ use std::process::Command;
 pub struct WifiModule;
 
 impl Module for WifiModule {
-    fn name(&self) -> &'static str {
-        "wifi"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // Phase 4.1: `--rescan no` (space-separated — nmcli rejects `=no` with
         // "invalid extra argument") uses NetworkManager's cached scan instead of

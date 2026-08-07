@@ -5,10 +5,6 @@ use std::time::Duration;
 pub struct CpuUsageModule;
 
 impl Module for CpuUsageModule {
-    fn name(&self) -> &'static str {
-        "cpuusage"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         #[cfg(target_os = "linux")]
         {

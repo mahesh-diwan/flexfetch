@@ -33,16 +33,10 @@ _flexfetch() {
 '--palette-style=[]:PALETTE_STYLE:_default' \
 '--frame=[]:FRAME:_default' \
 '--watch-interval=[]:WATCH_INTERVAL:_default' \
-'--record=[Phase 5.10\: record the --live dashboard to an asciinema v2 cast file (e.g. --live --record flexfetch.cast; replay with \`asciinema play\`)]:RECORD:_files' \
 '*--ssh=[Fetch remote system info via SSH (repeatable, parallel)]:SSH:_default' \
 '*--diff=[Diff mode (Phase 4.9)\: compare two systems side-by-side. Each target is \`local\`, \`host@remote\`, or a path to a flexfetch JSON export file]:DIFF:_default:DIFF:_default' \
 '--import-qr=[Import a config from a QR-code image (PNG/etc; decoded via rqrr) and write it to the config path (existing file is backed up)]:IMPORT_QR:_files' \
 '--hook=[Print a shell hook (bash|zsh|fish) for cd-into-git-repo context fetches]:HOOK:_default' \
-'--history-interval=[Phase 5.5\: record interval for --history / --daemon (seconds)]:HISTORY_INTERVAL:_default' \
-'--history-graph=[Phase 5.5\: print an ASCII sparkline of the recorded metric over the last --hours (cpu|memory|disk|temp; requires the \`history\` feature)]:HISTORY_GRAPH:_default' \
-'--hours=[Phase 5.5\: window for --history-graph, in hours]:HOURS:_default' \
-'--history-export=[Phase 5.5\: export the snapshots table to a CSV file]:HISTORY_EXPORT:_files' \
-'*--threshold=[Phase 5.6\: threshold overrides, e.g. --threshold cpu=95,mem=88,temp=80]:THRESHOLD:_default' \
 '--debug[]' \
 '--gen-config[]' \
 '--list-modules[]' \
@@ -50,15 +44,13 @@ _flexfetch() {
 '--list-themes[List all built-in theme presets (Phase 7.8 — pairs with \`--theme random\`)]' \
 '--pipe[]' \
 '--minimal[]' \
+'--flash[Fast path (like fastfetch'\''s \`flashfetch\`)\: baked-in defaults, minimal module set, no config file read, no template engine — the fastest possible one-shot fetch. Only affects the plain terminal render; other modes (--export, --watch, --live, --wizard, --ssh, --diff, --prompt, --motd, --benchmark, --demo) keep their existing behavior]' \
 '--full[]' \
 '--dev[]' \
 '--no-gradient[]' \
 '--no-progress[]' \
-'--pixel-logo[]' \
 '--watch[]' \
 '--live[Live dashboard\: real-time CPU/memory gauges, top processes, network rates]' \
-'--bench-cpu[SIMD CPU micro-benchmark (Phase 4.3)\: vectorized integer benchmark with runtime AVX2/SSE4/NEON detection, scalar fallback]' \
-'--bench-memory[SIMD memory-bandwidth micro-benchmark (Phase 4.3)]' \
 '--smart[Smart fetch\: add \$PWD context (git branch/status, project type, container/venv/SSH)]' \
 '--health[Add the system health module (score 0-100\: disk/swap/load/battery)]' \
 '--prompt[Single-line prompt string (e.g. \`🐧 arch | CPU 12% | RAM 3.2G\`)]' \
@@ -67,11 +59,8 @@ _flexfetch() {
 '--qr[Render the effective config as a terminal QR code (base64+zstd payload, unicode blocks). Scan it with a phone to import on another machine]' \
 '--update[Self-update\: check the latest GitHub release and re-run the install script if a newer version exists (requires curl)]' \
 '--doctor[Environment doctor\: validate terminal, color, config, and collectors]' \
-'--tmux-config[Print a tmux.conf snippet that auto-runs the fetch in new idle panes (Phase 5.3 — pair with the bundled \`flexfetch-tmux\` helper binary)]' \
 '--update-db[Refresh the crowdsourced hardware database (Phase 5.8)\: downloads the latest PCI/USB name map to the cache dir; falls back to the bundled seed when offline]' \
 '--auto-theme[Phase 5.4\: derive the theme from the wallpaper'\''s dominant colors (requires the \`auto-theme\` feature; falls back to catppuccin otherwise)]' \
-'--history[Phase 5.5\: record cpu/mem/disk/temp snapshots to history.db every --history-interval seconds until Ctrl+C (requires the \`history\` feature)]' \
-'--daemon[Phase 5.6\: critical health notifications daemon — poll every --history-interval seconds, notify on threshold breach (requires the \`notifications\` feature)]' \
 '--demo[Phase 8.8\: showcase mode — every module + every visual feature, for screenshots / social previews / \`install.sh\` first-run demos]' \
 '--bug-report[Phase 8.7\: print a full environment/version dump for bug reports (version, OS, kernel, terminal, shell, config, module errors)]' \
 '-h[Print help]' \

@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct CpuCacheModule;
 
 impl Module for CpuCacheModule {
-    fn name(&self) -> &'static str {
-        "cpucache"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         // `mut` is only needed on Linux (the /sys cache dirs are the only
         // inserts); macOS leaves the map empty, so silence the unused warning.

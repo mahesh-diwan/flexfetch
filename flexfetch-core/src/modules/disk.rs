@@ -3,10 +3,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct DiskModule;
 
 impl Module for DiskModule {
-    fn name(&self) -> &'static str {
-        "disk"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut disks = Vec::new();
 

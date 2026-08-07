@@ -6,10 +6,6 @@ use std::time::Duration;
 pub struct PublicIpModule;
 
 impl Module for PublicIpModule {
-    fn name(&self) -> &'static str {
-        "publicip"
-    }
-
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Phase 4.1: reuse the shared cache (60 s TTL) so repeated invocations
         // skip the ~0.5 s network round-trip entirely.

@@ -4,10 +4,6 @@ use std::path::Path;
 pub struct ShellModule;
 
 impl Module for ShellModule {
-    fn name(&self) -> &'static str {
-        "shell"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let shell = std::env::var("SHELL")
             .ok()

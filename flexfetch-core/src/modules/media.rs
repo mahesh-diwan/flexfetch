@@ -8,10 +8,6 @@ use std::process::Command;
 pub struct MediaModule;
 
 impl Module for MediaModule {
-    fn name(&self) -> &'static str {
-        "media"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

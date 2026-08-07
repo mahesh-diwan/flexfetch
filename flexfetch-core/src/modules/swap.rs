@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct SwapModule;
 
 impl Module for SwapModule {
-    fn name(&self) -> &'static str {
-        "swap"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         #[cfg(target_os = "linux")]
         {

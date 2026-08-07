@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct WmModule;
 
 impl Module for WmModule {
-    fn name(&self) -> &'static str {
-        "wm"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

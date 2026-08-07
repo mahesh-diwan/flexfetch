@@ -3,10 +3,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct KernelModule;
 
 impl Module for KernelModule {
-    fn name(&self) -> &'static str {
-        "kernel"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         Ok(InfoValue::Scalar(kernel_string()))
     }

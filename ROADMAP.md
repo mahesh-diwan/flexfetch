@@ -252,7 +252,7 @@ This replaces the earlier "deferred — not needed" note in 3.1.
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------- |
 | 4.1  | **Sub-10 ms cold start**: eliminate process-spawning collectors, mmap'd `/proc`, `phf` map, lazy zstd assets, `hyperfine` CI gate                                                                   | `parallel`, `fast-paths` (default) | ✅ (Aug 2026)                                                                                  |
 | 4.2  | **Lock-free live dashboard**: crossbeam overwrite channel (bounded(1)) collector→renderer, `repr(C)` snapshot with atomics, pre-allocated sparkline ring buffer, 16 ms render budget, core affinity | `live` (exists), `lockfree`        | ✅ (Aug 2026) — crossbeam bounded(1) overwrite channel + dedicated sampler thread in `live.rs` |
-| 4.3  | **SIMD benchmark/processing**: AVX2/NEON vectorized CPU bench, `libc::memset` memory bandwidth bench, SIMD sparkline min/max, SIMD logo gradient                                                    | `simd` (default x86_64)            | ✅ (Aug 2026) — `simd.rs` (`SimdLevel` detect) + `--bench-cpu`/`--bench-memory`                |
+| 4.3  | **SIMD benchmark/processing**: AVX2/NEON vectorized CPU bench, `libc::memset` memory bandwidth bench, SIMD sparkline min/max, SIMD logo gradient                                                    | `simd` (default x86_64)            | ⛔ removed (2026-08-07) — over-engineering cut, `--benchmark` covers it                        |
 
 ### Pillar B — Deep system introspection
 
@@ -432,19 +432,19 @@ runners flake rather than deleting the gate).
 
 ### Pillar F — Distribution & lock-in
 
-| Task | What                                                                                                                                                                                                    | Status |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 5.1  | **Nix flake + Home Manager module**: `flake.nix` (rustPlatform.buildRustPackage, cargoLock) + `homeManagerModules.default` writing `~/.config/flexfetch/config.toml` from `programs.flexfetch.settings` | 🟡     |
-| 5.2  | **GitHub Action (`flexfetch-action`)**: composite action running flexfetch in CI with a `github` output format (::group:: annotations); separate marketplace repo                                       | ✅     |
-| 5.3  | **Tmux integration**: `--tmux-config` snippet + tiny `flexfetch-tmux` helper binary showing the fetch in idle panes                                                                                     | ✅     |
+| Task | What                                                                                                                                                                                                    | Status                  |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 5.1  | **Nix flake + Home Manager module**: `flake.nix` (rustPlatform.buildRustPackage, cargoLock) + `homeManagerModules.default` writing `~/.config/flexfetch/config.toml` from `programs.flexfetch.settings` | 🟡                      |
+| 5.2  | **GitHub Action (`flexfetch-action`)**: composite action running flexfetch in CI with a `github` output format (::group:: annotations); separate marketplace repo                                       | ✅                      |
+| 5.3  | **Tmux integration**: `--tmux-config` snippet + tiny `flexfetch-tmux` helper binary showing the fetch in idle panes                                                                                     | ⛔ removed (2026-08-07) |
 
 ### Pillar G — Intelligence & context
 
-| Task | What                                                                                                                                | Feature gate                                                          | Status               |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------- |
-| 5.4  | **Wallpaper auto-theming** (`--auto-theme`): color-thief dominant colors → on-the-fly theme, cached to `/tmp` by wallpaper mtime    | `auto-theme` (image)                                                  | ✅ (Aug 2026)        |
-| 5.5  | **SQLite metrics history** (`history.db`): snapshots table, `--history-graph cpu                                                    | memory --hours N`ASCII sparkline,`--history-export csv`, 90-day prune | `history` (rusqlite) | ✅ (Aug 2026) |
-| 5.6  | **Critical health notifications** (`--daemon`): notify-rust/mac-notification-sys on threshold breach (cpu/mem/disk/temp), 60 s poll | `notifications`                                                       | ✅ (Aug 2026)        |
+| Task | What                                                                                                                                | Feature gate                                                          | Status                  |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------- |
+| 5.4  | **Wallpaper auto-theming** (`--auto-theme`): color-thief dominant colors → on-the-fly theme, cached to `/tmp` by wallpaper mtime    | `auto-theme` (image)                                                  | ✅ (Aug 2026)           |
+| 5.5  | **SQLite metrics history** (`history.db`): snapshots table, `--history-graph cpu                                                    | memory --hours N`ASCII sparkline,`--history-export csv`, 90-day prune | `history` (rusqlite)    | ⛔ removed (2026-08-07) |
+| 5.6  | **Critical health notifications** (`--daemon`): notify-rust/mac-notification-sys on threshold breach (cpu/mem/disk/temp), 60 s poll | `notifications`                                                       | ⛔ removed (2026-08-07) |
 
 ### Pillar H — Community & extensibility
 
@@ -458,23 +458,25 @@ runners flake rather than deleting the gate).
 
 | Task | What                                                                                                               | Status                   |
 | ---- | ------------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| 5.10 | **ASCII cinema** (`--live --record session.cast`): asciinema v2-format recording of the live dashboard             | ✅ (Aug 2026)            |
+| 5.10 | **ASCII cinema** (`--live --record session.cast`): asciinema v2-format recording of the live dashboard             | ⛔ removed (2026-08-07)  |
 | 5.11 | **Container image**: static musl → scratch `~1 MB` image, GHCR publishing in CI (`ghcr.io/mahesh-diwan/flexfetch`) | ⛔ rejected (2026-08-07) |
 
 ### Execution priority
 
 | Week | Focus        | Tasks                                                |
 | ---- | ------------ | ---------------------------------------------------- |
-| 9    | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container)      | ⛔ closed — curl script only |
-| 10   | Integration  | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB)         | ✅ done                      |
-| 11   | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) | ✅ done                      |
-| 12   | Community    | 5.7 (Plugin Registry), 5.10 (ASCII Cinema)           | ✅ done                      |
+| 9    | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container)      | ⛔ closed — curl script only             |
+| 10   | Integration  | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB)         | ✅ done (5.3 removed 2026-08-07)         |
+| 11   | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) | ⛔ closed — 5.5/5.6 removed (2026-08-07) |
+| 12   | Community    | 5.7 (Plugin Registry), 5.10 (ASCII Cinema)           | ✅ done (5.10 removed 2026-08-07)        |
 
 **Week 12 — Community: 5.7 (Plugin Registry) + 5.10 (ASCII Cinema) — ✅ done
 (Aug 2026)**. Week 10 (integration) and Week 11 (intelligence) shipped earlier;
 5.7 landed `flexfetch plugin search|install|list|update` (checksum +
 min-version-verified `registry.toml`, see Task 5.7) and 5.10 landed `--live
---record session.cast` asciinema v2 recording (see Task 5.10). The registry
+--record session.cast` asciinema v2 recording (see Task 5.10; **removed
+2026-08-07** as an over-engineering cut — 5.5 History and 5.6 Notifications
+likewise removed same day). The registry
 work also unblocks 8.12 (Ed25519 signing) once WASM lands (4.12). **Week 9 —
 Distribution — ⛔ closed (2026-08-07): 5.1 Nix, 5.9 AUR/Homebrew, and 5.11
 Container publishing are all rejected. The curl script (`install.sh`) is the
@@ -493,7 +495,11 @@ remain as reference only.
   optional `theme`/`modules` inputs). Marketplace publish is a separate repo
   action (`mahesh-diwan/flexfetch-action`), like the AUR tap.
 
-### Task 5.3 — Tmux integration — ✅ (Aug 2026)
+### Task 5.3 — Tmux integration — ⛔ removed (2026-08-07)
+
+Over-engineering cut: a second `[[bin]]` shipped by no install channel +
+one-off config-print flag. Code deleted (`flexfetch-tmux` bin,
+`--tmux-config`, `tools::print_tmux_config`). Historical record below:
 
 - `flexfetch --tmux-config` (`tools.rs::print_tmux_config`): prints a
   `~/.tmux.conf` snippet — `run-shell ~/.local/bin/flexfetch-tmux` fires in every
@@ -516,7 +522,11 @@ wallpaper path + mtime (cache invalidated on wallpaper change). Degrades
 gracefully: `None` without truecolor support, undecodable image, or flat
 palette → caller falls back to a preset. `--auto-theme` in main.rs.
 
-### Task 5.5 — SQLite metrics history — ✅ (Aug 2026)
+### Task 5.5 — SQLite metrics history — ⛔ removed (2026-08-07)
+
+Over-engineering cut: SQLite metrics DB + snapshot/export flags bolted onto a
+fetch tool. Code deleted (`history.rs`, `--history*`/`--hours` flags,
+`history` feature). Historical record below:
 
 `flexfetch-cli/src/history.rs` (feature `history`, rusqlite **bundled** — no
 system lib): snapshots table in `~/.cache/flexfetch/history.db`, rows pruned
@@ -526,7 +536,11 @@ empty); `--history-export <path>` dumps the table as CSV; `--history`
 records a snapshot every `--history-interval` seconds until Ctrl+C.
 `--daemon` (5.6) also records via the same loop.
 
-### Task 5.6 — Critical health notifications — ✅ (Aug 2026)
+### Task 5.6 — Critical health notifications — ⛔ removed (2026-08-07)
+
+Over-engineering cut: notification daemon off-mission for a fetch tool. Code
+deleted (`daemon.rs`, `monitor.rs`, `--daemon`/`--threshold` flags,
+`notifications` feature). Historical record below:
 
 `flexfetch-cli/src/daemon.rs` (feature `notifications`, notify-rust with the `z`
 zbus backend — pure Rust on Linux/BSD, no dbus C dep; mac-notification-sys on
@@ -602,7 +616,12 @@ plugin still in the registry (idempotent, re-verifies each time). 4 unit tests
 (parse, missing-field rejection, version gate, sha hex). Subcommand wired into
 `Cli`/`Commands` in main.rs.
 
-### Task 5.10 — ASCII cinema — ✅ (Aug 2026)
+### Task 5.10 — ASCII cinema — ⛔ removed (2026-08-07)
+
+Over-engineering cut: hand-rolled asciinema v2 ANSI/SGR serializer + second
+key-handling loop in live.rs; crossterm already handles terminal output. Code
+deleted (`--record` flag, `CastRecorder`, `record_loop`, `buffer_to_ansi`,
+`style_sgr`). Historical record below:
 
 `flexfetch --live --record session.cast` records the live dashboard as
 **asciinema v2** (JSON header line `{version, width, height, timestamp, env}`
@@ -848,7 +867,8 @@ diet (rejected list below) applies; each task is reality-adapted on landing.
    release.yml); `--update`/`--doctor`/`--hook` shell-integration commands landed
    (`flexfetch-cli/src/tools.rs`); git-cliff changelog config (`cliff.toml`).
    Then: 4.2 lock-free live dashboard (crossbeam bounded(1) overwrite channel +
-   sampler thread), 4.3 SIMD (`simd.rs`, `--bench-cpu`/`--bench-memory`), 4.9
+   sampler thread), 4.3 SIMD (`simd.rs`, `--bench-cpu`/`--bench-memory`; **removed
+   2026-08-07**, over-engineering cut), 4.9
    `--diff`, 4.10 infra exports (`--format ansible|terraform|csv|prometheus`)
    all landed ✅. Next: Pillar B (4.4-4.8), then 4.16 asset compression.
 8. **Phase 8 — Production Hardening — ✅ 8.1–8.8, 8.10, 8.11 done (Aug 2026)** —

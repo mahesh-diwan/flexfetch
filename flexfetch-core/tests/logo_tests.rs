@@ -1,4 +1,4 @@
-use flexfetch_core::logo::{detect, pixel_logo, visible_len};
+use flexfetch_core::logo::{detect, visible_len};
 
 #[test]
 fn test_detect_arch() {
@@ -16,20 +16,6 @@ fn test_detect_ubuntu() {
 fn test_detect_unknown() {
     let logo = detect("unknown_distro");
     assert!(!logo.lines.is_empty());
-}
-
-#[test]
-fn test_pixel_logo_arch() {
-    let logo = pixel_logo("arch");
-    assert!(logo.is_some());
-    let lines = logo.unwrap();
-    assert_eq!(lines.len(), 3);
-}
-
-#[test]
-fn test_pixel_logo_unknown() {
-    let logo = pixel_logo("unknown_distro");
-    assert!(logo.is_none());
 }
 
 #[test]

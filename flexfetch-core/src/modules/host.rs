@@ -3,10 +3,6 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct HostModule;
 
 impl Module for HostModule {
-    fn name(&self) -> &'static str {
-        "host"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         Ok(InfoValue::Scalar(
             hostname().unwrap_or_else(|| "unknown".into()),

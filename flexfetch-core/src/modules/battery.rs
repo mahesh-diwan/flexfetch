@@ -6,10 +6,6 @@ use std::collections::HashMap;
 pub struct BatteryModule;
 
 impl Module for BatteryModule {
-    fn name(&self) -> &'static str {
-        "battery"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

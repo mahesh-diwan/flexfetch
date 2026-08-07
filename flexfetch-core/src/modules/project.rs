@@ -46,10 +46,6 @@ fn detect_project(start: &Path) -> Option<(String, String)> {
 }
 
 impl Module for ProjectModule {
-    fn name(&self) -> &'static str {
-        "project"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

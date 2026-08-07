@@ -57,7 +57,6 @@ impl InfoValue {
 }
 
 pub trait Module: Send + Sync {
-    fn name(&self) -> &'static str;
     fn collect(&self, ctx: &Context) -> crate::Result<InfoValue>;
 }
 

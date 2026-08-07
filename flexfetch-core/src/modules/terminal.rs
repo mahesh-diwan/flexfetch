@@ -4,10 +4,6 @@ use std::collections::HashMap;
 pub struct TerminalModule;
 
 impl Module for TerminalModule {
-    fn name(&self) -> &'static str {
-        "terminal"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

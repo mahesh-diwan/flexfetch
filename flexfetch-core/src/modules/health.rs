@@ -79,10 +79,6 @@ fn battery_percent() -> Option<u8> {
 }
 
 impl Module for HealthModule {
-    fn name(&self) -> &'static str {
-        "health"
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
         let mut score: i32 = 100;

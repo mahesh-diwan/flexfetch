@@ -4,29 +4,16 @@ use flexfetch_core::{Context, Error, InfoValue, Module, Result};
 use mlua::{Function, Lua, Value};
 
 pub struct LuaModule {
-    name: &'static str,
     script_path: std::path::PathBuf,
 }
 
 impl LuaModule {
     pub fn new(script_path: std::path::PathBuf) -> Self {
-        let name = script_path
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("lua_plugin")
-            .to_string();
-        LuaModule {
-            name: Box::leak(name.into_boxed_str()),
-            script_path,
-        }
+        LuaModule { script_path }
     }
 }
 
 impl Module for LuaModule {
-    fn name(&self) -> &'static str {
-        self.name
-    }
-
     fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
         let lua = Lua::new();
 

@@ -15,9 +15,6 @@ tera = { version = "1", optional = true }
 # Parallel module collection (rayon). Gated behind `parallel` (default on); the
 # fallback is a plain sequential loop. See ROADMAP 0.2 diet.
 rayon = { version = "1", optional = true }
-# vendored: bundles Lua 5.4 from source so builds need no system Lua headers
-# (required for musl/aarch64 cross-compilation in CI)
-mlua = { version = "0.10", optional = true, features = ["lua54", "vendored"] }
 libc = "0.2"
 base64 = "0.21"
 # Unicode-width-aware padding (Phase 7.2): Nerd Font/CJK glyphs occupy 2 cells,
@@ -43,7 +40,10 @@ proptest = "1"
 default = ["tera", "parallel"]
 tera = ["dep:tera"]
 parallel = ["dep:rayon"]
-lua = ["dep:mlua"]
+# TODO(agentA): flexfetch-cli/Cargo.toml still has `lua = [..., "flexfetch-core/lua"]`.
+# flexfetch-core's `lua` feature (and its mlua dep) were removed — flexfetch-lua
+# owns its own mlua. Drop the `flexfetch-core/lua` reference from the CLI or the
+# workspace feature graph won't resolve.
 image-logos = ["dep:image"]
 music = ["dep:zbus"]
 # Phase 5.4: wallpaper auto-theming (`--auto-theme`). Reuses the same optional

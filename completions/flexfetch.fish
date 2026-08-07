@@ -1,6 +1,6 @@
 # Print an optspec for argparse to handle cmd's options that are independent of any subcommand.
 function __fish_flexfetch_global_optspecs
-    string join \n c/config= m/modules= t/template= f/format= theme= debug gen-config list-modules list-presets list-themes benchmark= pipe minimal full dev preset= export= o/output= no-gradient no-progress box-style= pixel-logo palette-style= frame= watch watch-interval= live record= bench-cpu bench-memory smart health prompt motd ssh= diff= wizard qr import-qr= update doctor hook= tmux-config update-db auto-theme history history-interval= history-graph= hours= history-export= daemon threshold= demo bug-report h/help
+    string join \n c/config= m/modules= t/template= f/format= theme= debug gen-config list-modules list-presets list-themes benchmark= pipe minimal flash full dev preset= export= o/output= no-gradient no-progress box-style= palette-style= frame= watch watch-interval= live smart health prompt motd ssh= diff= wizard qr import-qr= update doctor hook= update-db auto-theme demo bug-report h/help
 end
 
 function __fish_flexfetch_needs_command
@@ -37,16 +37,10 @@ complete -c flexfetch -n "__fish_flexfetch_needs_command" -l box-style -r
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l palette-style -r
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l frame -r
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l watch-interval -r
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l record -d 'Phase 5.10: record the --live dashboard to an asciinema v2 cast file (e.g. --live --record flexfetch.cast; replay with `asciinema play`)' -r -F
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l ssh -d 'Fetch remote system info via SSH (repeatable, parallel)' -r
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l diff -d 'Diff mode (Phase 4.9): compare two systems side-by-side. Each target is `local`, `host@remote`, or a path to a flexfetch JSON export file' -r
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l import-qr -d 'Import a config from a QR-code image (PNG/etc; decoded via rqrr) and write it to the config path (existing file is backed up)' -r -F
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l hook -d 'Print a shell hook (bash|zsh|fish) for cd-into-git-repo context fetches' -r
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l history-interval -d 'Phase 5.5: record interval for --history / --daemon (seconds)' -r
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l history-graph -d 'Phase 5.5: print an ASCII sparkline of the recorded metric over the last --hours (cpu|memory|disk|temp; requires the `history` feature)' -r
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l hours -d 'Phase 5.5: window for --history-graph, in hours' -r
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l history-export -d 'Phase 5.5: export the snapshots table to a CSV file' -r -F
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l threshold -d 'Phase 5.6: threshold overrides, e.g. --threshold cpu=95,mem=88,temp=80' -r
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l debug
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l gen-config
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l list-modules
@@ -54,15 +48,13 @@ complete -c flexfetch -n "__fish_flexfetch_needs_command" -l list-presets
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l list-themes -d 'List all built-in theme presets (Phase 7.8 — pairs with `--theme random`)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l pipe
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l minimal
+complete -c flexfetch -n "__fish_flexfetch_needs_command" -l flash -d 'Fast path (like fastfetch\'s `flashfetch`): baked-in defaults, minimal module set, no config file read, no template engine — the fastest possible one-shot fetch. Only affects the plain terminal render; other modes (--export, --watch, --live, --wizard, --ssh, --diff, --prompt, --motd, --benchmark, --demo) keep their existing behavior'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l full
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l dev
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l no-gradient
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l no-progress
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l pixel-logo
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l watch
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l live -d 'Live dashboard: real-time CPU/memory gauges, top processes, network rates'
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l bench-cpu -d 'SIMD CPU micro-benchmark (Phase 4.3): vectorized integer benchmark with runtime AVX2/SSE4/NEON detection, scalar fallback'
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l bench-memory -d 'SIMD memory-bandwidth micro-benchmark (Phase 4.3)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l smart -d 'Smart fetch: add $PWD context (git branch/status, project type, container/venv/SSH)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l health -d 'Add the system health module (score 0-100: disk/swap/load/battery)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l prompt -d 'Single-line prompt string (e.g. `🐧 arch | CPU 12% | RAM 3.2G`)'
@@ -71,11 +63,8 @@ complete -c flexfetch -n "__fish_flexfetch_needs_command" -l wizard -d 'Interact
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l qr -d 'Render the effective config as a terminal QR code (base64+zstd payload, unicode blocks). Scan it with a phone to import on another machine'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l update -d 'Self-update: check the latest GitHub release and re-run the install script if a newer version exists (requires curl)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l doctor -d 'Environment doctor: validate terminal, color, config, and collectors'
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l tmux-config -d 'Print a tmux.conf snippet that auto-runs the fetch in new idle panes (Phase 5.3 — pair with the bundled `flexfetch-tmux` helper binary)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l update-db -d 'Refresh the crowdsourced hardware database (Phase 5.8): downloads the latest PCI/USB name map to the cache dir; falls back to the bundled seed when offline'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l auto-theme -d 'Phase 5.4: derive the theme from the wallpaper\'s dominant colors (requires the `auto-theme` feature; falls back to catppuccin otherwise)'
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l history -d 'Phase 5.5: record cpu/mem/disk/temp snapshots to history.db every --history-interval seconds until Ctrl+C (requires the `history` feature)'
-complete -c flexfetch -n "__fish_flexfetch_needs_command" -l daemon -d 'Phase 5.6: critical health notifications daemon — poll every --history-interval seconds, notify on threshold breach (requires the `notifications` feature)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l demo -d 'Phase 8.8: showcase mode — every module + every visual feature, for screenshots / social previews / `install.sh` first-run demos'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -l bug-report -d 'Phase 8.7: print a full environment/version dump for bug reports (version, OS, kernel, terminal, shell, config, module errors)'
 complete -c flexfetch -n "__fish_flexfetch_needs_command" -s h -l help -d 'Print help'
