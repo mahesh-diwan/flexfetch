@@ -68,6 +68,8 @@ flexfetch-lua = { path = "../flexfetch-lua", optional = true }
 # Phase 8.6: micro-benchmarks (`cargo bench`). Dev-only — does not affect the
 # shipped binary size (the diet is about the runtime artifact).
 criterion = "0.5"
+# Man page generation from clap derive defs (ROADMAP).
+clap_mangen = "0.2"
 
 # Phase 8.5: property-based tests for the pure helpers (dev-only).
 proptest = "1"

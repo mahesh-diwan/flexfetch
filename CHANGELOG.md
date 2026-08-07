@@ -2,9 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0] - 2026-08-07
+
+### Changed
+
+- Over-engineering audit: −2 300 lines, 7 fewer dependencies.
+- `theme.rs` 3× duplication → single `THEMES` table.
+- `render_info` folded into `render_output`.
+- XDG config-dir 5× copy-paste → `tools::config_dir()` helper.
+- `export.rs` triplication → shared `render_lines` + `span_to_tag_line`.
+- Autotheme hash: FNV-1a → stdlib `DefaultHasher`.
+- `base64_decode` → `base64` crate.
+- `install.sh`: stripped pacman animation, curl `-#` native progress.
+- Completions regenerated, man page updated.
+
+### Removed
+
+- History / daemon / monitor features (`rusqlite`, `notify-rust`).
+- `asciinema --record` flag.
+- `simd.rs` + `--bench-cpu` / `--bench-memory` flags.
+- `flexfetch-tmux` binary.
+- `--pixel-logo` flag.
+- `CacheConfig` / `[cache] ttl`.
+- Notifications and lockfree features (folded into `live`).
+
+## [0.19.0] - 2026-08-07
+
+### Features
+
+- `--flash` mode: ~6 ms uncompressed, ~120 ms UPX'd (measured CachyOS i5-12450H).
+- Real download progress (curl progress-bar integration in install.sh).
+- PGO pipeline for release builds (profile-guided optimization).
+
+### Bug Fixes
+
+- install.sh hardened: portable version sort (no GNU sort -V), cursor-safety
+  EXIT trap, green bold banner with real on-disk size.
+
 ## [0.18.0] - 2026-08-02
 
 ### Features
+
 - Phase 6 visual overhaul — from system log to system art: tree connectors
   removed; every row is now themed (theme keys/separator/values), keys are
   padded to `display.key_width` via a new Tera `pad` filter, and the default
@@ -23,12 +61,14 @@ All notable changes to this project will be documented in this file.
   formula, scratch container image, MIT LICENSE.
 
 ### Bug Fixes
+
 - Disk usage no longer renders a doubled percent sign (`82%%` → `82%`), and the
   duplicate-mount dedup check was aligned to the corrected entry format.
 
 ## [0.17.0] - 2026-08-02
 
 ### Features
+
 - Phase 4.1 zero-spawn collectors — cold start 5.5 s → 686 ms (242 ms with the
   publicip cache warm): kernel, packages, wm, disk, health, network, wifi,
   publicip, and cpuusage no longer spawn subprocesses (raw `/proc`/`/sys`
@@ -46,6 +86,7 @@ All notable changes to this project will be documented in this file.
   `install.sh` alongside the tarballs; one-line release install works.
 
 ### Performance
+
 - Cold start gate: `perf-gate` CI job measures `flexfetch --minimal` with
   hyperfine and fails if the mean exceeds 10 ms.
 - `qr-feature` CI job exercises the opt-in QR build (tests + clippy).
@@ -54,17 +95,20 @@ All notable changes to this project will be documented in this file.
   the minimal build (~1.5 MB, `--no-default-features`) are far smaller.
 
 ### Bug Fixes
+
 - macOS cross-build fixes: `network.rs` type inference + dead-code gating in
   `cpu.rs`/`cpuusage.rs`/`cpucache.rs`.
 - Release workflow: download zig directly (setup-zig fetched a wrong filename),
   skip artifact upload on tagless validation runs, install zig to `~/.local`.
 
 ### Documentation
+
 - mdBook docs site (modules, templates, plugins, themes, CLI reference, FAQ).
 - mtime-based hot-reload for `--watch`/`--live` (no external watcher).
 - `flexfetch completions bash|zsh|fish` generator (`completions` feature).
 
 ### Documentation
+
 - README: accurate counts (27 theme presets, 527+ ASCII logos), release-based
   one-line install, Update/Doctor/Hook section, corrected comparison table.
 - Man page updated for v0.17.0 with the new flags.
