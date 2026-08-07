@@ -7,3 +7,12 @@ book/target
 # site/docs before deploying — regenerate locally with:
 #   mdbook build book --dest-dir site/docs
 site/docs
+
+# AI tooling / agent working state (not project files)
+.claude/
+.opencode/
+.playwright/
+.playwright-cli/
+.superpowers/
+.memory/
+.ruff_cache/

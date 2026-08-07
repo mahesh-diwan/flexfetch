@@ -28,7 +28,7 @@
 curl --proto '=https' --tlsv1.2 -sSfL https://github.com/mahesh-diwan/flexfetch/releases/latest/download/install.sh | sh
 ```
 
-Installs the latest release binary (~2 MB, statically linked) from
+Installs the latest release binary (~0.8 MB, UPX-compressed, statically linked) from
 [GitHub Releases](https://github.com/mahesh-diwan/flexfetch/releases). The script is
 **idempotent**: re-run it to update in place (it compares versions, backs up the old
 binary, and verifies the SHA-256 checksum of the download). Requires `curl` (or
@@ -65,12 +65,12 @@ flexfetch --gen-config
 
 Every system info tool shows the same thing — OS, kernel, uptime, done. flexfetch gives you three things no other tool does:
 
-|     | Feature             | What it means                                                                                                                      |
-| --- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+|     | Feature                | What it means                                                                                                                                                                                                                         |
+| --- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🔌  | **Lua + WASM plugins** | Write info modules in Lua (drop a `.lua` file in `~/.config/flexfetch/plugins/`) or sandboxed WebAssembly (`.wasm`, fuel + memory limited, capability-gated imports — opt-in via `--features wasm-plugins`). No compilation. No Bash. |
-| 📝  | **Tera templates**  | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info with right-aligned keys. |
-| 🎭  | **27 theme presets**| Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, Rose Pine, Monokai, One Dark, Kanagawa + more. Switch with `--theme`. Per-field overrides with named colors. |
-| ⚡  | **Rust + Rayon**    | Parallel detection. Static binary, zero runtime deps. ~1.5 MB minimal / ~6 MB full. No Python, no Node, no Bash.                     |
+| 📝  | **Tera templates**     | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info with right-aligned keys.                                                                                                    |
+| 🎭  | **27 theme presets**   | Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, Rose Pine, Monokai, One Dark, Kanagawa + more. Switch with `--theme`. Per-field overrides with named colors.                                                              |
+| ⚡  | **Rust + Rayon**       | Parallel detection. Static binary, zero runtime deps. ~1.8 MB minimal / ~6.9 MB full. No Python, no Node, no Bash.                                                                                                                    |
 
 <br>
 
@@ -81,12 +81,12 @@ Every system info tool shows the same thing — OS, kernel, uptime, done. flexfe
 | **Language**          | Rust                           | Bash           | C               | sh       |
 | **Lua plugins**       | ✅                             | —              | —               | —        |
 | **Tera templates**    | ✅                             | —              | —               | —        |
-| **Theme presets**     | ✅ 27 + named overrides       | built-in       | JSON5 presets   | 3 env    |
+| **Theme presets**     | ✅ 27 + named overrides        | built-in       | JSON5 presets   | 3 env    |
 | **Parallel**          | ✅ Rayon                       | —              | ✅              | —        |
 | **Output formats**    | text, JSON, MD, SVG, HTML, PNG | text           | text, JSON      | text     |
 | **Config**            | TOML                           | —              | JSON5           | env vars |
 | **ASCII logos**       | 527 + image support            | ~150           | ~200            | small    |
-| **Binary size**       | 1.5–6 MB (by features)         | ~1 KB (script) | 2 MB            | 5 KB     |
+| **Binary size**       | 1.8–6.9 MB (by features)       | ~1 KB (script) | 2 MB            | 5 KB     |
 | **Runtime deps**      | none                           | Bash + utils   | none            | sh       |
 | **Watch mode**        | ✅                             | —              | —               | —        |
 | **Shell completions** | bash, zsh, fish                | —              | bash, zsh, fish | —        |
@@ -157,7 +157,7 @@ return {
 | `ctx.run_command(cmd)` | string  | Execute shell command    |
 | `ctx.get_env(key)`     | string  | Get environment variable |
 
-List plugins: `flexfetch --list-plugins`. Shrink the binary at build time with `cargo build --release -p flexfetch-cli --no-default-features` — this drops Lua, the live dashboard, image logos, the Tera template engine (plain `├─` fallback renderer), and Rayon (sequential collection) for a **~1.5 MB** minimal binary. Note: prebuilt binaries from `install.sh`/Releases are built without Lua and without tera/rayon but WITH the live dashboard, image logos, and shell-completion generation; source builds (`cargo install --git`) include everything by default (default builds compile vendored Lua, so a C compiler is required).
+List plugins: `flexfetch --list-plugins`. Shrink the binary at build time with `cargo build --release -p flexfetch-cli --no-default-features` — this drops Lua, the live dashboard, image logos, the Tera template engine (plain `├─` fallback renderer), and Rayon (sequential collection) for a **~1.8 MB** minimal binary. Note: prebuilt binaries from `install.sh`/Releases are built without Lua and without tera/rayon but WITH the live dashboard, image logos, and shell-completion generation; source builds (`cargo install --git`) include everything by default (default builds compile vendored Lua, so a C compiler is required).
 
 Built with [mlua](https://github.com/khvzak/mlua) 0.10 (Lua 5.4).
 
@@ -172,6 +172,28 @@ PROFILE_RUNS=20 ./scripts/pgo.sh # fewer runs for a quicker pass
 ```
 
 `PGO_DIR` (default `/tmp/pgo`) overrides the profile output location.
+
+<br>
+
+---
+
+## Flash Mode
+
+Fastest possible one-shot fetch — no config read, no template engine, no
+plugins, just a minimal baked-in module set (title, separator, os, kernel,
+uptime, memory):
+
+```bash
+flexfetch --flash
+```
+
+Measured on this machine (CachyOS, i5-12450H): ~6 ms from an uncompressed
+release build, ~120 ms from the shipped UPX-compressed binary (UPX pays a
+decompression cost per run). It
+overrides `--modules`, `--preset`, `--minimal`, `--full`, `--smart`, and
+`--health`; `--demo` still wins. Only affects the plain terminal render — all
+other modes (`--export`, `--watch`, `--live`, `--ssh`, `--diff`, `--prompt`,
+`--motd`, `--benchmark`, `--demo`) keep their existing behavior.
 
 <br>
 
@@ -197,11 +219,11 @@ cargo build --release --features wasm-plugins
 a flat object for a map, an array for a list). Available host imports, in the
 `flexfetch` namespace:
 
-| Function      | Capability | Notes                                    |
-| ------------- | ---------- | ---------------------------------------- |
-| `log`         | always     | writes to flexfetch's stderr             |
-| `env_get`     | `Env`      | read an env var (default sandbox grants) |
-| `read_file`   | `File`     | read a file (NOT granted by default)     |
+| Function      | Capability | Notes                                        |
+| ------------- | ---------- | -------------------------------------------- |
+| `log`         | always     | writes to flexfetch's stderr                 |
+| `env_get`     | `Env`      | read an env var (default sandbox grants)     |
+| `read_file`   | `File`     | read a file (NOT granted by default)         |
 | `run_command` | `Command`  | run a shell command (NOT granted by default) |
 
 A plugin that imports something it wasn't granted fails to load (and is
@@ -325,8 +347,8 @@ flexfetch --smart
 
 Adds three modules to the normal output (dedup'd — works with any preset or `--modules`):
 
-| Module    | Shows                                                                  |
-| --------- | ---------------------------------------------------------------------- |
+| Module    | Shows                                                                   |
+| --------- | ----------------------------------------------------------------------- |
 | `git`     | Branch, ahead/behind vs upstream, dirty file count (via the `git` CLI)  |
 | `project` | Project type from manifests (`Cargo.toml`, `package.json`, `go.mod`, …) |
 | `context` | Container, Python virtualenv, SSH session                               |
@@ -488,7 +510,7 @@ uses standard GitHub log annotations):
 steps:
   - uses: mahesh-diwan/flexfetch@main
     with:
-      format: github   # github (default) | markdown | json
+      format: github # github (default) | markdown | json
       theme: catppuccin
       modules: os,kernel,cpu,memory,disk
 ```
@@ -546,8 +568,8 @@ All modules run in parallel via Rayon and detect from your system automatically.
 | `colors`                                                                                                       | ✅     |
 | `custom`                                                                                                       | ✅     |
 | `title`, `separator`                                                                                           | 📐     |
-| `health` (disk/swap/load/battery score)                                                                         | ✅     |
-| `git`, `project`, `context` (via `--smart`)                                                                     | ✅     |
+| `health` (disk/swap/load/battery score)                                                                        | ✅     |
+| `git`, `project`, `context` (via `--smart`)                                                                    | ✅     |
 
 <br>
 
@@ -557,10 +579,10 @@ All modules run in parallel via Rayon and detect from your system automatically.
 
 flexfetch detects distro from `/etc/os-release` and renders ASCII art next to info. **527+ distros** supported (imported from fastfetch's logo set, MIT licensed), plus custom high-quality logos for the majors:
 
-| Source     | Count                                                              |
-| ---------- | ------------------------------------------------------------------ |
-| fastfetch  | 527+ distro logos (auto-generated from fastfetch's set)            |
-| Custom     | high-quality Arch, Debian, Ubuntu, Fedora, NixOS, macOS + more     |
+| Source    | Count                                                          |
+| --------- | -------------------------------------------------------------- |
+| fastfetch | 527+ distro logos (auto-generated from fastfetch's set)        |
+| Custom    | high-quality Arch, Debian, Ubuntu, Fedora, NixOS, macOS + more |
 
 Image logos render as truecolor block art in terminals with 24-bit color support
 (Kitty / iTerm2 / Sixel / block-character protocols). Falls back to ASCII if no

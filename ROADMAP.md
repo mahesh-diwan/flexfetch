@@ -419,7 +419,7 @@ runners flake rather than deleting the gate).
   now includes tarballs + checksums + `install.sh` — so
   `curl …/releases/latest/download/install.sh | sh` works and every download is
   verifiable.
-- Still pending: Homebrew tap, AUR `flexfetch-bin`, Nix profile, `.deb`/`.rpm` in CI.
+- Still pending: ~~Homebrew tap, AUR `flexfetch-bin`, Nix profile, `.deb`/`.rpm` in CI.~~ **Rejected (2026-08-07): curl script is the only install channel.** `packaging/` (PKGBUILD, formula), `flake.nix`, and `Dockerfile` stay in-repo for reference only — no publishing, no distro packages.
 
 ---
 
@@ -448,38 +448,38 @@ runners flake rather than deleting the gate).
 
 ### Pillar H — Community & extensibility
 
-| Task | What                                                                                                                                     | Status  |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 5.7  | **Plugin registry**: `flexfetch plugin search                                                                                            | install | list | update`against a hosted`registry.toml` with checksum + min-version checks | ✅ (Aug 2026) |
-| 5.8  | **Crowdsourced hardware DB**: compressed JSON on GitHub Pages (`hardware.json.zst`, ~50 KB), `--update-db`, cache + offline hex fallback | ✅      |
-| 5.9  | **AUR PKGBUILD + Homebrew tap**: native package-manager installs                                                                         | 🟡      |
+| Task | What                                                                                                                                     | Status                   |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| 5.7  | **Plugin registry**: `flexfetch plugin search                                                                                            | install                  | list | update`against a hosted`registry.toml` with checksum + min-version checks | ✅ (Aug 2026) |
+| 5.8  | **Crowdsourced hardware DB**: compressed JSON on GitHub Pages (`hardware.json.zst`, ~50 KB), `--update-db`, cache + offline hex fallback | ✅                       |
+| 5.9  | **AUR PKGBUILD + Homebrew tap**: native package-manager installs                                                                         | ⛔ rejected (2026-08-07) |
 
 ### Pillar I — Unfair advantages
 
-| Task | What                                                                                                               | Status        |
-| ---- | ------------------------------------------------------------------------------------------------------------------ | ------------- |
-| 5.10 | **ASCII cinema** (`--live --record session.cast`): asciinema v2-format recording of the live dashboard             | ✅ (Aug 2026) |
-| 5.11 | **Container image**: static musl → scratch `~1 MB` image, GHCR publishing in CI (`ghcr.io/mahesh-diwan/flexfetch`) | ⬜            |
+| Task | What                                                                                                               | Status                   |
+| ---- | ------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| 5.10 | **ASCII cinema** (`--live --record session.cast`): asciinema v2-format recording of the live dashboard             | ✅ (Aug 2026)            |
+| 5.11 | **Container image**: static musl → scratch `~1 MB` image, GHCR publishing in CI (`ghcr.io/mahesh-diwan/flexfetch`) | ⛔ rejected (2026-08-07) |
 
 ### Execution priority
 
 | Week | Focus        | Tasks                                                |
 | ---- | ------------ | ---------------------------------------------------- |
-| 9    | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container)      |
-| 10   | Integration  | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB)         | ✅ done |
-| 11   | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) | ✅ done |
-| 12   | Community    | 5.7 (Plugin Registry), 5.10 (ASCII Cinema)           | ✅ done |
+| 9    | Distribution | 5.1 (Nix), 5.9 (AUR/Homebrew), 5.11 (Container)      | ⛔ closed — curl script only |
+| 10   | Integration  | 5.2 (GitHub Action), 5.3 (Tmux), 5.8 (HW DB)         | ✅ done                      |
+| 11   | Intelligence | 5.4 (Auto-theme), 5.5 (History), 5.6 (Notifications) | ✅ done                      |
+| 12   | Community    | 5.7 (Plugin Registry), 5.10 (ASCII Cinema)           | ✅ done                      |
 
 **Week 12 — Community: 5.7 (Plugin Registry) + 5.10 (ASCII Cinema) — ✅ done
 (Aug 2026)**. Week 10 (integration) and Week 11 (intelligence) shipped earlier;
 5.7 landed `flexfetch plugin search|install|list|update` (checksum +
 min-version-verified `registry.toml`, see Task 5.7) and 5.10 landed `--live
 --record session.cast` asciinema v2 recording (see Task 5.10). The registry
-work also unblocks 8.12 (Ed25519 signing) once WASM lands (4.12). **Immediate
-next step: Week 9 — Distribution: 5.1 (Nix flake — needs `flake.lock`
-committed), 5.9 (AUR/Homebrew publish), 5.11 (Container GHCR publish)** — the
-in-repo artifacts for all three are 🟡 done; only the publishing channels
-remain.
+work also unblocks 8.12 (Ed25519 signing) once WASM lands (4.12). **Week 9 —
+Distribution — ⛔ closed (2026-08-07): 5.1 Nix, 5.9 AUR/Homebrew, and 5.11
+Container publishing are all rejected. The curl script (`install.sh`) is the
+only install channel.** In-repo artifacts (flake.nix, packaging/, Dockerfile)
+remain as reference only.
 
 ### Task 5.2 — GitHub Action (`flexfetch-action`) — ✅ (Aug 2026)
 
@@ -648,26 +648,20 @@ Pending: **generate + commit `flake.lock`** (no nix on the dev box, so CI genera
 it on the fly — builds aren't pinned until it's committed; run `nix flake lock` on
 a nix machine once).
 
-### Task 5.9 — AUR PKGBUILD + Homebrew tap — 🟡 (Aug 2026, first batch)
+### Task 5.9 — AUR PKGBUILD + Homebrew tap — ⛔ rejected (2026-08-07)
 
-`packaging/PKGBUILD` (arch: x86_64 aarch64; source tarball checksum pinned;
-install: binary + man page + completions — note: **no** `assets/themes`/`assets/logos`
-dirs exist, themes are embedded consts, so those install lines from the plan were
-dropped) and `packaging/flexfetch.rb` (Homebrew formula: `cargo build` the release
-config, install bin + man + completions). Publishing to AUR (`git push` to
-aur.archlinux.org) and the `homebrew-flexfetch` tap repo are separate repo actions;
-the files ship in-repo so the packages can be cut from any release.
+**Decision: the curl install script is the only install channel.** `packaging/PKGBUILD`
+(arch: x86_64 aarch64; source tarball checksum pinned; install: binary + man page
 
-### Task 5.11 — Container image + GHCR — 🟡 (Aug 2026, first batch)
+- completions) and `packaging/flexfetch.rb` (Homebrew formula) ship in-repo for
+  reference only — they are NOT published to AUR or a homebrew tap.
 
-`Dockerfile` builds the **minimal** static musl binary (`--no-default-features`,
-no TUI needed in a container) into a `scratch` image; `release.yml` gains a `docker`
-job (tag-push gated) that builds + pushes `ghcr.io/mahesh-diwan/flexfetch:{tag}`
-and `:latest` on tag pushes, multi-arch amd64+arm64 via QEMU. Locally validated:
-builds + runs, 2.67 MB image. Usage:
-`docker run --rm -it ghcr.io/mahesh-diwan/flexfetch`. Note: the arm64 variant
-compiles the Rust tree under QEMU emulation on the release job (slower); if release
-latency matters, cross-compile with cargo-zigbuild in the Dockerfile instead.
+### Task 5.11 — Container image + GHCR — ⛔ rejected (2026-08-07)
+
+**Decision: the curl install script is the only install channel.** The `Dockerfile`
+(minimal static musl → `scratch`, multi-arch via QEMU) stays in-repo for reference;
+`release.yml`'s `docker` job publishes nothing and is not maintained as a publishing
+channel.
 
 ---
 
