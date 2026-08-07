@@ -138,10 +138,11 @@ if ! download "$URL" "$TMPDIR/$BIN.tar.gz"; then
 	exit 1
 fi
 
-# Validate download (check if it's a valid gzip file)
-if ! file "$TMPDIR/$BIN.tar.gz" | grep -qi gzip; then
+# Validate download (test if it's a valid gzip tar without extracting)
+if ! tar -tzf "$TMPDIR/$BIN.tar.gz" >/dev/null 2>&1; then
 	echo "Error: downloaded file is not a valid gzip archive"
 	echo "  The release may not include a binary for $ARCH_ALIAS"
+	rm -rf "$TMPDIR"
 	exit 1
 fi
 

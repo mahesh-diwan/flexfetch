@@ -22,29 +22,38 @@
 
   <!-- ============ NAV ============ -->
   <nav class="nav" id="nav">
-    <div class="container nav-inner" style="display:flex;align-items:center;justify-content:space-between;width:100%">
-      <a class="brand" href="#top">flexfetch<span class="caret">_</span></a>
-      <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#modules">Modules</a>
-        <a href="#themes">Themes</a>
-        <a href="#live">Live</a>
-        <a href="#ecosystem">Plugins</a>
-      </div>
-      <div class="nav-cta">
-        <a class="btn btn-ghost btn-sm" href="docs/">Docs</a>
-        <a class="btn btn-primary btn-sm" href="#install">Install</a>
-      </div>
+    <a class="brand" href="#top">flexfetch<span class="caret">_</span></a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#modules">Modules</a>
+      <a href="#themes">Themes</a>
+      <a href="#live">Live</a>
+      <a href="#ecosystem">Plugins</a>
     </div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost btn-sm" href="docs/">Docs</a>
+      <a class="btn btn-primary btn-sm" href="#install">Install</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="#features">Features</a>
+    <a href="#modules">Modules</a>
+    <a href="#themes">Themes</a>
+    <a href="#live">Live</a>
+    <a href="#ecosystem">Plugins</a>
+    <a class="btn btn-ghost" href="docs/">Docs</a>
+    <a class="btn btn-primary" href="#install">Install</a>
+  </div>
 
   <!-- ============ HERO ============ -->
   <header class="hero" id="top">
     <div class="container">
       <div class="hero-grid">
         <div class="reveal in">
-          <span class="eyebrow"><span class="dot"></span> pure Rust · zero subprocesses · perf-gated in CI</span>
-          <h1>Your whole system.<br /><span class="grad">Fetched in milliseconds.</span></h1>
+          <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
             <strong>flexfetch</strong> is a blazing-fast, themeable system information tool for
             Linux, macOS and Windows — <strong>37 modules</strong>, <strong>527 logos</strong>,
@@ -100,7 +109,6 @@
   <section class="section" id="features">
     <div class="container">
       <div class="section-head reveal">
-        <div class="kicker">Features</div>
         <h2>Everything a fetch should be — and nothing it shouldn't.</h2>
         <p>Every module is a direct read: <code>/proc</code>, sysfs, the Windows registry or macOS APIs. No subprocess spawns, no parsing of your neighbor's output, no startup cost.</p>
       </div>
@@ -145,7 +153,6 @@
       <div class="extra-strip reveal">
         <span>watch mode</span><span>config wizard</span><span>QR config sharing</span>
         <span>remote fetch over SSH</span><span>smart fetch</span><span>shell completions</span>
-        <span>Nix flake + Home Manager</span><span>shell completions</span>
       </div>
     </div>
   </section>
@@ -154,7 +161,6 @@
   <section class="section" id="modules" style="background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
     <div class="container">
       <div class="section-head reveal">
-        <div class="kicker">Modules</div>
         <h2>37 collectors. Zero external commands.</h2>
         <p>Everything reads the platform directly — <code>/proc</code> and sysfs on Linux, the registry and Win32 APIs on Windows, IOKit and system frameworks on macOS.</p>
       </div>
@@ -225,7 +231,6 @@
   <section class="section" id="themes">
     <div class="container">
       <div class="section-head reveal">
-        <div class="kicker">Themes</div>
         <h2>Pick a palette. Or build your own.</h2>
         <p>Every theme is a handful of color stops — keys, values, separators, accents — applied consistently across ASCII and image logos. Click a swatch to copy its command.</p>
       </div>
@@ -279,7 +284,6 @@
   <section class="section" id="live" style="background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
     <div class="container">
       <div class="section-head reveal">
-        <div class="kicker">Live dashboard</div>
         <h2>Your system, watching you back.</h2>
         <p><code>flexfetch --live</code> turns the fetch into a real-time TUI — gauges, per-process bars, network sparklines.</p>
       </div>
@@ -322,7 +326,6 @@
   <section class="section" id="install">
     <div class="container">
       <div class="section-head reveal">
-        <div class="kicker">Install</div>
         <h2>On your machine in one command.</h2>
         <p>Releases ship Linux (musl static, 3 arches), macOS (arm64 + x86_64) and Windows binaries — every artifact with checksums, cosign signatures and SLSA provenance.</p>
       </div>
@@ -331,22 +334,8 @@
           <span class="badge">official</span>
           <h3>curl installer</h3>
           <p>Detects your platform, verifies the SHA-256 checksum before unpacking, and fails closed on any mismatch.</p>
-          <div class="cmd">curl -fsSL …install.sh | sh</div>
+          <div class="cmd">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</div>
           <div class="note">checksum + signature verified</div>
-        </div>
-        <div class="inst reveal d1">
-          <span class="badge">cargo</span>
-          <h3>crates.io</h3>
-          <p>Build from source with the feature set you want — the minimal build ships at 1.73 MB.</p>
-          <div class="cmd">cargo install flexfetch --locked</div>
-          <div class="note">minimal: cargo install flexfetch --no-default-features</div>
-        </div>
-        <div class="inst reveal d2">
-          <span class="badge">nix</span>
-          <h3>Nix flake</h3>
-          <p>Flake outputs for default / full / minimal builds, plus a Home Manager module.</p>
-          <div class="cmd">nix run github:mahesh-diwan/flexfetch</div>
-          <div class="note">nix profile install github:mahesh-diwan/flexfetch</div>
         </div>
       </div>
       <div class="secure-strip reveal">
@@ -363,13 +352,11 @@
   <section class="section" id="ecosystem" style="background:var(--bg-2);border-top:1px solid var(--border)">
     <div class="container">
       <div class="section-head reveal">
-        <div class="kicker">Ecosystem</div>
         <h2>Not a binary. A platform.</h2>
         <p>Extend flexfetch without forking it — three tiers of extensibility, all auto-loaded from your plugins directory.</p>
       </div>
       <div class="eco-grid">
         <div class="eco reveal">
-          <span class="num">01</span>
           <h3>Lua plugins</h3>
           <p>Drop a <code>.lua</code> file into <code>~/.config/flexfetch/plugins/</code> and it becomes a module on the next run. Full access to the render context.</p>
           <ul>
@@ -379,7 +366,6 @@
           </ul>
         </div>
         <div class="eco reveal d1">
-          <span class="num">02</span>
           <h3>WASM sandbox</h3>
           <p>Compile a plugin to WebAssembly and flexfetch runs it fuel-limited inside a wasmtime sandbox — memory-safe by construction.</p>
           <ul>
@@ -389,7 +375,6 @@
           </ul>
         </div>
         <div class="eco reveal d2">
-          <span class="num">03</span>
           <h3>Signed registry</h3>
           <p><code>flexfetch plugin search|install|list|update</code> against a TOML registry — every entry verified with Ed25519 before the SHA-256 download check.</p>
           <ul>

@@ -132,6 +132,22 @@
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
+  /* ---------- hamburger menu ---------- */
+  const hamburger = document.getElementById("hamburger");
+  const navMobile = document.getElementById("nav-mobile");
+  if (hamburger && navMobile) {
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("open");
+      navMobile.classList.toggle("open");
+    });
+    navMobile.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", () => {
+        hamburger.classList.remove("open");
+        navMobile.classList.remove("open");
+      });
+    });
+  }
+
   /* ---------- footer year ---------- */
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
