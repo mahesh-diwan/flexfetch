@@ -2,6 +2,17 @@
 (function () {
   "use strict";
 
+  /* ---------- smooth scroll for anchor links ---------- */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
   /* ---------- toast ---------- */
   const toastEl = document.getElementById("toast");
   let toastTimer = null;
@@ -131,6 +142,22 @@
   const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 8);
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
+
+  /* ---------- active nav state ---------- */
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  if ('IntersectionObserver' in window) {
+    const sectionIo = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { threshold: 0.3, rootMargin: '-80px 0px -40% 0px' });
+    sections.forEach(s => sectionIo.observe(s));
+  }
 
   /* ---------- hamburger menu ---------- */
   const hamburger = document.getElementById("hamburger");

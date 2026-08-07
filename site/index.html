@@ -55,9 +55,9 @@
         <div class="reveal in">
           <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
-            <strong>flexfetch</strong> is a blazing-fast, themeable system information tool for
+            <strong>flexfetch</strong> is a blazing-fast, themeable system info tool for
             Linux, macOS and Windows — <strong>37 modules</strong>, <strong>527 logos</strong>,
-            a live TUI dashboard, and a plugin ecosystem. No shelling out. No lag. No noise.
+            and a live TUI dashboard. Zero subprocesses, pure Rust.
           </p>
 
           <div class="install-row">
@@ -117,40 +117,40 @@
           <div class="ico">⚡</div>
           <h3>Sub-10 ms cold start</h3>
           <p>Zero subprocess spawns. Each collector reads kernel data directly, and a CI perf gate (hyperfine, 50 runs) fails the build if the mean ever drifts past 10 ms.</p>
-          <span class="tag">perf-gate ✓</span>
+
         </div>
         <div class="feat reveal d1">
           <div class="ico">🎨</div>
           <h3>Themes &amp; gradients</h3>
           <p>Built-in presets (Catppuccin, Dracula, Nord, Solarized, Tokyo Night…), truecolor everywhere, per-module key/value colors, gradient accents — or roll your own.</p>
-          <span class="tag">flexfetch --theme dracula</span>
+
         </div>
         <div class="feat reveal d2">
           <div class="ico">🖥️</div>
           <h3>ASCII &amp; image logos</h3>
           <p>527 distro logos imported from fastfetch, plus PNG/BMP logos rendered as block characters with automatic palette extraction from your wallpaper.</p>
-          <span class="tag">image-logos</span>
+
         </div>
         <div class="feat reveal">
           <div class="ico">📈</div>
           <h3>Live dashboard</h3>
           <p><code>flexfetch --live</code> opens a TUI with CPU/memory/disk gauges, per-process bars, network sparklines.</p>
-          <span class="tag">--live</span>
+
         </div>
         <div class="feat reveal d1">
           <div class="ico">🔌</div>
           <h3>Lua &amp; WASM plugins</h3>
           <p>Write a custom module in Lua in five minutes, or ship memory-safe WebAssembly plugins that run fuel-limited inside a sandbox. Auto-loaded from <code>~/.config/flexfetch/plugins/</code>.</p>
-          <span class="tag">wasm-plugins</span>
+
         </div>
         <div class="feat reveal d2">
           <div class="ico">🔒</div>
           <h3>Supply-chain hardened</h3>
           <p>Plugins install via an Ed25519-signed registry with SHA-256 verification. Releases carry cosign signatures, CycloneDX SBOMs and SLSA provenance.</p>
-          <span class="tag">sigstore + SLSA</span>
+
         </div>
       </div>
-      <div class="extra-strip reveal">
+      <div class="extra-strip">
         <span>watch mode</span><span>config wizard</span><span>QR config sharing</span>
         <span>remote fetch over SSH</span><span>smart fetch</span><span>shell completions</span>
       </div>
@@ -290,11 +290,9 @@
       <div class="live-wrap">
         <div class="live-feats reveal">
           <div class="live-feat">
-            <span class="num">01</span>
             <div><h4>Real-time gauges</h4><p>CPU, memory, swap and disk move in live as you work — all zero-subprocess collectors, so the dashboard itself costs almost nothing.</p></div>
           </div>
           <div class="live-feat">
-            <span class="num">02</span>
             <div><h4>Top processes</h4><p>PID, command and per-process CPU/memory bars with live sorting — an htop-lite built on the same module engine.</p></div>
           </div>
         </div>
@@ -384,21 +382,6 @@
           </ul>
         </div>
       </div>
-
-      <div class="road reveal" style="margin-top:44px">
-        <div>
-          <h3>Road ahead</h3>
-          <p>The roadmap runs public in ROADMAP.md — from binary diet to SLSA provenance, everything lands as a checked-in phase with CI gates.</p>
-          <div class="hero-actions">
-            <a class="btn btn-ghost btn-sm" href="https://github.com/mahesh-diwan/flexfetch/blob/main/ROADMAP.md">View roadmap →</a>
-            <a class="btn btn-ghost btn-sm" href="https://github.com/mahesh-diwan/flexfetch">GitHub ⭐</a>
-          </div>
-        </div>
-        <ul>
-          <li><b>WASM capability manifest</b> — declare what a plugin may touch</li>
-          <li><b>Windows Tier-2</b> — shipped: registry + Win32 collectors</li>
-        </ul>
-      </div>
     </div>
   </section>
 
@@ -414,7 +397,7 @@
           <div class="foot-col">
             <h5>Project</h5>
             <a href="https://github.com/mahesh-diwan/flexfetch">GitHub</a>
-            <a href="https://github.com/mahesh-diwan/flexfetch/blob/main/ROADMAP.md">Roadmap</a>
+
             <a href="https://github.com/mahesh-diwan/flexfetch/releases">Releases</a>
             <a href="https://github.com/mahesh-diwan/flexfetch/blob/main/SECURITY.md">Security</a>
           </div>
