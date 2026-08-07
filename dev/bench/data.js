@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786111847927,
+  "lastUpdate": 1786114132012,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -323,6 +323,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11064068,
             "range": "± 831174",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "2d95543b15fa761db0873afa6496645ee9df0c5e",
+          "message": "site: neobrutalist polish, curl-only install, mobile responsive\n\n- install.sh: replace `file` check with `tar -tzf` (portable)\n- site: remove Nix/cargo/AUR install cards, keep curl only\n- site: subtle neobrutalism — 2px borders, hard offset shadows, accent border-top\n- site: remove anti-slop — eyebrow kickers, gradient text, backdrop-filter blur\n- site: hero terminal with full flexfetch output (flat spans)\n- site: pill navbar, hamburger mobile menu\n- site: mobile responsive — stacked hero, 2-col grids, 44px touch targets\n- hero.html: simplified with Catppuccin colors",
+          "timestamp": "2026-08-07T20:15:48+05:30",
+          "tree_id": "82793463142df7a73d18060f935bb1cdd371bbf6",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/2d95543b15fa761db0873afa6496645ee9df0c5e"
+        },
+        "date": 1786114131389,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 10300105,
+            "range": "± 101216",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 10243670,
+            "range": "± 100975",
             "unit": "ns/iter"
           }
         ]
