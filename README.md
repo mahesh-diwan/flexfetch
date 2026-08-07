@@ -98,7 +98,6 @@ cargo test
 
 ## Links
 
-- [Roadmap](ROADMAP.md)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)

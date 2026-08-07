@@ -2,9 +2,9 @@
 
 ## Supported versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| latest tag | ✅ |
+| Version    | Supported    |
+| ---------- | ------------ |
+| latest tag | ✅           |
 | older tags | ❌ (upgrade) |
 
 Security fixes land on `main` and ship in the next tagged release. There are no
@@ -17,7 +17,7 @@ separate LTS branches.
 Instead, report privately so the fix can ship before the details are public:
 
 - **Preferred:** a private security advisory via GitHub
-  (repo → *Security* → *Report a vulnerability*), or
+  (repo → _Security_ → _Report a vulnerability_), or
 - **Email:** open an issue asking for a private contact, or reach the
   maintainer through the GitHub profile.
 
@@ -75,13 +75,8 @@ slsa-verifier verify-artifact \
 
 ## Reproducible builds
 
-Binaries should reproduce byte-for-byte from the tagged source. To verify that
-a release binary came from the claimed source:
-
-```sh
-./scripts/verify-repro.sh v0.18.0          # builds the tag, diffs the hash
-REPO=mahesh-diwan/flexfetch ./scripts/verify-repro.sh v0.18.0   # explicit repo
-```
+Binaries should reproduce byte-for-byte from the tagged source. To verify,
+build from the tag and compare the SHA-256 hash against the published checksum.
 
 If the hashes differ, report it as a security issue — reproducible builds are
 the final guarantee that what you run is what we shipped.

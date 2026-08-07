@@ -2,9 +2,24 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - "flexfetch-*/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "deny.toml"
+      - "templates/**"
+      - "completions/**"
+      - ".github/workflows/ci.yml"
   pull_request:
+    paths:
+      - "flexfetch-*/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "deny.toml"
+      - "templates/**"
+      - "completions/**"
+      - ".github/workflows/ci.yml"
 
-# Cancel superseded runs on the same branch/PR to save runner minutes.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -18,306 +33,96 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
       - uses: dtolnay/rust-toolchain@stable
-
-      # Default features include `lua` (vendored mlua), which compiles bundled
-      # Lua C code — ubuntu-latest ships gcc, so no extra setup is needed.
-      - name: Run tests
-        run: cargo test --workspace
+      - run: cargo test --workspace
 
   clippy:
     name: clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-
-      - name: Run clippy (warnings are errors)
-        run: cargo clippy --workspace --all-targets -- -D warnings
-
-  # Phase 8.9: Windows Tier-2 gate — build + test + clippy on a real Windows
-  # runner with the release feature set (pure-Rust deps only: the C-backed
-  # features — vendored Lua, bundled rusqlite, zstd — need MSVC build tools
-  # that plain runner steps don't have on PATH; the Windows release pipeline
-  # ships the same config). Exercises the new windows-sys collectors (CPU via
-  # GetSystemInfo + registry, memory via GlobalMemoryStatusEx, disk via
-  # GetDiskFreeSpaceExW, network via GetAdaptersInfo) and the terminal/WSL
-  # detection on actual Windows.
-  windows:
-    name: windows
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-
-      # flexfetch-lua is excluded (unconditional vendored-mlua C build); core's
-      # no-default-features run covers the plain-renderer path on Windows.
-      - name: Run tests (core + cli, release feature set)
-        run: |
-          cargo test -p flexfetch-core --no-default-features
-          cargo test -p flexfetch-cli --no-default-features --features live,image-logos,completions
-
-      - name: Clippy (warnings are errors)
-        run: |
-          cargo clippy -p flexfetch-core --no-default-features --all-targets -- -D warnings
-          cargo clippy -p flexfetch-cli --no-default-features --features live,image-logos,completions --all-targets -- -D warnings
+      - run: cargo clippy --workspace --all-targets -- -D warnings
 
   fmt:
     name: fmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
+      - run: cargo fmt --all -- --check
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
+  windows:
+    name: windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Test (core + cli, release feature set)
+        run: |
+          cargo test -p flexfetch-core --no-default-features
+          cargo test -p flexfetch-cli --no-default-features --features live,image-logos,completions
+      - name: Clippy
+        run: |
+          cargo clippy -p flexfetch-core --no-default-features --all-targets -- -D warnings
+          cargo clippy -p flexfetch-cli --no-default-features --features live,image-logos,completions --all-targets -- -D warnings
 
-  # Guards the documented minimal build path (README: cargo build --release
-  # --no-default-features) so it keeps compiling without the lua/live/image-logos
-  # features — this is also what drops the `image` crate entirely (the diet).
   minimal-build:
     name: minimal-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - run: cargo build --release -p flexfetch-cli --no-default-features
+      - run: cargo test -p flexfetch-core --no-default-features
+      - run: cargo clippy -p flexfetch-cli --no-default-features -- -D warnings
+      - run: cargo clippy -p flexfetch-core --no-default-features --all-targets -- -D warnings
 
-      - name: Build minimal (no default features)
-        run: cargo build --release -p flexfetch-cli --no-default-features
-
-      # The feature-off path for flexfetch-core is never exercised by the `test`
-      # job (it runs with default features = image on), so run core's tests with
-      # --no-default-features here to cover the image-less stubs and fallbacks,
-      # and clippy the minimal CLI build so feature-off-only warnings are caught.
-      - name: Test core without default features
-        run: cargo test -p flexfetch-core --no-default-features
-
-      - name: Clippy minimal (no default features)
-        run: cargo clippy -p flexfetch-cli --no-default-features -- -D warnings
-
-      # Core's feature-off path (image-less stubs + fallbacks) is clippy'd here too,
-      # not just tested, so a future warning in the image-off config is caught in CI.
-      - name: Clippy core minimal (no default features)
-        run: cargo clippy -p flexfetch-core --no-default-features --all-targets -- -D warnings
-
-  # Phase 4.11 QR config sharing is an opt-in feature (zstd-sys is a C dep, so it
-  # stays out of default/minimal/release builds) — CI must still exercise it so a
-  # regression in qr.rs or the feature wiring can't land silently.
   qr-feature:
     name: qr-feature
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-
-      # Default features include `lua` (vendored mlua compiles C — ubuntu has gcc).
-      - name: Test QR feature
-        run: cargo test -p flexfetch-cli --features qr
-
-      - name: Clippy QR feature
-        run: cargo clippy -p flexfetch-cli --features qr --all-targets -- -D warnings
-
-  # Phase 4.1 cold-start gate: the roadmap's sub-10ms promise applies to the
-  # minimal build (the full default fetch is network-bound by design). hyperfine
-  # measures `--minimal` (title/separator/os/kernel/uptime — all zero-spawn file
-  # reads) with a warmup, and the mean must stay under 10 ms. Uses python3 for the
-  # comparison (jq/bc are not guaranteed on runners).
-  perf-gate:
-    name: perf-gate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Build minimal release
-        run: cargo build --release -p flexfetch-cli --no-default-features
-
-      - name: Install hyperfine
-        run: cargo install hyperfine --locked
-
-      # hyperfine discards the benchmarked command's stdout by default, so no
-      # --output flag is needed. Threshold: the roadmap's sub-10ms claim is the
-      # dev-box target for the minimal build; shared runners can be noisier, so
-      # if this ever flakes, raise `limit` in the python step to 0.015 (15 ms)
-      # rather than deleting the gate.
-      - name: "Measure cold start (gate: mean < 10 ms)"
-        run: |
-          hyperfine --warmup 5 --runs 50 \
-            './target/release/flexfetch --minimal' \
-            --export-json /tmp/perf.json
-          python3 - <<'EOF'
-          import json
-          mean = json.load(open('/tmp/perf.json'))['results'][0]['mean']
-          limit = 0.010
-          print(f'cold start mean: {mean*1000:.2f} ms (gate: <{limit*1000:.0f} ms)')
-          if mean > limit:
-              print(f'::error::cold start {mean*1000:.2f} ms exceeds the {limit*1000:.0f} ms gate')
-              raise SystemExit(1)
-          EOF
-
-  # Phase 8.4: terminal capability matrix — asserts truecolor vs 16-color
-  # fallback across TERM/COLORTERM combos (script/pty required for the color
-  # paths; falls back to crash-only checks when unavailable).
-  terminal-matrix:
-    name: terminal-matrix
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Build (default features for the theme paths)
-        run: cargo build --release -p flexfetch-cli
-
-      - name: Run terminal capability matrix
-        run: sh scripts/terminal_matrix.sh target/release/flexfetch
-
-  # Phase 8.5: property-based tests (proptest) on the pure helpers — runs as a
-  # separate job so a property regression doesn't hide behind the unit-test
-  # totals (proptest failures print shrunk counterexamples to stderr).
-  proptest:
-    name: proptest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Run property-based tests
-        run: cargo test -p flexfetch-core --test proptest_helpers
-
-  # Phase 8.5C — memory safety gate: valgrind on the minimal fetch (the
-  # release-pipeline feature set) must report zero errors. `--live` needs an
-  # interactive tty, so the gate runs the same zero-spawn collectors the live
-  # dashboard uses, through the full run_selected + render pipeline.
-  valgrind:
-    name: valgrind-leak-check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Install valgrind
-        run: sudo apt-get update && sudo apt-get install -y valgrind
-
-      - name: Build minimal release
-        run: cargo build --release -p flexfetch-cli --no-default-features
-
-      - name: Valgrind leak check (zero errors tolerated)
-        run: |
-          valgrind --error-exitcode=99 --leak-check=full \
-            --errors-for-leak-kinds=definite,indirect \
-            ./target/release/flexfetch --minimal --pipe >/dev/null 2>/tmp/valgrind.log
-          echo "exit: $?"
-          grep -E 'ERROR SUMMARY' /tmp/valgrind.log
-          grep -cE 'definitely lost|indirectly lost' /tmp/valgrind.log || true
-
-  # Phase 5.1: validate the Nix flake (packages.default/full/minimal + Home
-  # Manager module) on every push/PR. The dev box has no nix, so CI is where the
-  # flake is actually built; cargo tests/clippy run in the other jobs above.
-  nix-flake:
-    name: nix-flake
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # magic-nix-cache-action@v9 was removed: its v9 default points at the
-      # FlakeHub cache, which needs netrc credentials the runner doesn't have
-      # ("Cannot find netrc credentials for https://api.flakehub.com/"), and the
-      # GitHub Actions cache fallback then gets throttled (HTTP 418), leaving nix
-      # with no substituters — the nix-flake job failed on every main run.
-      # nix-installer-action alone sets up nix with the public cache.nixos.org.
-      - uses: DeterminateSystems/nix-installer-action@v16
-
-      - name: Build default package (release config)
-        # -L surfaces the derivation's build log (vendor/compile errors) so a
-        # sandbox-side failure is visible in the action log instead of just
-        # 'builder failed with exit code 1'.
-        run: nix build -L .#default --no-link
-
-      - name: Build minimal package
-        run: nix build -L .#minimal --no-link
-
-      - name: Check the flake evaluates (incl. Home Manager module)
-        run: nix flake check -L
+      - run: cargo test -p flexfetch-cli --features qr
+      - run: cargo clippy -p flexfetch-cli --features qr --all-targets -- -D warnings

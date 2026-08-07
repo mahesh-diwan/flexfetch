@@ -6,16 +6,15 @@ round-trip.
 
 ## Ground rules
 
-1. **Check the ROADMAP first.** `ROADMAP.md` is the canonical index: planned,
-   in-progress, and **rejected** ideas are all tracked there. If your idea is
-   listed as rejected, don't re-propose it without new justification. If it's
-   planned, reference the task number.
+1. **Check existing issues first.** Search open issues and discussions before
+   proposing new features. If your idea was previously rejected, don't
+   re-propose it without new justification.
 2. **The diet is a feature.** Every advanced capability lives behind a
    compile-time feature gate so `--no-default-features` stays small (minimal
    binary ~1.5 MB). New dependencies are scrutinized hard — prefer pure std,
    then pure Rust, then a gated dep. See `flexfetch-core/Cargo.toml` for the
    house style (e.g. `image` pinned to `default-features = false, features =
-   ["png"]`).
+["png"]`).
 3. **Keep the gates honest.** If you add a feature:
    - add it to `flexfetch-core` and/or `flexfetch-cli` `[features]`,
    - verify the feature-off build still compiles + clippies,
@@ -56,11 +55,12 @@ the project's MIT license (see <https://developercertificate.org>).
   that non-trivial changes are safe.
 - One logical change per PR. Prefer small PRs.
 - If the PR closes an issue, reference it (`Closes #123`).
-- Update `CHANGELOG.md` and mark statuses in `ROADMAP.md` for feature work.
+- Update `CHANGELOG.md` for feature work.
 
 ## Code review
 
 Be patient and specific. Reviewers will push back on:
+
 - new dependencies without a diet justification,
 - un-gated features that should be opt-in,
 - `Command::new` in a Linux default-path collector,

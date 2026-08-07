@@ -6,9 +6,9 @@
 
 <!-- Technical approach: which files/modules changed, feature gates touched -->
 
-## Why / roadmap link
+## Why
 
-<!-- e.g. "Closes #123", "Implements ROADMAP 5.4", "Follow-up to #456" -->
+<!-- e.g. "Closes #123", "Follow-up to #456" -->
 
 ## Verification
 
@@ -19,7 +19,7 @@
 - [ ] `cargo fmt --all -- --check` passes
 - [ ] Feature-off path builds: `cargo build -p flexfetch-cli --no-default-features`
 - [ ] If a new opt-in feature was added, it builds + clippies with `--features <name>`
-- [ ] `CHANGELOG.md` / `ROADMAP.md` updated (statuses marked)
+- [ ] `CHANGELOG.md` updated
 
 ## Notes for reviewers
 

@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before filing, please check the [ROADMAP](https://github.com/mahesh-diwan/flexfetch/blob/main/ROADMAP.md)
+        Before filing, please check existing issues and discussions
         — the idea may already be planned or explicitly rejected.
   - type: textarea
     id: problem

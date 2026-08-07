@@ -1,0 +1,72 @@
+# Deep tests — perf gate, valgrind. Only runs on tags or manual dispatch.
+# These jobs are slow (hyperfine50 runs, valgrind memcheck) and don't
+# need to block every commit.
+name: Deep Tests
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: deep-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  perf-gate:
+    name: perf-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build minimal release
+        run: cargo build --release -p flexfetch-cli --no-default-features
+      - name: Install hyperfine
+        run: cargo install hyperfine --locked
+      - name: "Measure cold start (gate: mean < 10 ms)"
+        run: |
+          hyperfine --warmup 5 --runs 50 \
+            './target/release/flexfetch --minimal' \
+            --export-json /tmp/perf.json
+          python3 - <<'EOF'
+          import json
+          mean = json.load(open('/tmp/perf.json'))['results'][0]['mean']
+          limit = 0.010
+          print(f'cold start mean: {mean*1000:.2f} ms (gate: <{limit*1000:.0f} ms)')
+          if mean > limit:
+              print(f'::error::cold start {mean*1000:.2f} ms exceeds the {limit*1000:.0f} ms gate')
+              raise SystemExit(1)
+          EOF
+
+  valgrind:
+    name: valgrind-leak-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install valgrind
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+      - name: Build minimal release
+        run: cargo build --release -p flexfetch-cli --no-default-features
+      - name: Valgrind leak check
+        run: |
+          valgrind --error-exitcode=99 --leak-check=full \
+            --errors-for-leak-kinds=definite,indirect \
+            ./target/release/flexfetch --minimal --pipe >/dev/null 2>/tmp/valgrind.log
+          echo "exit: $?"
+          grep -E 'ERROR SUMMARY' /tmp/valgrind.log
+          grep -cE 'definitely lost|indirectly lost' /tmp/valgrind.log || true

@@ -1,6 +1,6 @@
 /target
-# Cargo.lock is committed: this is a binary workspace (release/CI/docker use
-# `--locked` for reproducible builds — the Dockerfile COPY . . needs it).
+# Cargo.lock is committed: this is a binary workspace (release/CI use
+# `--locked` for reproducible builds).
 # mdBook build output (book/book.toml sets build-dir = target)
 book/target
 # Generated site output (the Docs & Site workflow builds the book into
@@ -16,19 +16,3 @@ site/docs
 .superpowers/
 .memory/
 .ruff_cache/
-
-# Internal / non-user-facing (removed from tree, kept in history)
-docs/superpowers/
-fuzz/
-scripts/subagent-driven-development/
-scripts/gen_fastfetch_logos.py
-scripts/pgo.sh
-scripts/site_hero.py
-scripts/verify-repro.sh
-cliff.toml
-packaging/
-tests/fixtures/
-flexfetch-core/create_logos.py
-doc/plugins.md
-doc/templates.md
-schemas/
