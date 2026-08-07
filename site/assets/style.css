@@ -55,7 +55,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 100px;
+  scroll-padding-top: 120px;
 }
 
 body {
@@ -459,7 +459,7 @@ h1 .accent {
 
 .term-body-wrap {
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   max-height: 520px;
   padding: 16px 16px 20px;
 }
@@ -559,6 +559,7 @@ h1 .accent {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  align-items: stretch;
 }
 .feat {
   background: var(--surface);
@@ -986,7 +987,8 @@ h1 .accent {
   padding: 12px;
   font: 12px var(--font-mono);
   color: var(--lavender);
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 .inst .note {
   margin-top: 8px;
