@@ -16,3 +16,19 @@ site/docs
 .superpowers/
 .memory/
 .ruff_cache/
+
+# Internal / non-user-facing (removed from tree, kept in history)
+docs/superpowers/
+fuzz/
+scripts/subagent-driven-development/
+scripts/gen_fastfetch_logos.py
+scripts/pgo.sh
+scripts/site_hero.py
+scripts/verify-repro.sh
+cliff.toml
+packaging/
+tests/fixtures/
+flexfetch-core/create_logos.py
+doc/plugins.md
+doc/templates.md
+schemas/
