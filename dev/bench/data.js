@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786118007283,
+  "lastUpdate": 1786119091306,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -539,6 +539,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 8595988,
             "range": "± 39821",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "9c115cd0a3c0118d828fbb29dcab130ad9b9b5a4",
+          "message": "site: fix design token consistency — reduce clutter\n\n- Border-radius: 8 values → 3 (6px cards, 0 terminals, 9999px nav)\n- Gap: 20+ values → scale {4, 8, 12, 16, 24, 32, 48}px\n- Border colors: hardcoded rgba → CSS variables (--border, --border-strong, --accent-border)\n- Padding: snapped to consistent scale for cards, inputs, compact elements",
+          "timestamp": "2026-08-07T21:38:14+05:30",
+          "tree_id": "c1610ebd0911a262a58c98376789fd6c59b67441",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/9c115cd0a3c0118d828fbb29dcab130ad9b9b5a4"
+        },
+        "date": 1786119090557,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 10289717,
+            "range": "± 122925",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 10207519,
+            "range": "± 91708",
             "unit": "ns/iter"
           }
         ]
