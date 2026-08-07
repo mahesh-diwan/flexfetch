@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786110356707,
+  "lastUpdate": 1786111847927,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -287,6 +287,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11150783,
             "range": "± 303276",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "39b8843f7bbc8dd2d769086f1f0650dc6b2beab5",
+          "message": "site: visual design polish\n\n- Inter → Outfit (body font), tighter line-height\n- Desaturated blue accent, blue-violet glow\n- Tighter nav (68→56px), wider hero terminal column\n- Stats border separators, spring easing on feature cards\n- GPU-composited transitions (will-change, transform-only)\n- Snappier cursor blink (1.3→1s), copy button scale press\n- Fixed duplicate emojis (terminal, wallpaper)",
+          "timestamp": "2026-08-07T19:36:58+05:30",
+          "tree_id": "ebb2ff5ba4f2c055ad76803e0c9dffadbd1cf251",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/39b8843f7bbc8dd2d769086f1f0650dc6b2beab5"
+        },
+        "date": 1786111847432,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11111874,
+            "range": "± 312655",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11064068,
+            "range": "± 831174",
             "unit": "ns/iter"
           }
         ]
