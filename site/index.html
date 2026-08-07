@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>flexfetch — your whole system, fetched in milliseconds</title>
-  <meta name="description" content="flexfetch is a blazing-fast, themeable system information tool for Linux, macOS and Windows. 34 modules, 500+ logos, zero subprocesses, pure Rust. Sub-10 ms cold start." />
+  <meta name="description" content="flexfetch is a blazing-fast, themeable system information tool for Linux, macOS and Windows. 37 modules, 527 logos, zero subprocesses, pure Rust. Sub-10 ms cold start." />
   <meta property="og:title" content="flexfetch — your whole system, fetched in milliseconds" />
-  <meta property="og:description" content="A blazing-fast, themeable system info tool. 34 modules, 500+ logos, sub-10 ms cold start, pure Rust." />
+  <meta property="og:description" content="A blazing-fast, themeable system info tool. 37 modules, 527 logos, sub-10 ms cold start, pure Rust." />
   <meta property="og:url" content="https://mahesh-diwan.github.io/flexfetch/" />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#0d0f17" />
@@ -47,7 +47,7 @@
           <h1>Your whole system.<br /><span class="grad">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
             <strong>flexfetch</strong> is a blazing-fast, themeable system information tool for
-            Linux, macOS and Windows — <strong>34 modules</strong>, <strong>500+ logos</strong>,
+            Linux, macOS and Windows — <strong>37 modules</strong>, <strong>527 logos</strong>,
             a live TUI dashboard, and a plugin ecosystem. No shelling out. No lag. No noise.
           </p>
 
@@ -89,8 +89,8 @@
     <div class="container">
       <div class="stats-grid">
         <div class="stat"><div class="num">&lt;10 ms</div><div class="lbl">cold start (perf-gated)</div></div>
-        <div class="stat"><div class="num">1.76 MB</div><div class="lbl">minimal binary</div></div>
-        <div class="stat"><div class="num">34</div><div class="lbl">built-in modules</div></div>
+        <div class="stat"><div class="num">1.73 MB</div><div class="lbl">minimal binary</div></div>
+        <div class="stat"><div class="num">37</div><div class="lbl">built-in modules</div></div>
         <div class="stat"><div class="num">527</div><div class="lbl">distro logos</div></div>
       </div>
     </div>
@@ -145,7 +145,7 @@
       <div class="extra-strip reveal">
         <span>watch mode</span><span>config wizard</span><span>QR config sharing</span>
         <span>remote fetch over SSH</span><span>smart fetch</span><span>shell completions</span>
-        <span>Nix flake + Home Manager</span><span>GHCR container image</span><span>asciinema export</span>
+        <span>Nix flake + Home Manager</span><span>shell completions</span>
       </div>
     </div>
   </section>
@@ -155,7 +155,7 @@
     <div class="container">
       <div class="section-head reveal">
         <div class="kicker">Modules</div>
-        <h2>34 collectors. Zero external commands.</h2>
+        <h2>37 collectors. Zero external commands.</h2>
         <p>Everything reads the platform directly — <code>/proc</code> and sysfs on Linux, the registry and Win32 APIs on Windows, IOKit and system frameworks on macOS.</p>
       </div>
 
@@ -179,7 +179,6 @@
         <div class="mod" data-cat="system"><span class="glyph">⏱️</span><span><span class="mname">uptime</span></span></div>
         <div class="mod" data-cat="system"><span class="glyph">🌍</span><span><span class="mname">locale</span></span></div>
         <div class="mod" data-cat="system"><span class="glyph">🎨</span><span><span class="mname">colors</span></span></div>
-        <div class="mod" data-cat="system"><span class="glyph">🏷️</span><span><span class="mname">title</span></span></div>
 
         <div class="mod" data-cat="hardware"><span class="glyph">🧠</span><span><span class="mname">cpu</span></span></div>
         <div class="mod" data-cat="hardware"><span class="glyph">📊</span><span><span class="mname">cpuusage</span></span></div>
@@ -190,9 +189,9 @@
         <div class="mod" data-cat="hardware"><span class="glyph">🎮</span><span><span class="mname">gpu</span></span></div>
         <div class="mod" data-cat="hardware"><span class="glyph">🔋</span><span><span class="mname">battery</span></span></div>
         <div class="mod" data-cat="hardware"><span class="glyph">🌡️</span><span><span class="mname">temperature</span></span></div>
-        <div class="mod" data-cat="hardware"><span class="glyph">📐</span><span><span class="mname">resolution</span></span></div>
         <div class="mod" data-cat="hardware"><span class="glyph">🖼️</span><span><span class="mname">display</span></span></div>
         <div class="mod" data-cat="hardware"><span class="glyph">❤️</span><span><span class="mname">health</span></span></div>
+        <div class="mod" data-cat="hardware"><span class="glyph">🖼️</span><span><span class="mname">wallpaper</span></span></div>
 
         <div class="mod" data-cat="software"><span class="glyph">📦</span><span><span class="mname">packages</span></span></div>
         <div class="mod" data-cat="software"><span class="glyph">🐚</span><span><span class="mname">shell</span></span></div>
@@ -212,7 +211,10 @@
         <div class="mod" data-cat="custom"><span class="glyph">✏️</span><span><span class="mname">custom</span></span></div>
         <div class="mod" data-cat="custom"><span class="glyph">🐳</span><span><span class="mname">container</span></span></div>
         <div class="mod" data-cat="custom"><span class="glyph">🗃️</span><span><span class="mname">fsdeep</span></span></div>
-        <div class="mod" data-cat="custom"><span class="glyph">🔌</span><span><span class="mname">plugins</span></span></div>
+        <div class="mod" data-cat="custom"><span class="glyph">🌤️</span><span><span class="mname">weather</span></span></div>
+        <div class="mod" data-cat="custom"><span class="glyph">📂</span><span><span class="mname">git</span></span></div>
+        <div class="mod" data-cat="custom"><span class="glyph">📋</span><span><span class="mname">project</span></span></div>
+        <div class="mod" data-cat="custom"><span class="glyph">🔍</span><span><span class="mname">context</span></span></div>
 
         <div class="mod-empty" id="mod-empty">no modules match — try “gpu”</div>
       </div>
@@ -269,7 +271,7 @@
           <div class="tcmd">per-module colors in config</div>
         </div>
       </div>
-      <p class="theme-note reveal">All 16 built-in presets are switchable at runtime — no config edit needed: <code>flexfetch --theme dracula</code>. Persistent choice lives in <code>~/.config/flexfetch/config.toml</code>.</p>
+      <p class="theme-note reveal">All 27 built-in presets are switchable at runtime — no config edit needed: <code>flexfetch --theme dracula</code>. Persistent choice lives in <code>~/.config/flexfetch/config.toml</code>.</p>
     </div>
   </section>
 
@@ -279,7 +281,7 @@
       <div class="section-head reveal">
         <div class="kicker">Live dashboard</div>
         <h2>Your system, watching you back.</h2>
-        <p><code>flexfetch --live</code> turns the fetch into a real-time TUI — gauges, per-process bars, network sparklines — with asciinema recording built in.</p>
+        <p><code>flexfetch --live</code> turns the fetch into a real-time TUI — gauges, per-process bars, network sparklines.</p>
       </div>
       <div class="live-wrap">
         <div class="live-feats reveal">
@@ -290,10 +292,6 @@
           <div class="live-feat">
             <span class="num">02</span>
             <div><h4>Top processes</h4><p>PID, command and per-process CPU/memory bars with live sorting — an htop-lite built on the same module engine.</p></div>
-          </div>
-          <div class="live-feat">
-            <span class="num">03</span>
-            <div><h4>Real-time gauges</h4><p>CPU/memory/disk gauges with live sparklines — <code>--live</code> keeps the dashboard fresh.</p></div>
           </div>
         </div>
         <div class="live-term reveal d1">
@@ -313,7 +311,6 @@
           </div>
           <div class="live-foot">
             <span>net ↓ 1.2 MB/s ↑ 342 KB/s</span>
-            <span class="rec">REC 00:14</span>
             <span>press q to quit</span>
           </div>
         </div>
@@ -340,7 +337,7 @@
         <div class="inst reveal d1">
           <span class="badge">cargo</span>
           <h3>crates.io</h3>
-          <p>Build from source with the feature set you want — the minimal build ships at 1.76 MB.</p>
+          <p>Build from source with the feature set you want — the minimal build ships at 1.73 MB.</p>
           <div class="cmd">cargo install flexfetch --locked</div>
           <div class="note">minimal: cargo install flexfetch --no-default-features</div>
         </div>
@@ -350,13 +347,6 @@
           <p>Flake outputs for default / full / minimal builds, plus a Home Manager module.</p>
           <div class="cmd">nix run github:mahesh-diwan/flexfetch</div>
           <div class="note">nix profile install github:mahesh-diwan/flexfetch</div>
-        </div>
-        <div class="inst reveal d3">
-          <span class="badge">coming soon</span>
-          <h3>AUR &amp; Homebrew</h3>
-          <p>Community packages are on the roadmap — tracked in ROADMAP.md Week 9 distribution.</p>
-          <div class="cmd">paru -S flexfetch</div>
-          <div class="note">brew install flexfetch (when published)</div>
         </div>
       </div>
       <div class="secure-strip reveal">
@@ -421,8 +411,6 @@
         </div>
         <ul>
           <li><b>WASM capability manifest</b> — declare what a plugin may touch</li>
-          <li><b>AUR / Homebrew</b> — community distribution channels</li>
-          <li><b>GHCR image</b> — <code>docker run ghcr.io/mahesh-diwan/flexfetch</code></li>
           <li><b>Windows Tier-2</b> — shipped: registry + Win32 collectors</li>
         </ul>
       </div>
@@ -464,7 +452,7 @@
       </div>
       <div class="foot-bottom">
         <span>© <span id="year"></span> flexfetch · MIT licensed</span>
-        <span>built with 🦀 Rust · sub-10 ms · 1.76 MB · 34 modules</span>
+        <span>built with 🦀 Rust · sub-10 ms · 1.73 MB · 37 modules</span>
       </div>
     </div>
   </footer>
