@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786102936841,
+  "lastUpdate": 1786105188356,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -179,6 +179,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 7395423,
             "range": "± 296204",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "5feaf4241e50b3510efe859523e3085898e37fe4",
+          "message": "chore: harden install.sh, curl-only distribution, truthful README, drop AI tooling\n\ninstall.sh:\n- bash shebang (arrays), portable numeric tag sort (BSD-safe, no sort -V)\n- cursor-safety EXIT trap + guarded tty escapes (set -e safe in pipe)\n- green success banner with real on-disk size; verified end-to-end (tty + pipe)\n\ndistribution decision (2026-08-07): curl script is the ONLY install channel.\nROADMAP/master plan mark 5.1/5.9/5.11/4.17 rejected; docker job removed from\nrelease.yml; SBOM step fixed (cargo-cyclonedx has no --output-dir) + made\nnon-blocking so a missing SBOM never reds the amd64 artifact.\n\nREADME: truthful measured numbers (0.8 MB shipped/UPX'd, 1.8 MB minimal,\n2.4 MB release-set, 6.9 MB full, 527 logos) + --flash section. Screenshots\nverified against real export output.\n\nrepo hygiene: gitignore AI tooling dirs (.claude/.opencode/.playwright*/.superpowers/.memory/.ruff_cache) and untrack 22 committed agent artifacts.",
+          "timestamp": "2026-08-07T17:46:38+05:30",
+          "tree_id": "28ab2814ef5f234088c5f23ea1f941b085cb0510",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/5feaf4241e50b3510efe859523e3085898e37fe4"
+        },
+        "date": 1786105187737,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11224796,
+            "range": "± 306045",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11227873,
+            "range": "± 152826",
             "unit": "ns/iter"
           }
         ]
