@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786114132012,
+  "lastUpdate": 1786115734933,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -359,6 +359,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 10243670,
             "range": "± 100975",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "dc69c729c05e89258cfa32ef612281d597d1a044",
+          "message": "site: bold neobrutalism + DM Mono font\n\n- Font: DM Mono for body + code (monospace developer aesthetic)\n- Headings: Space Grotesk (kept)\n- Borders: 3px solid #fff on all cards/terminal/inputs\n- Shadows: hard offset 6px 6px 0 #000 (terminal), 4px cards, 3px buttons\n- Corners: border-radius 0 everywhere (sharp brutalist), nav pill 9999px\n- Accent: Catppuccin pink (#f5c2e7) on stats, buttons, active chips\n- Primary button: solid pink bg with dark text\n- Typography: 700 weight headings, -0.02em tracking",
+          "timestamp": "2026-08-07T20:42:34+05:30",
+          "tree_id": "8eec11f2908131aa27854574804ca64ca2a7e348",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/dc69c729c05e89258cfa32ef612281d597d1a044"
+        },
+        "date": 1786115733974,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11101333,
+            "range": "± 72720",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11063944,
+            "range": "± 79948",
             "unit": "ns/iter"
           }
         ]
