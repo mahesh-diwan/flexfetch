@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786109846041,
+  "lastUpdate": 1786110356707,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -251,6 +251,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11047333,
             "range": "± 51277",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "b989f674bc8331b89ff78015edaa8be992450d3d",
+          "message": "chore: strip repo bloat, rewrite README 680→110 lines\n\nDeleted non-user-facing files (22):\n- docs/superpowers/ (11) — AI planning artifacts, research, specs\n- fuzz/ (2) — fuzzing targets\n- scripts/ (4) — internal build scripts (kept terminal_matrix.sh for CI)\n- cliff.toml — git-cliff changelog config\n- packaging/ (3) — rejected distro channels (PKGBUILD, formula, action)\n- tests/fixtures/ — unused test data\n- flexfetch-core/create_logos.py — logo generation script\n- doc/plugins.md, doc/templates.md — internal plugin/template docs\n- schemas/config.json — JSON schema\n\nKept: deny.toml (CI audit), registry/plugins.toml (code reference),\nsite/ (hand-maintained landing page).\n\nREADME rewritten: 680→110 lines. Hero image, one-line install, quick\nstart, features bullet list, config pointer, license. No stale flags.",
+          "timestamp": "2026-08-07T19:12:37+05:30",
+          "tree_id": "5a575cbeed8711081dbbd3b7287e713e98050a37",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/b989f674bc8331b89ff78015edaa8be992450d3d"
+        },
+        "date": 1786110356211,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11507216,
+            "range": "± 310495",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11150783,
+            "range": "± 303276",
             "unit": "ns/iter"
           }
         ]
