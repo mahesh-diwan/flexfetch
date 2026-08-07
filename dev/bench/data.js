@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786116124596,
+  "lastUpdate": 1786116783536,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -431,6 +431,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11899577,
             "range": "± 423650",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "d7fc17ef58c5d42f0a19b0f3209db5867058a13c",
+          "message": "repo: cleanup stale files, optimize CI\n\nRemoved:\n- ROADMAP.md, GOVERNANCE.md (use GitHub Issues/Discussions)\n- doc/flexfetch.1 (generated man page)\n- scripts/ (dev-only utilities)\n- flake.nix, Dockerfile, .dockerignore (rejected install channels)\n\nCI optimization:\n- ci.yml: path-filtered (only runs on Rust source changes, not docs)\n- ci.yml: removed perf-gate, valgrind, terminal-matrix, nix-flake jobs\n- deep-test.yml: new workflow for perf-gate + valgrind (tags/manual only)\n- Typical push: 5 jobs (test, clippy, fmt, windows, minimal-build) ~3-4 min\n\nUpdated references:\n- CONTRIBUTING.md: removed ROADMAP references\n- PR template: removed ROADMAP checklist\n- Issue templates: linked to Discussions instead of ROADMAP\n- SECURITY.md: removed scripts/ reference\n- README.md: removed ROADMAP link\n- .gitignore: cleaned up stale entries",
+          "timestamp": "2026-08-07T20:59:54+05:30",
+          "tree_id": "35fec109ca13a09666e0bb4b8d4320fa5c66e592",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/d7fc17ef58c5d42f0a19b0f3209db5867058a13c"
+        },
+        "date": 1786116782451,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11158360,
+            "range": "± 142564",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11046286,
+            "range": "± 97809",
             "unit": "ns/iter"
           }
         ]
