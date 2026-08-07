@@ -12,3 +12,4 @@ default-theme = "dark"
 preferred-dark-theme = "dark"
 git-repository-url = "https://github.com/mahesh-diwan/flexfetch"
 edit-url-template = "https://github.com/mahesh-diwan/flexfetch/edit/main/book/src/{path}"
+additional-css = ["theme/book.css"]
