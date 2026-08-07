@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786117334813,
+  "lastUpdate": 1786118007283,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -503,6 +503,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11454698,
             "range": "± 192874",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "5e3b94bb2d787e24eaab9ceade978838078916ea",
+          "message": "site: fix navbar overflow, swap to Outfit font, add custom docs theme\n\n- Navbar max-width 700px → 820px, tighter link padding for fit\n- Font swap: Space Grotesk → Outfit (cleaner pairing with DM Mono)\n- Rounded corners (6px) on mod grid, search, chips, install row, copy btn\n- Hero grid rebalanced 0.42fr/0.58fr\n- Section padding reduced to 88px (56px mobile)\n- Custom mdbook theme: dark terminal-native, Outfit headings, DM Mono body\n- Docs theme matches landing page palette and typography",
+          "timestamp": "2026-08-07T21:20:44+05:30",
+          "tree_id": "42a8259a4c6bcf5ef1225d720c7eb564a2c338ab",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/5e3b94bb2d787e24eaab9ceade978838078916ea"
+        },
+        "date": 1786118006681,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 8615333,
+            "range": "± 272637",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 8595988,
+            "range": "± 39821",
             "unit": "ns/iter"
           }
         ]
