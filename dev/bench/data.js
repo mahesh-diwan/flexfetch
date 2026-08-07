@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786116783536,
+  "lastUpdate": 1786117334813,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -467,6 +467,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11046286,
             "range": "± 97809",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "a80465305b7436ebf97c383b35def7e9799a67b8",
+          "message": "site: redesign — drop neobrutalism for clean dark terminal aesthetic\n\n- CSS: 3px solid borders → 1px subtle, hard shadows → soft/none, cards 8px radius\n- CSS: nav backdrop-filter blur, reduced motion media query, refined hover states\n- HTML: removed numbered markers, feature tags, roadmap section\n- HTML: simplified hero subtext, cleaned footer\n- JS: added smooth scroll + active nav section highlighting",
+          "timestamp": "2026-08-07T21:08:58+05:30",
+          "tree_id": "15db0fb5b5cbf11922abaecbd5e8876faed3de5e",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/a80465305b7436ebf97c383b35def7e9799a67b8"
+        },
+        "date": 1786117333101,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11191980,
+            "range": "± 183910",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11454698,
+            "range": "± 192874",
             "unit": "ns/iter"
           }
         ]
