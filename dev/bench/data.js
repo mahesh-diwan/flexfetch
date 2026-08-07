@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786105188356,
+  "lastUpdate": 1786109846041,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -215,6 +215,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11227873,
             "range": "± 152826",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "76c4a215fe38ba28f02b0fb8562651e478724c8c",
+          "message": "docs: man page via clap_mangen, CHANGELOG for v0.19.0 + v0.20.0\n\n- gen_man example: regenerates doc/flexfetch.1 from clap derive defs\n  (clap_mangen 0.2 dev-dep). Run: cargo run --example gen_man\n- lib.rs: exposes Cli/Commands/PluginAction for examples to import\n- CHANGELOG: added v0.19.0 (--flash, PGO, install.sh hardening) and\n  v0.20.0 (audit cuts, -2300 lines, 7 deps removed) entries\n- doc/flexfetch.1: regenerated, no stale flags, version 0.20.0",
+          "timestamp": "2026-08-07T19:04:08+05:30",
+          "tree_id": "c7f9184f458d748d8c5853bdd193e09501dcca6f",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/76c4a215fe38ba28f02b0fb8562651e478724c8c"
+        },
+        "date": 1786109845060,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11078076,
+            "range": "± 247297",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11047333,
+            "range": "± 51277",
             "unit": "ns/iter"
           }
         ]
