@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786115734933,
+  "lastUpdate": 1786116124596,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -395,6 +395,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11063944,
             "range": "± 79948",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "a3d395165b4d4ba22287917424f24a6f33e26b4c",
+          "message": "chore: delete orphaned logo PNGs and unused SVGs\n\n- Delete assets/logos/ (13 distro PNGs + 21 module PNGs) — not referenced anywhere\n- Delete assets/json.svg, assets/themes.svg — unused\n- Keep assets/default.svg (used in README hero)",
+          "timestamp": "2026-08-07T20:49:03+05:30",
+          "tree_id": "c19a3d0200929b0a7dcbeebd0335a8e823a4c15a",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/a3d395165b4d4ba22287917424f24a6f33e26b4c"
+        },
+        "date": 1786116124120,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11693156,
+            "range": "± 177680",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11899577,
+            "range": "± 423650",
             "unit": "ns/iter"
           }
         ]
