@@ -106,6 +106,14 @@ struct Cli {
     #[arg(long)]
     minimal: bool,
 
+    /// Fast path (like fastfetch's `flashfetch`): baked-in defaults, minimal
+    /// module set, no config file read, no template engine — the fastest
+    /// possible one-shot fetch. Only affects the plain terminal render; other
+    /// modes (--export, --watch, --live, --wizard, --ssh, --diff, --prompt,
+    /// --motd, --benchmark, --demo) keep their existing behavior.
+    #[arg(long)]
+    flash: bool,
+
     #[arg(long)]
     full: bool,
 
@@ -443,7 +451,14 @@ fn main() {
     let cache_dir = get_cache_dir();
 
     let config_path = cli.config.as_ref().map(std::path::Path::new);
-    let mut config = Config::load(config_path).unwrap_or_else(|_| Config::default_for_testing());
+    // `mut`: watch mode rebuilds config on hot-reload. `--flash` skips the
+    // config file entirely — baked-in defaults only (no file IO on the fast
+    // path is the whole point).
+    let mut config = if cli.flash {
+        Config::default_for_testing()
+    } else {
+        Config::load(config_path).unwrap_or_else(|_| Config::default_for_testing())
+    };
 
     // `mut`: watch mode rebuilds ctx on config hot-reload.
     let mut ctx = Context::new(
@@ -733,9 +748,12 @@ fn main() {
 
     // Phase 4.12: auto-load Lua/WASM plugins from the plugins dir and merge
     // them in as a `plugins` table (rendered by the template's Plugins block).
+    // Skipped on --flash: no plugin scan on the fast path.
     #[cfg(any(feature = "lua", feature = "wasm-plugins"))]
-    if let Some(plugins) = plugins::collect_plugins(&ctx) {
-        info.add("plugins", plugins);
+    if !cli.flash {
+        if let Some(plugins) = plugins::collect_plugins(&ctx) {
+            info.add("plugins", plugins);
+        }
     }
 
     // Handle --export flag
@@ -847,6 +865,12 @@ fn resolve_modules(cli: &Cli, config: &Config) -> Vec<String> {
             // Deliberately excluded for determinism/speed: publicip (network
             // round-trip), wifi (nmcli), bluetooth (2× bluetoothctl spawn).
         ];
+    }
+    // --flash: the fast path always runs the lean fixed module set, ignoring
+    // config.modules and the --minimal/--full/--preset/--modules switches
+    // (everything baked in, nothing user-configurable). --demo above wins.
+    if cli.flash {
+        return module_group("flash");
     }
     let mut modules: Vec<String> = if cli.minimal {
         module_group("minimal")
@@ -1246,6 +1270,13 @@ fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli) 
             Err(e) => eprintln!("export error: {e}"),
         },
         _ => {
+            // --flash: the plain terminal path gets the always-compiled flash
+            // renderer (no Tera compile, no theme/logo/frame). --demo is a
+            // showcase mode and keeps its normal full-color render.
+            if cli.flash && !cli.demo {
+                println!("{}", flexfetch_core::template::render_flash(info));
+                return;
+            }
             let engine = TeraEngine::new_default();
             match engine.render(info, config) {
                 Ok(output) => {
@@ -1325,6 +1356,14 @@ fn handle_export(
 
 fn module_group(name: &str) -> Vec<String> {
     match name {
+        "flash" => vec![
+            "title".into(),
+            "separator".into(),
+            "os".into(),
+            "kernel".into(),
+            "uptime".into(),
+            "memory".into(),
+        ],
         "minimal" => vec![
             "title".into(),
             "separator".into(),

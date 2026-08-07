@@ -940,48 +940,7 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
     }
 
     // Dedup flags — same rules as the Tera template (Phase 6 visual overhaul).
-    let de_value = info
-        .entries
-        .iter()
-        .find(|(n, _)| *n == "de")
-        .and_then(|(_, v)| match v {
-            InfoValue::Scalar(s) => Some(s.clone()),
-            _ => None,
-        })
-        .unwrap_or_default();
-    let wm_name = info
-        .entries
-        .iter()
-        .find(|(n, _)| *n == "wm")
-        .and_then(|(_, v)| match v {
-            InfoValue::Map(m) => m.get("name").cloned(),
-            _ => None,
-        })
-        .unwrap_or_default();
-    let show_wm =
-        wm_name.is_empty() || de_value.is_empty() || de_value == "unknown" || wm_name != de_value;
-    let display_val = info
-        .entries
-        .iter()
-        .find(|(n, _)| *n == "display")
-        .and_then(|(_, v)| match v {
-            InfoValue::Scalar(s) => Some(s.clone()),
-            _ => None,
-        })
-        .unwrap_or_default();
-    let resolution_val = info
-        .entries
-        .iter()
-        .find(|(n, _)| *n == "resolution")
-        .and_then(|(_, v)| match v {
-            InfoValue::Scalar(s) => Some(s.clone()),
-            _ => None,
-        })
-        .unwrap_or_default();
-    let show_resolution = resolution_val.is_empty()
-        || display_val.is_empty()
-        || display_val == "unknown"
-        || !display_val.contains(&resolution_val);
+    let (show_wm, show_resolution) = dedup_visible(info);
 
     // Build label/text rows with the same labels the default template uses.
     // (label, text, section) — section drives the Phase 7.5 headers below.
@@ -1070,7 +1029,107 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
     out
 }
 
-#[cfg(not(feature = "tera"))]
+/// Dedup rules shared by the plain and flash renderers — mirror default.tera:
+/// hide `wm` when it duplicates the DE value, and hide `resolution` when it is
+/// already embedded in the `display` line.
+fn dedup_visible(info: &SystemInfo) -> (bool, bool) {
+    let de_value = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "de")
+        .and_then(|(_, v)| match v {
+            InfoValue::Scalar(s) => Some(s.clone()),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let wm_name = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "wm")
+        .and_then(|(_, v)| match v {
+            InfoValue::Map(m) => m.get("name").cloned(),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let show_wm =
+        wm_name.is_empty() || de_value.is_empty() || de_value == "unknown" || wm_name != de_value;
+    let display_val = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "display")
+        .and_then(|(_, v)| match v {
+            InfoValue::Scalar(s) => Some(s.clone()),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let resolution_val = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "resolution")
+        .and_then(|(_, v)| match v {
+            InfoValue::Scalar(s) => Some(s.clone()),
+            _ => None,
+        })
+        .unwrap_or_default();
+    let show_resolution = resolution_val.is_empty()
+        || display_val.is_empty()
+        || display_val == "unknown"
+        || !display_val.contains(&resolution_val);
+
+    (show_wm, show_resolution)
+}
+
+/// Flash renderer (`--flash`): a deliberately lightweight, always-compiled
+/// formatter for the fast path. Prints the title line plus `Key: value` rows
+/// with keys padded to a fixed width — no logo, no frame, no theme colors, no
+/// Tera compile. This is the fastest possible one-shot output, mirroring the
+/// default template's labels and the shared dedup rules (DE==WM, Display+Resolution).
+pub fn render_flash(info: &SystemInfo) -> String {
+    let mut out = String::new();
+
+    if let Some(InfoValue::Scalar(title)) = info
+        .entries
+        .iter()
+        .find(|(n, _)| *n == "title")
+        .map(|(_, v)| v)
+    {
+        if !title.is_empty() {
+            out.push_str(title);
+            out.push('\n');
+            out.push_str("────────────────────────────\n");
+        }
+    }
+
+    let (show_wm, show_resolution) = dedup_visible(info);
+    // Fixed-width key column so rows line up without any config/theme lookup.
+    let key_width = 8usize;
+    for (name, value) in &info.entries {
+        if *name == "title" || *name == "separator" {
+            continue;
+        }
+        if *name == "wm" && !show_wm {
+            continue;
+        }
+        if *name == "resolution" && !show_resolution {
+            continue;
+        }
+        let Some(text) = plain_value(name, value) else {
+            continue;
+        };
+        if text.is_empty() {
+            continue;
+        }
+        let label = label_for(name);
+        let padded = format!(
+            "{}{}",
+            label,
+            " ".repeat(key_width.saturating_sub(visible_len(&label)))
+        );
+        out.push_str(&format!("{padded}: {text}\n"));
+    }
+    out
+}
+
 fn label_for(name: &str) -> String {
     match name {
         "os" => "OS".into(),
@@ -1110,7 +1169,6 @@ fn label_for(name: &str) -> String {
     }
 }
 
-#[cfg(not(feature = "tera"))]
 fn plain_value(name: &str, value: &InfoValue) -> Option<String> {
     match value {
         InfoValue::Scalar(s) => {

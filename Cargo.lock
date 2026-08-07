@@ -1268,7 +1268,7 @@ dependencies = [
 
 [[package]]
 name = "flexfetch-cli"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "base64 0.21.7",
  "clap",
@@ -1297,7 +1297,7 @@ dependencies = [
 
 [[package]]
 name = "flexfetch-core"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "base64 0.21.7",
  "image",
@@ -1316,7 +1316,7 @@ dependencies = [
 
 [[package]]
 name = "flexfetch-lua"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "flexfetch-core",
  "mlua",
@@ -1324,7 +1324,7 @@ dependencies = [
 
 [[package]]
 name = "flexfetch-wasm"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "flexfetch-core",
  "serde_json",

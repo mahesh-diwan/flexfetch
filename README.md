@@ -161,6 +161,18 @@ List plugins: `flexfetch --list-plugins`. Shrink the binary at build time with `
 
 Built with [mlua](https://github.com/khvzak/mlua) 0.10 (Lua 5.4).
 
+### PGO build
+
+Profile-Guided Optimization rebuild (instrumented run + profile-use rebuild,
+plus a before/after size & timing report) — needs `llvm-profdata`:
+
+```bash
+./scripts/pgo.sh                 # 100 instrumented runs per workload
+PROFILE_RUNS=20 ./scripts/pgo.sh # fewer runs for a quicker pass
+```
+
+`PGO_DIR` (default `/tmp/pgo`) overrides the profile output location.
+
 <br>
 
 ---

@@ -58,6 +58,64 @@ pacman_stop() {
     printf '\033[?25h\r\033[K'
 }
 
+# Animated download progress: real bytes/size/percent/speed; degrades to the
+# plain spinner when stat or awk is missing.
+pacman_progress() {
+    local msg="$1"
+    local dest="$2"
+    local total="$3"
+    local i=0
+    local frames=${#PACMAN_FRAMES[@]}
+    local stat_cmd="stat -c %s"
+    local cur=0 prev=0 now=0 prev_time=0
+
+    # Only animate if stdout is a terminal
+    if [ ! -t 1 ]; then
+        echo "$msg"
+        return
+    fi
+
+    # Fall back to the plain spinner if we cannot compute real progress
+    if ! command -v awk >/dev/null 2>&1 || ! command -v stat >/dev/null 2>&1; then
+        pacman_animate "$msg"
+        return
+    fi
+
+    [ "$OS_ALIAS" = "macos" ] && stat_cmd="stat -f %z"
+
+    # Hide cursor
+    printf '\033[?25l'
+
+    prev_time=$(date +%s 2>/dev/null || echo 0)
+    while :; do
+        cur=$($stat_cmd "$dest" 2>/dev/null || echo 0)
+        now=$(date +%s 2>/dev/null || echo 0)
+        printf '\r\033[K%s %s %s' "${PACMAN_FRAMES[i]}" "$msg" "$(
+            awk -v c="$cur" -v t="$total" -v p="$prev" -v pt="$prev_time" -v n="$now" '
+            function hum(b) {
+                if (b >= 1048576) return sprintf("%.1f MiB", b / 1048576)
+                if (b >= 1024)    return sprintf("%.1f KiB", b / 1024)
+                return sprintf("%d B", b)
+            }
+            BEGIN {
+                sp = (n > pt) ? (c - p) / (n - pt) : 0
+                if (sp < 0) sp = 0
+                if (t > 0) {
+                    pct = int((c * 100) / t)
+                    if (pct > 100) pct = 100
+                    printf "%s / %s (%d%%)  %s/s", hum(c), hum(t), pct, hum(sp)
+                } else {
+                    printf "%s  %s/s", hum(c), hum(sp)
+                }
+            }'
+        )"
+        i=$(( (i + 1) % frames ))
+        prev=$cur
+        prev_time=$now
+        sleep 0.15
+    done
+}
+
 # Cleanup on interrupt
 cleanup() {
     [ -n "${PACMAN_PID:-}" ] && pacman_stop "$PACMAN_PID"
@@ -172,8 +230,21 @@ download() {
     return 1
 }
 
-# Start Pac-Man animation in background
-pacman_animate "Downloading..." &
+# Best-effort expected size for the progress display (empty if unknown)
+TOTAL_SIZE=""
+if command -v curl >/dev/null 2>&1; then
+    TOTAL_SIZE=$(curl -sfIL "$URL" 2>/dev/null | tr -d '\r' \
+        | awk 'tolower($1) ~ /^content-length:/ {print $2}' | tail -1 || true)
+elif command -v wget >/dev/null 2>&1; then
+    TOTAL_SIZE=$(wget -q --spider --server-response "$URL" 2>&1 | tr -d '\r' \
+        | awk 'tolower($1) ~ /^content-length:/ {print $2}' | tail -1 || true)
+fi
+case "$TOTAL_SIZE" in
+    ''|*[!0-9]*) TOTAL_SIZE="" ;;
+esac
+
+# Start animated download progress in background
+pacman_progress "Downloading..." "$TMPDIR/$BIN.tar.gz" "$TOTAL_SIZE" &
 PACMAN_PID=$!
 
 if ! download "$URL" "$TMPDIR/$BIN.tar.gz"; then
