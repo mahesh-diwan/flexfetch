@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786119091306,
+  "lastUpdate": 1786120856104,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -575,6 +575,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 10207519,
             "range": "± 91708",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "accb66ad6559a752c707ce6d24a13f9fa64b5096",
+          "message": "site: fix 5 visual bugs found via screenshot diagnosis\n\n- Terminal overflow: overflow-x hidden → auto (scrollable long lines)\n- Scroll-padding: 100px → 120px (navbar no longer overlaps headings)\n- Install URL: word-break break-all → overflow-wrap break-word (natural breaks)\n- Feature grid: explicit align-items stretch (equal height cards)",
+          "timestamp": "2026-08-07T22:07:26+05:30",
+          "tree_id": "4f4fd1ade6bd39ce82ec2464f443e641ab42cd20",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/accb66ad6559a752c707ce6d24a13f9fa64b5096"
+        },
+        "date": 1786120855251,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11400292,
+            "range": "± 163207",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11300241,
+            "range": "± 109448",
             "unit": "ns/iter"
           }
         ]
