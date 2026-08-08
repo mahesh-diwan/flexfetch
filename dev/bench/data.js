@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786158295525,
+  "lastUpdate": 1786159616121,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -683,6 +683,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11080348,
             "range": "± 468425",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "f6d9ea839dd2944dda42359f53d5acb806005b5d",
+          "message": "site: remove themes section\n\n- Removed themes grid from HTML (8 theme cards + note)\n- Removed themes CSS (.theme-grid, .theme, .theme-note)\n- Removed theme swatch JS click handler\n- Removed Themes link from nav (desktop + mobile)\n- Removed Themes/Custom themes from footer\n- Cleaned up responsive theme-grid references",
+          "timestamp": "2026-08-08T08:53:42+05:30",
+          "tree_id": "49300ecfc9cf91e2f39c5db787fd8b6173bdb4c5",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/f6d9ea839dd2944dda42359f53d5acb806005b5d"
+        },
+        "date": 1786159615617,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11079643,
+            "range": "± 110238",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11077858,
+            "range": "± 75017",
             "unit": "ns/iter"
           }
         ]
