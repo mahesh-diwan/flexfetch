@@ -195,6 +195,10 @@ Locale   : en_IN.UTF-8</pre>
         <p>Everything reads the platform directly. <code>/proc</code> and sysfs on Linux, the registry and Win32 APIs on Windows, IOKit and system frameworks on macOS.</p>
       </div>
 
+      <div class="mod-search">
+        <input type="text" id="mod-search" placeholder="search modules…" autocomplete="off" />
+        <div class="mod-search-count" id="mod-search-count"></div>
+      </div>
       <div class="mod-grid" id="mod-grid">
         <div class="mod"><span class="glyph" aria-hidden="true">🖥️</span><span><span class="mname">os</span></span></div>
         <div class="mod"><span class="glyph" aria-hidden="true">🏠</span><span><span class="mname">host</span></span></div>
@@ -288,6 +292,7 @@ Locale   : en_IN.UTF-8</pre>
           <h3>curl installer</h3>
           <p>Detects your platform, verifies the checksum before unpacking, and fails closed on any mismatch.</p>
           <div class="cmd">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</div>
+          <div class="plat-hint" id="plat-hint"></div>
           <div class="note">checksum + signature verified</div>
         </div>
         <details class="inst-alt reveal">
@@ -395,6 +400,7 @@ Locale   : en_IN.UTF-8</pre>
   </footer>
 
   <div class="toast" id="toast"></div>
+  <button class="btt" id="btt" aria-label="Back to top">↑</button>
   <script src="assets/main.js"></script>
 </body>
 </html>

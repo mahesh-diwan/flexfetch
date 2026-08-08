@@ -27,8 +27,35 @@
   const hero = document.getElementById("hero-body");
   if (hero) {
     hero.classList.add("loading");
-    const fallback =
-      "mahesh-diwan@cachyos-x8664\n────────────────────────────\n── System ──\nOS       : CachyOS\nHost     : cachyos-x8664\nKernel   : Linux 7.1.3-2-cachyos x86_64\nUptime   : 4d 18h 47m\n── Software ──\nShell    : fish\nDE       : Hyprland\n── Hardware ──\nCPU      : 12th Gen Intel Core i5-12450H (12 cores)\nMemory   : 8.3 GiB / 15.3 GiB (54%)\nGPU      : i915\nDisk     : /: 476.6G / 398.4G 84%";
+    const typingFallback = () => {
+      const lines = [
+        "mahesh-diwan@cachyos-x8664",
+        "────────────────────────────",
+        "── System ──",
+        "OS       : CachyOS",
+        "Kernel   : Linux 7.1.3-2-cachyos x86_64",
+        "Uptime   : 4d 18h 47m",
+        "── Hardware ──",
+        "CPU      : 12th Gen Intel Core i5-12450H (12 cores)",
+        "Memory   : 8.3 GiB / 15.3 GiB (54%)",
+        "GPU      : i915",
+        "Disk     : /: 476.6G / 398.4G 84%"
+      ];
+      hero.textContent = "";
+      let li = 0;
+      const iv = setInterval(() => {
+        if (li >= lines.length) {
+          clearInterval(iv);
+          hero.innerHTML = hero.textContent;
+          const c = document.createElement("span");
+          c.className = "cursor";
+          hero.appendChild(c);
+          return;
+        }
+        hero.textContent += (li > 0 ? "\n" : "") + lines[li];
+        li++;
+      }, 60);
+    };
     fetch("assets/hero.html")
       .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
       .then((html) => {
@@ -39,8 +66,8 @@
         hero.appendChild(cursor);
       })
       .catch(() => {
-        hero.textContent = fallback;
         hero.classList.remove("loading");
+        typingFallback();
       });
   }
 
@@ -149,4 +176,48 @@
   /* ---------- footer year ---------- */
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
+
+  /* ---------- back-to-top ---------- */
+  const btt = document.getElementById("btt");
+  if (btt) {
+    const heroEl = document.getElementById("top");
+    const showBtt = () => {
+      const past = heroEl ? heroEl.getBoundingClientRect().bottom < 0 : window.scrollY > 400;
+      btt.classList.toggle("visible", past);
+    };
+    window.addEventListener("scroll", showBtt, { passive: true });
+    btt.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    showBtt();
+  }
+
+  /* ---------- module search ---------- */
+  const searchInput = document.getElementById("mod-search");
+  const searchCount = document.getElementById("mod-search-count");
+  const modGrid = document.getElementById("mod-grid");
+  if (searchInput && modGrid) {
+    const mods = modGrid.querySelectorAll(".mod");
+    const total = mods.length;
+    searchInput.addEventListener("input", () => {
+      const q = searchInput.value.toLowerCase().trim();
+      let shown = 0;
+      mods.forEach(m => {
+        const name = m.querySelector(".mname").textContent.toLowerCase();
+        const match = !q || name.includes(q);
+        m.style.display = match ? "" : "none";
+        if (match) shown++;
+      });
+      searchCount.textContent = q ? `${shown} of ${total}` : "";
+    });
+  }
+
+  /* ---------- platform hint ---------- */
+  const platHint = document.getElementById("plat-hint");
+  if (platHint) {
+    const ua = navigator.userAgent || "";
+    let os = "linux";
+    if (/mac/i.test(ua)) os = "macOS";
+    else if (/win/i.test(ua)) os = "Windows";
+    const arch = /arm|aarch64/i.test(ua) ? "ARM64" : "x86_64";
+    platHint.innerHTML = `detected: <span class="detected">${os} ${arch}</span> — binary available`;
+  }
 })();

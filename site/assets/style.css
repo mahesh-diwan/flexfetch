@@ -1022,6 +1022,88 @@ footer {
   opacity: 1;
 }
 
+/* ---------- back-to-top ---------- */
+.btt {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 40;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: 14px var(--font-mono);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    background 0.15s ease;
+}
+.btt.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+.btt:hover {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--accent);
+}
+
+/* ---------- module search ---------- */
+.mod-search {
+  margin-bottom: 20px;
+  max-width: 320px;
+}
+.mod-search input {
+  width: 100%;
+  font: 12px var(--font-mono);
+  color: var(--text-strong);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.mod-search input::placeholder {
+  color: var(--faint);
+}
+.mod-search input:focus {
+  border-color: var(--accent);
+}
+.mod-search-count {
+  font: 11px var(--font-mono);
+  color: var(--faint);
+  margin-top: 6px;
+}
+
+/* ---------- platform hint ---------- */
+.plat-hint {
+  font: 11px var(--font-mono);
+  color: var(--faint);
+  margin-top: 6px;
+}
+.plat-hint .detected {
+  color: var(--accent);
+}
+
+/* ---------- tooltip (inline jargon) ---------- */
+abbr {
+  text-decoration: underline dotted var(--faint);
+  text-underline-offset: 3px;
+  cursor: help;
+  color: inherit;
+}
+
 /* ---------- reveal ---------- */
 .reveal {
   opacity: 0;
