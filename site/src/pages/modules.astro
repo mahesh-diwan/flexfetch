@@ -1,0 +1,120 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Modules: flexfetch">
+  <!-- ============ MODULES ============ -->
+  <header class="section" id="modules" style="padding-top: 120px; border-bottom: 1px solid var(--border);">
+    <div class="container">
+      <div class="section-head reveal">
+        <h2>38 collectors. Zero external commands.</h2>
+        <p>Everything reads the platform directly. <code>/proc</code> and sysfs on Linux, IOKit and system frameworks on macOS.</p>
+      </div>
+
+      <div class="mod-search">
+        <label for="mod-search" class="sr-only">Search modules</label>
+        <input type="text" id="mod-search" placeholder="search modules…" autocomplete="off" />
+        <div class="mod-search-count" id="mod-search-count"></div>
+      </div>
+      <div class="mod-grid" id="mod-grid">
+        <div class="mod"><span class="glyph" aria-hidden="true">🖥️</span><span><span class="mname">os</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🏠</span><span><span class="mname">host</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🧵</span><span><span class="mname">kernel</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">⏱️</span><span><span class="mname">uptime</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🌍</span><span><span class="mname">locale</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">📦</span><span><span class="mname">packages</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🐚</span><span><span class="mname">shell</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">💻</span><span><span class="mname">terminal</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🪟</span><span><span class="mname">de</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🗔</span><span><span class="mname">wm</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">📂</span><span><span class="mname">project</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🔀</span><span><span class="mname">git</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🔍</span><span><span class="mname">context</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">❤️</span><span><span class="mname">health</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🐳</span><span><span class="mname">container</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🌄</span><span><span class="mname">wallpaper</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🌤️</span><span><span class="mname">weather</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🗃️</span><span><span class="mname">fsdeep</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🧠</span><span><span class="mname">cpu</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🗄️</span><span><span class="mname">cpucache</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">📊</span><span><span class="mname">cpuusage</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🎮</span><span><span class="mname">gpu</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🧮</span><span><span class="mname">memory</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🔁</span><span><span class="mname">swap</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">💽</span><span><span class="mname">disk</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🔋</span><span><span class="mname">battery</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🌡️</span><span><span class="mname">temperature</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🖼️</span><span><span class="mname">display</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">📐</span><span><span class="mname">resolution</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🎨</span><span><span class="mname">colors</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🌐</span><span><span class="mname">network</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">📡</span><span><span class="mname">wifi</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">☁️</span><span><span class="mname">publicip</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🎧</span><span><span class="mname">bluetooth</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🎵</span><span><span class="mname">media</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">🗺️</span><span><span class="mname">dns</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">⚙️</span><span><span class="mname">processes</span></span></div>
+        <div class="mod"><span class="glyph" aria-hidden="true">✏️</span><span><span class="mname">custom</span></span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ LIVE ============ -->
+  <section class="section" id="live" style="background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="container">
+      <div class="section-head reveal">
+        <h2>Your system, watching you back.</h2>
+        <p><code>flexfetch --live</code> turns the fetch into a real-time TUI with gauges, sparklines, and top processes.</p>
+      </div>
+      <div class="live-wrap">
+        <div class="live-feats reveal">
+          <div class="live-feat">
+            <div><h4>Real-time gauges</h4><p>CPU and memory move in live as you work. All zero-subprocess collectors, so the dashboard itself costs almost nothing.</p></div>
+          </div>
+          <div class="live-feat">
+            <div><h4>Top processes</h4><p>PID, command and per-process CPU/memory bars with live sorting. An htop-lite built on the same module engine.</p></div>
+          </div>
+        </div>
+        <div class="live-term reveal d1">
+          <div class="term-bar">
+            <span class="term-dot r" aria-hidden="true"></span>
+            <span class="term-dot y" aria-hidden="true"></span>
+            <span class="term-dot g" aria-hidden="true"></span>
+            <span class="term-title"><span class="cmd">❯</span> flexfetch --live</span>
+          </div>
+          <div class="live-body">
+            <div class="live-row"><span class="lbl">CPU</span><span class="val">14.3%</span><span class="live-bar"><i style="--w:14%"></i></span></div>
+            <div class="live-row"><span class="lbl">Memory</span><span class="val">54.6%</span><span class="live-bar"><i style="--w:55%"></i></span></div>
+            <div class="spark" role="img" aria-label="network activity sparkline"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="live-foot">
+            <span>net ↓ 1.2 MB/s ↑ 342 KB/s</span>
+            <span>press q to quit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    /* Module search */
+    const searchInput = document.getElementById("mod-search");
+    const searchCount = document.getElementById("mod-search-count");
+    const modGrid = document.getElementById("mod-grid");
+    if (searchInput && modGrid) {
+      const mods = modGrid.querySelectorAll(".mod");
+      const total = mods.length;
+      searchInput.addEventListener("input", () => {
+        const q = searchInput.value.toLowerCase().trim();
+        let shown = 0;
+        mods.forEach(m => {
+          const name = m.querySelector(".mname").textContent.toLowerCase();
+          const match = !q || name.includes(q);
+          m.style.display = match ? "" : "none";
+          if (match) shown++;
+        });
+        searchCount.textContent = q ? `${shown} of ${total}` : "";
+      });
+    }
+  </script>
+</Layout>

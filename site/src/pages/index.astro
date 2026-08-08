@@ -1,0 +1,178 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="flexfetch: your whole system, fetched in milliseconds">
+  <!-- ============ HERO ============ -->
+  <header class="hero" id="top">
+    <div class="container">
+      <div class="hero-split">
+        <div class="hero-text reveal in d1">
+          <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
+          <p class="hero-sub">
+            flexfetch is a blazing-fast, themeable system info tool for Linux and macOS.
+            Zero subprocesses, pure Rust.
+          </p>
+
+          <div class="hero-install">
+            <div class="cmd-wrap">
+              <code id="cmd-curl">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
+              <button class="copy-btn" data-copy="cmd-curl" aria-label="Copy command">Copy</button>
+            </div>
+            <div class="plat-hint" id="plat-hint"></div>
+            <p class="install-note">Linux & macOS · checksum + signature verified</p>
+          </div>
+
+          <div class="hero-stats">
+            <span class="hs"><strong>1.7 MB</strong> binary</span>
+            <span class="hs-dot">·</span>
+            <span class="hs"><strong>38</strong> modules</span>
+            <span class="hs-dot">·</span>
+            <span class="hs"><strong>527</strong> logos</span>
+            <span class="hs-dot">·</span>
+            <span class="hs rust-badge">Written in Rust</span>
+          </div>
+          <div class="social-proof">
+            <span>MIT licensed</span>
+            <span class="hs-dot">·</span>
+            <span>contributions welcome</span>
+            <span class="hs-dot">·</span>
+            <a href="https://github.com/mahesh-diwan/flexfetch">star on GitHub</a>
+          </div>
+        </div>
+        <div class="hero-term reveal d2">
+          <div class="term-bar">
+            <span class="term-dot r" aria-hidden="true"></span>
+            <span class="term-dot y" aria-hidden="true"></span>
+            <span class="term-dot g" aria-hidden="true"></span>
+          </div>
+          <div class="term-body" id="hero-terminal">
+            <div class="term-placeholder">Add terminal-shot.png to public/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ STATS ============ -->
+  <section class="section stats" id="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat reveal">
+          <div class="stat-value">38</div>
+          <div class="stat-label">Modules</div>
+        </div>
+        <div class="stat reveal d1">
+          <div class="stat-value">527</div>
+          <div class="stat-label">Logos</div>
+        </div>
+        <div class="stat reveal d2">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Subprocesses</div>
+        </div>
+        <div class="stat reveal d3">
+          <div class="stat-value">1.7 MB</div>
+          <div class="stat-label">Binary Size</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-head reveal">
+        <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
+        <p>Every module reads the system directly: <code>/proc</code>, sysfs, or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
+      </div>
+      <div class="feature-list">
+        <div class="feature-item reveal">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Zero subprocesses</h3>
+            <p>Every collector reads kernel data directly. No forking, no parsing overhead. Warm runs complete in milliseconds.</p>
+          </div>
+        </div>
+        <div class="feature-item reveal d1">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Themes & gradients</h3>
+            <p>Built-in presets (Catppuccin, Dracula, Nord, Solarized, Tokyo Night), truecolor everywhere, per-module key/value colors, gradient accents.</p>
+          </div>
+        </div>
+        <div class="feature-item reveal d2">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>ASCII & image logos</h3>
+            <p>527 distro logos imported from fastfetch, plus PNG/BMP logos rendered as block characters with automatic palette extraction.</p>
+          </div>
+        </div>
+        <div class="feature-item reveal">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Live TUI dashboard</h3>
+            <p><code>flexfetch --live</code> opens a TUI with CPU/memory/disk gauges, per-process bars, network sparklines.</p>
+          </div>
+        </div>
+        <div class="feature-item reveal d1">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Lua & WASM plugins</h3>
+            <p>Write a custom module in Lua in five minutes, or ship memory-safe WebAssembly plugins that run with resource limits inside a sandbox.</p>
+          </div>
+        </div>
+        <div class="feature-item reveal d2">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Supply-chain hardened</h3>
+            <p>Plugins install via a signed registry with checksum verification. Every entry is cryptographically verified before execution.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INSTALL ============ -->
+  <section class="section" id="install">
+    <div class="container">
+      <div class="section-head reveal">
+        <h2>On your machine in one command.</h2>
+        <p>Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries. Every artifact includes checksums and signatures for verification.</p>
+      </div>
+      <div class="inst-grid">
+        <div class="inst reveal">
+          <span class="badge">official</span>
+          <h3>curl installer</h3>
+          <p>Detects your platform, verifies the checksum before unpacking, and refuses to install anything if the file doesn't match.</p>
+          <div class="cmd-wrap">
+            <code id="cmd-curl2">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
+            <button class="copy-btn" data-copy="cmd-curl2" aria-label="Copy command">Copy</button>
+          </div>
+          <div class="plat-hint" id="plat-hint2"></div>
+          <div class="note">Linux & macOS · checksum + signature verified</div>
+        </div>
+      </div>
+      <div class="secure-strip reveal">
+        <span class="ok">✓ SHA-256 checksums</span>
+        <span class="ok">✓ cosign signatures</span>
+        <span class="ok">✓ supply-chain provenance</span>
+        <span class="ok">✓ signed plugin registry</span>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    /* Load terminal screenshot if available */
+    const heroTerm = document.getElementById("hero-terminal");
+    if (heroTerm) {
+      // Check if terminal-shot.png exists
+      fetch("/terminal-shot.png", { method: "HEAD" })
+        .then(r => {
+          if (r.ok) {
+            heroTerm.innerHTML = '<img src="/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;display:block;" />';
+          }
+        })
+        .catch(() => {});
+    }
+  </script>
+</Layout>
