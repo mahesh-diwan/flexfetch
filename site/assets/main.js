@@ -73,37 +73,6 @@
     document.body.removeChild(ta);
   }
 
-  /* ---------- module filter ---------- */
-  const search = document.getElementById("mod-search");
-  const chips = document.querySelectorAll("#mod-chips .chip");
-  const mods = Array.from(document.querySelectorAll("#mod-grid .mod"));
-  const empty = document.getElementById("mod-empty");
-  let activeCat = "all";
-
-  function applyFilter() {
-    const q = (search.value || "").trim().toLowerCase();
-    let shown = 0;
-    mods.forEach((m) => {
-      const name = m.textContent.trim().toLowerCase();
-      const cat = m.dataset.cat;
-      const matchCat = activeCat === "all" || cat === activeCat;
-      const matchQ = !q || name.includes(q);
-      const visible = matchCat && matchQ;
-      m.classList.toggle("hidden", !visible);
-      if (visible) shown++;
-    });
-    empty.classList.toggle("show", shown === 0);
-  }
-  search.addEventListener("input", applyFilter);
-  chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      chips.forEach((c) => c.classList.remove("active"));
-      chip.classList.add("active");
-      activeCat = chip.dataset.cat;
-      applyFilter();
-    });
-  });
-
   /* ---------- reveal on scroll ---------- */
   const revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
@@ -149,15 +118,28 @@
   const hamburger = document.getElementById("hamburger");
   const navMobile = document.getElementById("nav-mobile");
   if (hamburger && navMobile) {
+    function closeMenu() {
+      hamburger.classList.remove("open");
+      navMobile.classList.remove("open");
+      hamburger.setAttribute("aria-expanded", "false");
+    }
+    function openMenu() {
+      hamburger.classList.add("open");
+      navMobile.classList.add("open");
+      hamburger.setAttribute("aria-expanded", "true");
+    }
     hamburger.addEventListener("click", () => {
-      hamburger.classList.toggle("open");
-      navMobile.classList.toggle("open");
+      const isOpen = hamburger.classList.contains("open");
+      isOpen ? closeMenu() : openMenu();
     });
     navMobile.querySelectorAll("a").forEach((a) => {
-      a.addEventListener("click", () => {
-        hamburger.classList.remove("open");
-        navMobile.classList.remove("open");
-      });
+      a.addEventListener("click", closeMenu);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && hamburger.classList.contains("open")) {
+        closeMenu();
+        hamburger.focus();
+      }
     });
   }
 
