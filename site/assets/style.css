@@ -610,12 +610,6 @@ h1 .accent {
   margin-top: 16px;
 }
 
-.mod-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1px;
-  background: var(--border);
-}
 .mod {
   display: flex;
   align-items: center;
@@ -1041,9 +1035,6 @@ footer {
   }
   .copy-btn {
     align-self: flex-end;
-  }
-  .mod-grid {
-    grid-template-columns: 1fr;
   }
   .mod-grid--highlights {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
