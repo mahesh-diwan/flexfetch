@@ -17,7 +17,7 @@
   --muted: #7a7a88;
   --faint: #50505e;
 
-  --accent: #ff2d7a;
+  --accent: #e8913a;
   --accent-2: #00d4ff;
 
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
@@ -308,11 +308,11 @@ a:hover {
     0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .btn-primary:hover {
-  background: #ff5090;
+  background: #f0a050;
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 2px 8px rgba(255, 45, 122, 0.25);
+    0 2px 8px rgba(232, 145, 58, 0.25);
 }
 
 .btn-ghost {
@@ -336,8 +336,56 @@ a:hover {
   padding: 100px 0 0;
 }
 
-.hero-content {
-  max-width: 640px;
+.hero-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.hero-text {
+  max-width: 520px;
+}
+
+.hero-term {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  font: 13px/1.7 var(--font-mono);
+}
+
+.term-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border);
+}
+
+.term-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.term-dot.r {
+  background: #ff5f57;
+}
+.term-dot.y {
+  background: #febc2e;
+}
+.term-dot.g {
+  background: #28c840;
+}
+
+.term-body {
+  padding: 16px;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text);
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 h1 {
@@ -437,6 +485,14 @@ h1 .accent {
   color: var(--muted);
   font-weight: 500;
 }
+.hero-stats .rust-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
 
 .social-proof {
   display: flex;
@@ -456,6 +512,39 @@ h1 .accent {
 
 /* ---------- terminal (full-bleed) ---------- */
 /* removed — no terminal section */
+
+/* ---------- why section ---------- */
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--border);
+}
+.why-item {
+  background: var(--bg);
+  padding: 32px;
+}
+.why-label {
+  font: 11px var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 12px;
+}
+.why-item h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.why-item p {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.55;
+}
 
 /* ---------- sections ---------- */
 .section {
@@ -757,6 +846,47 @@ h1 .accent {
   color: var(--accent);
   overflow-wrap: break-word;
   word-break: normal;
+}
+.cmd-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.cmd-wrap code {
+  font: 11px var(--font-mono);
+  color: var(--accent);
+  flex: 1;
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+.copy-btn {
+  font: 500 11px var(--font-mono);
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.copy-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.copy-btn.copied {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.copy-btn.copied::after {
+  content: " ✓";
+}
+.inst-alt-item .cmd-wrap {
+  margin-top: 8px;
 }
 .inst .note {
   margin-top: 6px;
@@ -1088,11 +1218,16 @@ abbr {
   .hero {
     padding: 100px 0 0;
   }
-  .term-body-wrap {
+  .hero-split {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .hero-term {
     max-height: 320px;
   }
   .feat-grid,
-  .eco-grid {
+  .eco-grid,
+  .why-grid {
     grid-template-columns: 1fr;
   }
   .feat-wide {

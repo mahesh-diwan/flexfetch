@@ -129,6 +129,15 @@
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 
+  /* ---------- hero terminal ---------- */
+  const heroTerm = document.getElementById("hero-terminal");
+  if (heroTerm) {
+    fetch("assets/hero.html")
+      .then(r => r.ok ? r.text() : "")
+      .then(html => { if (html) heroTerm.innerHTML = html; })
+      .catch(() => {});
+  }
+
   /* ---------- back-to-top ---------- */
   const btt = document.getElementById("btt");
   if (btt) {

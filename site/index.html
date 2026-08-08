@@ -50,13 +50,12 @@
   <!-- ============ HERO ============ -->
   <header class="hero" id="top">
     <div class="container">
-      <div class="hero-grid">
-        <div class="reveal in d1">
+      <div class="hero-split">
+        <div class="hero-text reveal in d1">
           <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
             <strong>flexfetch</strong> is a blazing-fast, themeable system info tool for
-            Linux and macOS. <strong>38 modules</strong>, <strong>527 logos</strong>,
-            and a live TUI dashboard. Zero subprocesses, pure Rust.
+            Linux and macOS. Zero subprocesses, pure Rust.
           </p>
 
           <div class="hero-actions">
@@ -70,6 +69,8 @@
             <span class="hs"><strong>38</strong> modules</span>
             <span class="hs-dot">·</span>
             <span class="hs"><strong>527</strong> logos</span>
+            <span class="hs-dot">·</span>
+            <span class="hs rust-badge">Written in Rust</span>
           </div>
           <div class="social-proof">
             <span>MIT licensed</span>
@@ -79,9 +80,40 @@
             <a href="https://github.com/mahesh-diwan/flexfetch">star on GitHub</a>
           </div>
         </div>
+        <div class="hero-term reveal d2">
+          <div class="term-bar">
+            <span class="term-dot r" aria-hidden="true"></span>
+            <span class="term-dot y" aria-hidden="true"></span>
+            <span class="term-dot g" aria-hidden="true"></span>
+          </div>
+          <div class="term-body" id="hero-terminal"></div>
+        </div>
       </div>
     </div>
   </header>
+
+  <!-- ============ WHY ============ -->
+  <section class="section" id="why">
+    <div class="container">
+      <div class="why-grid">
+        <div class="why-item reveal">
+          <span class="why-label">the problem</span>
+          <h3>Existing fetch tools are stuck in 2020.</h3>
+          <p>neofetch is unmaintained. fastfetch spawns 40+ subprocesses. Both are written in C with no plugin system.</p>
+        </div>
+        <div class="why-item reveal d1">
+          <span class="why-label">the fix</span>
+          <h3>Zero subprocesses. Pure Rust.</h3>
+          <p>Every module reads <code>/proc</code>, sysfs, or macOS APIs directly. No forking, no parsing, no startup tax.</p>
+        </div>
+        <div class="why-item reveal d2">
+          <span class="why-label">the result</span>
+          <h3>1.7 MB. 38 modules. Milliseconds.</h3>
+          <p>Single static binary. Themes, plugins, live dashboard. Ships for Linux and macOS.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- ============ FEATURES ============ -->
   <section class="section" id="features">
@@ -141,7 +173,10 @@
           <span class="badge">official</span>
           <h3>curl installer</h3>
           <p>Detects your platform, verifies the checksum before unpacking, and refuses to install anything if the file doesn't match.</p>
-          <div class="cmd">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</div>
+          <div class="cmd-wrap">
+            <code id="cmd-curl">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
+            <button class="copy-btn" data-copy="cmd-curl" aria-label="Copy command">Copy</button>
+          </div>
           <div class="plat-hint" id="plat-hint"></div>
           <div class="note">checksum + signature verified</div>
         </div>
@@ -150,15 +185,24 @@
           <div class="inst-alt-grid">
             <div class="inst-alt-item">
               <span class="inst-alt-label">Homebrew</span>
-              <code>brew install flexfetch</code>
+              <div class="cmd-wrap">
+                <code id="cmd-brew">brew install flexfetch</code>
+                <button class="copy-btn" data-copy="cmd-brew" aria-label="Copy command">Copy</button>
+              </div>
             </div>
             <div class="inst-alt-item">
               <span class="inst-alt-label">cargo</span>
-              <code>cargo install flexfetch</code>
+              <div class="cmd-wrap">
+                <code id="cmd-cargo">cargo install flexfetch</code>
+                <button class="copy-btn" data-copy="cmd-cargo" aria-label="Copy command">Copy</button>
+              </div>
             </div>
             <div class="inst-alt-item">
               <span class="inst-alt-label">PowerShell</span>
-              <code>iwr -useb https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.ps1 | iex</code>
+              <div class="cmd-wrap">
+                <code id="cmd-ps">iwr -useb https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.ps1 | iex</code>
+                <button class="copy-btn" data-copy="cmd-ps" aria-label="Copy command">Copy</button>
+              </div>
             </div>
           </div>
         </details>
