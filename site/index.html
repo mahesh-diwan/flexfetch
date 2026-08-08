@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>flexfetch — your whole system, fetched in milliseconds</title>
-  <meta name="description" content="flexfetch is a blazing-fast, themeable system information tool for Linux, macOS and Windows. 39 modules, 527 logos, zero subprocesses, pure Rust. Sub-10 ms cold start." />
+  <meta name="description" content="flexfetch is a blazing-fast, themeable system information tool for Linux and macOS. 38 modules, 527 logos, zero subprocesses, pure Rust." />
   <meta property="og:title" content="flexfetch — your whole system, fetched in milliseconds" />
-  <meta property="og:description" content="A blazing-fast, themeable system info tool. 39 modules, 527 logos, sub-10 ms cold start, pure Rust." />
+  <meta property="og:description" content="A blazing-fast, themeable system info tool. 38 modules, 527 logos, pure Rust." />
   <meta property="og:url" content="https://mahesh-diwan.github.io/flexfetch/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://mahesh-diwan.github.io/flexfetch/assets/og.png" />
@@ -21,9 +21,8 @@
 </head>
 <body>
   <a href="#features" class="skip-link">Skip to content</a>
-  <div class="bg-grid" id="bg-grid"></div>
+  <div class="bg-grid"></div>
   <div class="bg-glow"></div>
-  <div class="cursor-glow" id="cursor-glow"></div>
 
   <!-- ============ NAV ============ -->
   <nav class="nav" id="nav">
@@ -55,18 +54,13 @@
   <header class="hero" id="top">
     <div class="container">
       <div class="hero-grid">
-        <div class="reveal in d1 hero-text">
+        <div class="reveal in d1">
           <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
             <strong>flexfetch</strong> is a blazing-fast, themeable system info tool for
-            Linux, macOS and Windows. <strong>39 modules</strong>, <strong>527 logos</strong>,
+            Linux and macOS. <strong>38 modules</strong>, <strong>527 logos</strong>,
             and a live TUI dashboard. Zero subprocesses, pure Rust.
           </p>
-
-          <div class="install-row">
-            <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
-            <button class="copy-btn" data-copy="install-cmd">copy</button>
-          </div>
 
           <div class="hero-actions">
             <a class="btn btn-primary" href="#install">Get flexfetch</a>
@@ -74,21 +68,26 @@
           </div>
 
           <div class="hero-stats">
-            <span class="hs"><strong>&lt;10 ms</strong> cold start</span>
+            <span class="hs"><strong>1.7 MB</strong> binary</span>
             <span class="hs-dot">·</span>
-            <span class="hs"><strong>1.73 MB</strong> binary</span>
-            <span class="hs-dot">·</span>
-            <span class="hs"><strong>39</strong> modules</span>
+            <span class="hs"><strong>38</strong> modules</span>
             <span class="hs-dot">·</span>
             <span class="hs"><strong>527</strong> logos</span>
+          </div>
+          <div class="social-proof">
+            <span>MIT licensed</span>
+            <span class="hs-dot">·</span>
+            <span>contributions welcome</span>
+            <span class="hs-dot">·</span>
+            <a href="https://github.com/mahesh-diwan/flexfetch">star on GitHub</a>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- ============ TERMINAL (full-bleed) ============ -->
-  <div class="term reveal in term-reveal">
+  <!-- ============ TERMINAL (SVG) ============ -->
+  <div class="term reveal in">
     <div class="term-bar">
       <span class="term-dot r" aria-hidden="true"></span>
       <span class="term-dot y" aria-hidden="true"></span>
@@ -96,43 +95,12 @@
       <span class="term-title"><span class="cmd">❯</span> flexfetch</span>
     </div>
     <div class="term-body-wrap">
-      <pre id="hero-body"><span class="cursor"></span></pre>
-      <noscript>
-        <pre>mahesh-diwan@cachyos-x8664
-────────────────────────────
-── System ──
-OS       : CachyOS
-Host     : cachyos-x8664
-Kernel   : Linux 7.1.3-2-cachyos x86_64
-Uptime   : 3h 10m
-── Software ──
-Packages : 1749 (pacman: 1749)
-Shell    : fish
-Terminal : zed, yes
-DE       : Hyprland
-── Hardware ──
-CPU      : 12th Gen Intel(R) Core(TM) i5-12450H (12 cores)
-CPU Usage: 20.0%
-Cache    : L1d 48K L1i 32K L2 1280K L3 12288K
-Memory   : 7.4 GiB / 15.3 GiB (48%)
-GPU      : i915
-Disk     /: 476.6G / 410.0G 86%
-── Network ──
-WiFi     : 2462 MHz, WPA2
-Public IP: 27.59.109.218
-── Display ──
-Display  : 1920x1080 @ 59.96 Hz
-Battery  : 80% (Not charging)
-── System ──
-Locale   : en_IN.UTF-8</pre>
-      </noscript>
+      <img src="assets/hero-terminal.svg" alt="flexfetch output showing system info for CachyOS with i5-12450H, 60% memory, Catppuccin theme" class="term-svg" width="800" height="420" />
     </div>
     <div class="term-caption">
       <span class="live">● real output</span>
       <span>·</span>
       <span>Catppuccin theme</span>
-      <span>·</span>
-      <span>9 ms cold start</span>
     </div>
   </div>
 
@@ -141,14 +109,13 @@ Locale   : en_IN.UTF-8</pre>
     <div class="container">
       <div class="section-head reveal">
         <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
-        <p>Every module reads the system directly: <code>/proc</code>, sysfs, the Windows registry or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
+        <p>Every module reads the system directly: <code>/proc</code>, sysfs, or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
       </div>
-      <div class="feat-grid">
+        <div class="feat-grid">
         <div class="feat reveal">
           <div class="ico" aria-hidden="true">⚡</div>
-          <h3>Sub-10 ms cold start</h3>
-          <p>Zero subprocess spawns. Each collector reads kernel data directly, and a CI perf gate (hyperfine, 50 runs) fails the build if the mean ever drifts past 10 ms.</p>
-
+          <h3>Fast</h3>
+          <p>Each collector reads kernel data directly. No subprocess spawns, no parsing overhead. Warm runs complete in milliseconds.</p>
         </div>
         <div class="feat reveal d1">
           <div class="ico" aria-hidden="true">🎨</div>
@@ -192,8 +159,8 @@ Locale   : en_IN.UTF-8</pre>
   <section class="section" id="modules" style="background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
     <div class="container">
       <div class="section-head reveal">
-        <h2>39 collectors. Zero external commands.</h2>
-        <p>Everything reads the platform directly. <code>/proc</code> and sysfs on Linux, the registry and Win32 APIs on Windows, IOKit and system frameworks on macOS.</p>
+        <h2>38 collectors. Zero external commands.</h2>
+        <p>Everything reads the platform directly. <code>/proc</code> and sysfs on Linux, IOKit and system frameworks on macOS.</p>
       </div>
 
       <div class="mod-search">
@@ -286,7 +253,7 @@ Locale   : en_IN.UTF-8</pre>
     <div class="container">
       <div class="section-head reveal">
         <h2>On your machine in one command.</h2>
-        <p>Releases ship Linux (musl static, 3 arches), macOS (arm64 + x86_64) and Windows binaries. Every artifact includes checksums and signatures for verification.</p>
+        <p>Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries. Every artifact includes checksums and signatures for verification.</p>
       </div>
       <div class="inst-grid">
         <div class="inst reveal">
@@ -369,7 +336,7 @@ Locale   : en_IN.UTF-8</pre>
       <div class="foot-grid">
         <div class="foot-brand">
           <a class="brand" href="#top">flexfetch<span class="caret">_</span></a>
-          <p>A blazing-fast, themeable system information tool. Built in pure Rust for Linux, macOS and Windows.</p>
+          <p>A blazing-fast, themeable system information tool. Built in pure Rust for Linux and macOS.</p>
         </div>
         <div class="foot-cols">
           <div class="foot-col">
@@ -388,15 +355,15 @@ Locale   : en_IN.UTF-8</pre>
           </div>
           <div class="foot-col">
             <h5>Extend</h5>
-            <a href="#ecosystem">Lua plugins</a>
-            <a href="#ecosystem">WASM sandbox</a>
-            <a href="#ecosystem">Plugin registry</a>
+            <a href="docs/plugins.html">Lua plugins</a>
+            <a href="docs/plugins.html">WASM plugins</a>
+            <a href="docs/plugins.html">Plugin registry</a>
           </div>
         </div>
       </div>
       <div class="foot-bottom">
         <span>© <span id="year"></span> flexfetch · MIT licensed</span>
-        <span>contributions welcome · <a href="https://github.com/mahesh-diwan/flexfetch">star on GitHub</a></span>
+        <span><a href="https://github.com/mahesh-diwan/flexfetch">GitHub</a></span>
       </div>
     </div>
   </footer>
