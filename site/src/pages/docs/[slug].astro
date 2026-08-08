@@ -1,0 +1,159 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.map((doc) => ({
+    params: { slug: doc.slug },
+    props: { entry: doc },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const docs = await getCollection('docs');
+---
+
+<Layout title={`${entry.data.title}: flexfetch`} description={entry.data.description}>
+  <section class="section" style="padding-top: 120px;">
+    <div class="container">
+      <div class="docs-grid">
+        <nav class="docs-sidebar">
+          <ul>
+            {docs.map((e) => (
+              <li>
+                <a href={`/docs/${e.slug}/`} class={e.slug === entry.slug ? 'active' : ''}>
+                  {e.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <article class="docs-content">
+          <h1>{entry.data.title}</h1>
+          <p class="lead">{entry.data.description}</p>
+          <Content />
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .docs-grid {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 48px;
+    }
+    .docs-sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .docs-sidebar li {
+      margin-bottom: 8px;
+    }
+    .docs-sidebar a {
+      display: block;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font: 13px var(--font-mono);
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+    .docs-sidebar a:hover,
+    .docs-sidebar a.active {
+      background: var(--surface);
+      color: var(--accent);
+    }
+    .docs-content h1 {
+      margin-bottom: 8px;
+    }
+    .lead {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 15px;
+    }
+    .docs-content h2 {
+      margin-top: 32px;
+      margin-bottom: 12px;
+      font-family: var(--font-display);
+      font-weight: 600;
+    }
+    .docs-content h3 {
+      margin-top: 24px;
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .docs-content p {
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .docs-content code {
+      background: var(--surface);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    .docs-content pre {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .docs-content pre code {
+      background: none;
+      padding: 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .docs-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .docs-content th,
+    .docs-content td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .docs-content th {
+      background: var(--surface);
+      font-weight: 600;
+    }
+    .docs-content ul,
+    .docs-content ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+    .docs-content li {
+      margin-bottom: 6px;
+    }
+    .docs-content blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 16px;
+      margin: 16px 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .docs-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+    @media (max-width: 768px) {
+      .docs-grid {
+        grid-template-columns: 1fr;
+      }
+      .docs-sidebar {
+        display: none;
+      }
+    }
+  </style>
+</Layout>

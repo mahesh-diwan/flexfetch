@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>flexfetch: your whole system, fetched in milliseconds</title>
-  <meta name="description" content="flexfetch is a blazing-fast, themeable system information tool for Linux and macOS. 38 modules, 527 logos, zero subprocesses, pure Rust." />
+  <meta name="description" content="flexfetch is a blazing-fast, themeable system info tool for Linux and macOS. 38 modules, 527 logos, zero subprocesses, pure Rust." />
   <meta property="og:title" content="flexfetch: your whole system, fetched in milliseconds" />
   <meta property="og:description" content="A blazing-fast, themeable system info tool. 38 modules, 527 logos, pure Rust." />
   <meta property="og:url" content="https://mahesh-diwan.github.io/flexfetch/" />
@@ -12,8 +12,8 @@
   <meta property="og:image" content="https://mahesh-diwan.github.io/flexfetch/assets/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta name="theme-color" content="#0d0f17" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2389b4fa'/%3E%3Cstop offset='1' stop-color='%23f5c2e7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M13 9l7 7-7 7' stroke='%230d0f17' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23e8913a'/%3E%3Cstop offset='1' stop-color='%23f0a050'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M13 9l7 7-7 7' stroke='%230a0a0f' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
@@ -54,13 +54,17 @@
         <div class="hero-text reveal in d1">
           <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
-            <strong>flexfetch</strong> is a blazing-fast, themeable system info tool for
-            Linux and macOS. Zero subprocesses, pure Rust.
+            flexfetch is a blazing-fast, themeable system info tool for Linux and macOS.
+            Zero subprocesses, pure Rust.
           </p>
 
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#install">Get flexfetch</a>
-            <a class="btn btn-ghost" href="docs/">Read the docs →</a>
+          <div class="hero-install">
+            <div class="cmd-wrap">
+              <code id="cmd-curl">curl -fsSL https://opencode.ai/install | bash</code>
+              <button class="copy-btn" data-copy="cmd-curl" aria-label="Copy command">Copy</button>
+            </div>
+            <div class="plat-hint" id="plat-hint"></div>
+            <p class="install-note">Linux & macOS · checksum + signature verified</p>
           </div>
 
           <div class="hero-stats">
@@ -86,30 +90,33 @@
             <span class="term-dot y" aria-hidden="true"></span>
             <span class="term-dot g" aria-hidden="true"></span>
           </div>
-          <div class="term-body" id="hero-terminal"></div>
+          <div class="term-body" id="hero-terminal">
+            <div class="term-placeholder">Add terminal-shot.png to assets/</div>
+          </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- ============ WHY ============ -->
-  <section class="section" id="why">
+  <!-- ============ STATS ============ -->
+  <section class="section stats" id="stats">
     <div class="container">
-      <div class="why-grid">
-        <div class="why-item reveal">
-          <span class="why-label">the problem</span>
-          <h3>Existing fetch tools are stuck in 2020.</h3>
-          <p>neofetch is unmaintained. fastfetch spawns 40+ subprocesses. Both are written in C with no plugin system.</p>
+      <div class="stats-grid">
+        <div class="stat reveal">
+          <div class="stat-value">38</div>
+          <div class="stat-label">Modules</div>
         </div>
-        <div class="why-item reveal d1">
-          <span class="why-label">the fix</span>
-          <h3>Zero subprocesses. Pure Rust.</h3>
-          <p>Every module reads <code>/proc</code>, sysfs, or macOS APIs directly. No forking, no parsing, no startup tax.</p>
+        <div class="stat reveal d1">
+          <div class="stat-value">527</div>
+          <div class="stat-label">Logos</div>
         </div>
-        <div class="why-item reveal d2">
-          <span class="why-label">the result</span>
-          <h3>1.7 MB. 38 modules. Milliseconds.</h3>
-          <p>Single static binary. Themes, plugins, live dashboard. Ships for Linux and macOS.</p>
+        <div class="stat reveal d2">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Subprocesses</div>
+        </div>
+        <div class="stat reveal d3">
+          <div class="stat-value">1.7 MB</div>
+          <div class="stat-label">Binary Size</div>
         </div>
       </div>
     </div>
@@ -122,41 +129,49 @@
         <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
         <p>Every module reads the system directly: <code>/proc</code>, sysfs, or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
       </div>
-      <div class="feat-grid">
-        <div class="feat feat-wide reveal">
-          <div class="ico" aria-hidden="true">⚡</div>
-          <h3>Fast</h3>
-          <p>Each collector reads kernel data directly. No subprocess spawns, no parsing overhead. Warm runs complete in milliseconds.</p>
+      <div class="feature-list">
+        <div class="feature-item reveal">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Zero subprocesses</h3>
+            <p>Every collector reads kernel data directly. No forking, no parsing overhead. Warm runs complete in milliseconds.</p>
+          </div>
         </div>
-        <div class="feat reveal">
-          <div class="ico" aria-hidden="true">🎨</div>
-          <h3>Themes and gradients</h3>
-          <p>Built-in presets (Catppuccin, Dracula, Nord, Solarized, Tokyo Night), truecolor everywhere, per-module key/value colors, and gradient accents. Or roll your own.</p>
+        <div class="feature-item reveal d1">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Themes & gradients</h3>
+            <p>Built-in presets (Catppuccin, Dracula, Nord, Solarized, Tokyo Night), truecolor everywhere, per-module key/value colors, gradient accents.</p>
+          </div>
         </div>
-        <div class="feat reveal d1">
-          <div class="ico" aria-hidden="true">🖥️</div>
-          <h3>ASCII and image logos</h3>
-          <p>527 distro logos imported from fastfetch, plus PNG/BMP logos rendered as block characters with automatic palette extraction from your wallpaper.</p>
+        <div class="feature-item reveal d2">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>ASCII & image logos</h3>
+            <p>527 distro logos imported from fastfetch, plus PNG/BMP logos rendered as block characters with automatic palette extraction.</p>
+          </div>
         </div>
-        <div class="feat reveal">
-          <div class="ico" aria-hidden="true">📈</div>
-          <h3>Live dashboard</h3>
-          <p><code>flexfetch --live</code> opens a TUI with CPU/memory/disk gauges, per-process bars, network sparklines.</p>
+        <div class="feature-item reveal">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Live TUI dashboard</h3>
+            <p><code>flexfetch --live</code> opens a TUI with CPU/memory/disk gauges, per-process bars, network sparklines.</p>
+          </div>
         </div>
-        <div class="feat reveal d1">
-          <div class="ico" aria-hidden="true">🔌</div>
-          <h3>Lua and WASM plugins</h3>
-          <p>Write a custom module in Lua in five minutes, or ship memory-safe <abbr title="WebAssembly, a binary instruction format for near-native performance in a sandbox">WebAssembly</abbr> plugins that run with resource limits inside a sandbox. Auto-loaded from <code>~/.config/flexfetch/plugins/</code>.</p>
+        <div class="feature-item reveal d1">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Lua & WASM plugins</h3>
+            <p>Write a custom module in Lua in five minutes, or ship memory-safe <abbr title="WebAssembly, a binary instruction format for near-native performance in a sandbox">WebAssembly</abbr> plugins that run with resource limits inside a sandbox.</p>
+          </div>
         </div>
-        <div class="feat feat-wide reveal">
-          <div class="ico" aria-hidden="true">🔒</div>
-          <h3>Supply-chain hardened</h3>
-          <p>Plugins install via a signed registry with checksum verification. Every entry is cryptographically verified before execution. Releases carry signatures and provenance attestations.</p>
+        <div class="feature-item reveal d2">
+          <span class="feature-check" aria-hidden="true">✓</span>
+          <div>
+            <h3>Supply-chain hardened</h3>
+            <p>Plugins install via a signed registry with checksum verification. Every entry is cryptographically verified before execution.</p>
+          </div>
         </div>
-      </div>
-      <div class="extra-strip">
-        <span>watch mode</span><span>config wizard</span><span>QR config sharing</span>
-        <span>remote fetch over SSH</span><span>smart fetch</span><span>shell completions</span>
       </div>
     </div>
   </section>
@@ -174,38 +189,12 @@
           <h3>curl installer</h3>
           <p>Detects your platform, verifies the checksum before unpacking, and refuses to install anything if the file doesn't match.</p>
           <div class="cmd-wrap">
-            <code id="cmd-curl">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
-            <button class="copy-btn" data-copy="cmd-curl" aria-label="Copy command">Copy</button>
+            <code id="cmd-curl2">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
+            <button class="copy-btn" data-copy="cmd-curl2" aria-label="Copy command">Copy</button>
           </div>
-          <div class="plat-hint" id="plat-hint"></div>
-          <div class="note">checksum + signature verified</div>
+          <div class="plat-hint" id="plat-hint2"></div>
+          <div class="note">Linux & macOS · checksum + signature verified</div>
         </div>
-        <details class="inst-alt reveal">
-          <summary>Other install methods</summary>
-          <div class="inst-alt-grid">
-            <div class="inst-alt-item">
-              <span class="inst-alt-label">Homebrew</span>
-              <div class="cmd-wrap">
-                <code id="cmd-brew">brew install flexfetch</code>
-                <button class="copy-btn" data-copy="cmd-brew" aria-label="Copy command">Copy</button>
-              </div>
-            </div>
-            <div class="inst-alt-item">
-              <span class="inst-alt-label">cargo</span>
-              <div class="cmd-wrap">
-                <code id="cmd-cargo">cargo install flexfetch</code>
-                <button class="copy-btn" data-copy="cmd-cargo" aria-label="Copy command">Copy</button>
-              </div>
-            </div>
-            <div class="inst-alt-item">
-              <span class="inst-alt-label">PowerShell</span>
-              <div class="cmd-wrap">
-                <code id="cmd-ps">iwr -useb https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.ps1 | iex</code>
-                <button class="copy-btn" data-copy="cmd-ps" aria-label="Copy command">Copy</button>
-              </div>
-            </div>
-          </div>
-        </details>
       </div>
       <div class="secure-strip reveal">
         <span class="ok">✓ SHA-256 checksums</span>

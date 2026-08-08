@@ -1,0 +1,111 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+const docs = await getCollection('docs');
+---
+
+<Layout title="Documentation: flexfetch">
+  <section class="section" style="padding-top: 120px;">
+    <div class="container">
+      <div class="docs-grid">
+        <nav class="docs-sidebar">
+          <ul>
+            {docs.map((entry) => (
+              <li>
+                <a href={`/docs/${entry.slug}/`}>
+                  {entry.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div class="docs-content">
+          <h1>Documentation</h1>
+          <p class="lead">flexfetch is a blazing-fast, themeable system info tool for Linux and macOS. Built in pure Rust.</p>
+
+          <div class="doc-cards">
+            {docs.map((entry) => (
+              <a href={`/docs/${entry.slug}/`} class="doc-card">
+                <h3>{entry.data.title}</h3>
+                <p>{entry.data.description}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .docs-grid {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 48px;
+    }
+    .docs-sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .docs-sidebar li {
+      margin-bottom: 8px;
+    }
+    .docs-sidebar a {
+      display: block;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font: 13px var(--font-mono);
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+    .docs-sidebar a:hover {
+      background: var(--surface);
+      color: var(--accent);
+    }
+    .docs-content h1 {
+      margin-bottom: 8px;
+    }
+    .lead {
+      color: var(--muted);
+      margin-bottom: 32px;
+      font-size: 15px;
+    }
+    .doc-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .doc-card {
+      display: block;
+      padding: 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .doc-card:hover {
+      border-color: var(--border-strong);
+      background: var(--surface);
+    }
+    .doc-card h3 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-strong);
+      margin-bottom: 8px;
+    }
+    .doc-card p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    @media (max-width: 768px) {
+      .docs-grid {
+        grid-template-columns: 1fr;
+      }
+      .docs-sidebar {
+        display: none;
+      }
+    }
+  </style>
+</Layout>
