@@ -22,16 +22,14 @@
 <body>
   <a href="#features" class="skip-link">Skip to content</a>
   <div class="bg-grid"></div>
-  <div class="bg-glow"></div>
 
   <!-- ============ NAV ============ -->
   <nav class="nav" id="nav">
-    <a class="brand" href="#top">flexfetch<span class="caret">_</span></a>
+    <a class="brand" href="index.html">flexfetch<span class="caret">_</span></a>
     <div class="nav-links">
       <a href="#features">Features</a>
-      <a href="#modules">Modules</a>
-      <a href="#live">Live</a>
-      <a href="#ecosystem">Plugins</a>
+      <a href="modules.html">Modules</a>
+      <a href="#install">Install</a>
     </div>
     <div class="nav-cta">
       <a class="btn btn-ghost btn-sm" href="docs/">Docs</a>
@@ -43,9 +41,8 @@
   </nav>
   <div class="nav-mobile" id="nav-mobile">
     <a href="#features">Features</a>
-    <a href="#modules">Modules</a>
-    <a href="#live">Live</a>
-    <a href="#ecosystem">Plugins</a>
+    <a href="modules.html">Modules</a>
+    <a href="#install">Install</a>
     <a class="btn btn-ghost" href="docs/">Docs</a>
     <a class="btn btn-primary" href="#install">Install</a>
   </div>
@@ -93,7 +90,7 @@
         <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
         <p>Every module reads the system directly: <code>/proc</code>, sysfs, or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
       </div>
-        <div class="feat-grid">
+      <div class="feat-grid">
         <div class="feat reveal">
           <div class="ico" aria-hidden="true">⚡</div>
           <h3>Fast</h3>
@@ -103,129 +100,31 @@
           <div class="ico" aria-hidden="true">🎨</div>
           <h3>Themes &amp; gradients</h3>
           <p>Built-in presets (Catppuccin, Dracula, Nord, Solarized, Tokyo Night…), truecolor everywhere, per-module key/value colors, and gradient accents. Or roll your own.</p>
-
         </div>
         <div class="feat reveal d2">
           <div class="ico" aria-hidden="true">🖥️</div>
           <h3>ASCII &amp; image logos</h3>
           <p>527 distro logos imported from fastfetch, plus PNG/BMP logos rendered as block characters with automatic palette extraction from your wallpaper.</p>
-
         </div>
         <div class="feat reveal">
           <div class="ico" aria-hidden="true">📈</div>
           <h3>Live dashboard</h3>
           <p><code>flexfetch --live</code> opens a TUI with CPU/memory/disk gauges, per-process bars, network sparklines.</p>
-
         </div>
         <div class="feat reveal d1">
           <div class="ico" aria-hidden="true">🔌</div>
           <h3>Lua &amp; WASM plugins</h3>
           <p>Write a custom module in Lua in five minutes, or ship memory-safe <abbr title="WebAssembly — a binary instruction format for a stack-based virtual machine, enabling near-native performance in a sandboxed environment">WebAssembly</abbr> plugins that run with resource limits inside a sandbox. Auto-loaded from <code>~/.config/flexfetch/plugins/</code>.</p>
-
         </div>
         <div class="feat reveal d2">
           <div class="ico" aria-hidden="true">🔒</div>
           <h3>Supply-chain hardened</h3>
           <p>Plugins install via a signed registry with checksum verification. Every entry is cryptographically verified before execution. Releases carry signatures and provenance attestations.</p>
-
         </div>
       </div>
       <div class="extra-strip">
         <span>watch mode</span><span>config wizard</span><span>QR config sharing</span>
         <span>remote fetch over SSH</span><span>smart fetch</span><span>shell completions</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ MODULES ============ -->
-  <section class="section" id="modules" style="background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-    <div class="container">
-      <div class="section-head reveal">
-        <h2>38 collectors. Zero external commands.</h2>
-        <p>Everything reads the platform directly. <code>/proc</code> and sysfs on Linux, IOKit and system frameworks on macOS.</p>
-      </div>
-
-      <div class="mod-search">
-        <label for="mod-search" class="sr-only">Search modules</label>
-        <input type="text" id="mod-search" placeholder="search modules…" autocomplete="off" />
-        <div class="mod-search-count" id="mod-search-count"></div>
-      </div>
-      <div class="mod-grid" id="mod-grid">
-        <div class="mod"><span class="glyph" aria-hidden="true">🖥️</span><span><span class="mname">os</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🏠</span><span><span class="mname">host</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🧵</span><span><span class="mname">kernel</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">⏱️</span><span><span class="mname">uptime</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🌍</span><span><span class="mname">locale</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">📦</span><span><span class="mname">packages</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🐚</span><span><span class="mname">shell</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">💻</span><span><span class="mname">terminal</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🪟</span><span><span class="mname">de</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🗔</span><span><span class="mname">wm</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">📂</span><span><span class="mname">project</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🔀</span><span><span class="mname">git</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🔍</span><span><span class="mname">context</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">❤️</span><span><span class="mname">health</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🐳</span><span><span class="mname">container</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🌄</span><span><span class="mname">wallpaper</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🌤️</span><span><span class="mname">weather</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🗃️</span><span><span class="mname">fsdeep</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🧠</span><span><span class="mname">cpu</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🗄️</span><span><span class="mname">cpucache</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">📊</span><span><span class="mname">cpuusage</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🎮</span><span><span class="mname">gpu</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🧮</span><span><span class="mname">memory</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🔁</span><span><span class="mname">swap</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">💽</span><span><span class="mname">disk</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🔋</span><span><span class="mname">battery</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🌡️</span><span><span class="mname">temperature</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🖼️</span><span><span class="mname">display</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">📐</span><span><span class="mname">resolution</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🎨</span><span><span class="mname">colors</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🌐</span><span><span class="mname">network</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">📡</span><span><span class="mname">wifi</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">☁️</span><span><span class="mname">publicip</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🎧</span><span><span class="mname">bluetooth</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🎵</span><span><span class="mname">media</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">🗺️</span><span><span class="mname">dns</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">⚙️</span><span><span class="mname">processes</span></span></div>
-        <div class="mod"><span class="glyph" aria-hidden="true">✏️</span><span><span class="mname">custom</span></span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ LIVE ============ -->
-  <section class="section" id="live" style="background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-    <div class="container">
-      <div class="section-head reveal">
-        <h2>Your system, watching you back.</h2>
-        <p><code>flexfetch --live</code> turns the fetch into a real-time TUI with gauges, sparklines, and top processes.</p>
-      </div>
-      <div class="live-wrap">
-        <div class="live-feats reveal">
-          <div class="live-feat">
-            <div><h4>Real-time gauges</h4><p>CPU and memory move in live as you work. All zero-subprocess collectors, so the dashboard itself costs almost nothing.</p></div>
-          </div>
-          <div class="live-feat">
-            <div><h4>Top processes</h4><p>PID, command and per-process CPU/memory bars with live sorting. An htop-lite built on the same module engine.</p></div>
-          </div>
-        </div>
-        <div class="live-term reveal d1">
-          <div class="term-bar">
-            <span class="term-dot r" aria-hidden="true"></span>
-            <span class="term-dot y" aria-hidden="true"></span>
-            <span class="term-dot g" aria-hidden="true"></span>
-            <span class="term-title"><span class="cmd">❯</span> flexfetch --live</span>
-          </div>
-          <div class="live-body">
-            <div class="live-row"><span class="lbl">CPU</span><span class="val">14.3%</span><span class="live-bar"><i style="--w:14%"></i></span></div>
-            <div class="live-row"><span class="lbl">Memory</span><span class="val">54.6%</span><span class="live-bar"><i style="--w:55%"></i></span></div>
-            <div class="spark" role="img" aria-label="network activity sparkline"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          </div>
-          <div class="live-foot">
-            <span>net ↓ 1.2 MB/s ↑ 342 KB/s</span>
-            <span>press q to quit</span>
-          </div>
-        </div>
       </div>
     </div>
   </section>
@@ -273,58 +172,18 @@
     </div>
   </section>
 
-  <!-- ============ ECOSYSTEM ============ -->
-  <section class="section" id="ecosystem" style="background:var(--bg-2);border-top:1px solid var(--border)">
-    <div class="container">
-      <div class="section-head reveal">
-        <h2>Not a binary. A platform.</h2>
-        <p>Extend flexfetch without forking it. Three tiers of extensibility, all auto-loaded from your plugins directory.</p>
-      </div>
-      <div class="eco-grid">
-        <div class="eco reveal">
-          <h3>Lua plugins</h3>
-          <p>Drop a <code>.lua</code> file into <code>~/.config/flexfetch/plugins/</code> and it becomes a module on the next run. Full access to the render context.</p>
-          <ul>
-            <li>one file = one module</li>
-            <li>read files, run commands, emit values</li>
-            <li>zero recompiles</li>
-          </ul>
-        </div>
-        <div class="eco reveal d1">
-          <h3>WASM sandbox</h3>
-          <p>Compile a plugin to WebAssembly and flexfetch runs it with resource limits inside an isolated sandbox. Memory-safe by construction.</p>
-          <ul>
-            <li>execution time and memory limits</li>
-            <li>no host imports unless granted</li>
-            <li>structured data exchange between plugin and host</li>
-          </ul>
-        </div>
-        <div class="eco reveal d2">
-          <h3>Signed registry</h3>
-          <p><code>flexfetch plugin search|install|list|update</code> against a TOML registry. Every entry is cryptographically signed before the checksum is verified.</p>
-          <ul>
-            <li>version compatibility check</li>
-            <li>publisher CLI: <code>registry_sign</code></li>
-            <li>refuses to install anything that fails verification</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ============ FOOTER ============ -->
   <footer>
     <div class="container">
       <div class="foot-grid">
         <div class="foot-brand">
-          <a class="brand" href="#top">flexfetch<span class="caret">_</span></a>
+          <a class="brand" href="index.html">flexfetch<span class="caret">_</span></a>
           <p>A blazing-fast, themeable system information tool. Built in pure Rust for Linux and macOS.</p>
         </div>
         <div class="foot-cols">
           <div class="foot-col">
             <h5>Project</h5>
             <a href="https://github.com/mahesh-diwan/flexfetch">GitHub</a>
-
             <a href="https://github.com/mahesh-diwan/flexfetch/releases">Releases</a>
             <a href="https://github.com/mahesh-diwan/flexfetch/blob/main/SECURITY.md">Security</a>
           </div>
