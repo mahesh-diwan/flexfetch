@@ -1,9 +1,8 @@
 /* ==========================================================================
    flexfetch — landing page (v4)
    Typography: Instrument Serif (editorial headlines) + DM Mono (terminal body)
+   Fonts loaded via <link> in index.html (preconnect + render-blocking)
    ========================================================================== */
-
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap");
 
 :root {
   --bg: #000000;
@@ -20,6 +19,8 @@
 
   --accent: #00e5a0;
   --accent-2: #00c8ff;
+
+  --bg-terminal: #08080c;
 
   --font-display: "Instrument Serif", "Georgia", serif;
   --font-body: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -426,7 +427,7 @@ h1 .accent {
 
 /* ---------- terminal (full-bleed) ---------- */
 .term {
-  background: #08080c;
+  background: var(--bg-terminal);
   border: none;
   border-radius: 0;
   overflow: hidden;
@@ -669,7 +670,7 @@ h1 .accent {
 }
 
 .live-term {
-  background: #08080c;
+  background: var(--bg-terminal);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -968,7 +969,6 @@ footer {
   transition:
     opacity 0.4s ease,
     transform 0.4s cubic-bezier(0.16, 0.7, 0.3, 1);
-  will-change: transform, opacity;
 }
 .reveal.in {
   opacity: 1;
@@ -1045,11 +1045,13 @@ footer {
   .mod-grid {
     grid-template-columns: 1fr;
   }
+  .mod-grid--highlights {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
 }
 @media (pointer: coarse) {
   .btn,
   .copy-btn,
-  .chip,
   .hamburger,
   .nav-links a,
   .nav-mobile a {
