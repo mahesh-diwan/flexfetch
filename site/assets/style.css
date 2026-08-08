@@ -19,10 +19,8 @@
 
   --accent: #ff2d7a;
   --accent-2: #00d4ff;
-  --glow: rgba(255, 45, 122, 0.25);
-  --glow-2: rgba(0, 212, 255, 0.2);
 
-  --font-display: "Instrument Serif", "Georgia", serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-body: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
@@ -306,15 +304,15 @@ a:hover {
   background: var(--accent);
   border-color: var(--accent);
   box-shadow:
-    0 0 16px var(--glow),
-    0 0 4px var(--glow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .btn-primary:hover {
   background: #ff5090;
   color: #fff;
   box-shadow:
-    0 0 24px var(--glow),
-    0 0 8px var(--glow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 2px 8px rgba(255, 45, 122, 0.25);
 }
 
 .btn-ghost {
@@ -336,12 +334,10 @@ a:hover {
 /* ---------- hero ---------- */
 .hero {
   padding: 100px 0 0;
-  text-align: center;
 }
 
 .hero-content {
   max-width: 640px;
-  margin: 0 auto;
 }
 
 h1 {
@@ -350,21 +346,19 @@ h1 {
   line-height: 1.05;
   letter-spacing: -0.02em;
   color: var(--text-strong);
-  font-weight: 400;
+  font-weight: 600;
   margin-bottom: 20px;
   text-wrap: balance;
-  font-style: italic;
 }
 h1 .accent {
   color: var(--accent);
-  text-shadow: 0 0 30px var(--glow);
 }
 
 .hero-sub {
   font-size: 15px;
   color: var(--muted);
   max-width: 48ch;
-  margin: 0 auto 28px;
+  margin-bottom: 28px;
   line-height: 1.6;
 }
 .hero-sub strong {
@@ -381,7 +375,7 @@ h1 .accent {
   border-radius: var(--radius);
   padding: 4px 4px 4px 16px;
   max-width: 540px;
-  margin: 0 auto 24px;
+  margin-bottom: 24px;
   transition: border-color 0.15s ease;
 }
 .install-row:hover {
@@ -427,7 +421,6 @@ h1 .accent {
 .hero-actions {
   display: flex;
   gap: 10px;
-  justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 32px;
 }
@@ -435,7 +428,6 @@ h1 .accent {
 .hero-stats {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 16px;
   font: 12px var(--font-mono);
   color: var(--faint);
@@ -449,7 +441,6 @@ h1 .accent {
 .social-proof {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 12px;
   font: 12px var(--font-mono);
   color: var(--faint);
@@ -478,7 +469,7 @@ h1 .accent {
 .section-head h2 {
   font-family: var(--font-display);
   font-size: clamp(28px, 3.2vw, 40px);
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text-strong);
   margin-bottom: 12px;
@@ -493,9 +484,12 @@ h1 .accent {
 /* ---------- features ---------- */
 .feat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 2px;
   background: var(--border);
+}
+.feat-wide {
+  grid-column: span 2;
 }
 .feat {
   background: var(--bg);
@@ -513,7 +507,7 @@ h1 .accent {
 .feat h3 {
   font-family: var(--font-display);
   font-size: 17px;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-strong);
   margin-bottom: 8px;
 }
@@ -1054,16 +1048,6 @@ abbr {
 /* removed — no stagger needed */
 
 /* ---------- button hover micro-interaction ---------- */
-/* removed — simple transitions only */
-
-/* ---------- cursor glow ---------- */
-.cursor-glow {
-  display: none;
-}
-
-/* ---------- scroll-driven terminal reveal ---------- */
-/* removed — SVG is static */
-
 /* ---------- reveal ---------- */
 .reveal {
   opacity: 0;
@@ -1111,6 +1095,9 @@ abbr {
   .eco-grid {
     grid-template-columns: 1fr;
   }
+  .feat-wide {
+    grid-column: span 1;
+  }
   .section {
     padding: 56px 0;
   }
@@ -1150,10 +1137,6 @@ abbr {
   .bg-grid {
     background-size: 32px 32px;
   }
-  .cursor-glow {
-    width: 400px;
-    height: 400px;
-  }
 }
 @media (pointer: coarse) {
   .btn,
@@ -1163,9 +1146,6 @@ abbr {
   .nav-mobile a {
     min-height: 44px;
     min-width: 44px;
-  }
-  .cursor-glow {
-    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
