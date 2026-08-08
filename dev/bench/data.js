@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786159616121,
+  "lastUpdate": 1786160227346,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -719,6 +719,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11077858,
             "range": "± 75017",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "7ccf46332634a6a5c9fd8681981ef7a8c74bf419",
+          "message": "site+cli: --live matches site mockup, hero gets ASCII logo\n\n- live.rs: flat layout (no bordered blocks), CPU/Memory gauges,\n  network sparkline, footer with net rates + quit hint\n- hero.html: compact ASCII art logo added\n- site: live section description updated (removed disk/swap/battery)",
+          "timestamp": "2026-08-08T09:03:52+05:30",
+          "tree_id": "022ea7ab60491f3169fe8321946af5d5d3b7e5c1",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/7ccf46332634a6a5c9fd8681981ef7a8c74bf419"
+        },
+        "date": 1786160226447,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11533109,
+            "range": "± 198754",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 12012007,
+            "range": "± 306076",
             "unit": "ns/iter"
           }
         ]
