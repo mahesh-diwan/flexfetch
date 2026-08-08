@@ -732,59 +732,6 @@ h1 .accent {
   display: block;
 }
 
-/* ---------- themes ---------- */
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-.theme {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 16px;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease;
-}
-.theme:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-strong);
-}
-.theme .bar {
-  height: 34px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  display: flex;
-  overflow: hidden;
-}
-.theme .bar i {
-  flex: 1;
-}
-.theme .tname {
-  font: 600 13.5px var(--font-mono);
-  color: var(--text);
-}
-.theme .tcmd {
-  font: 11.5px var(--font-mono);
-  color: var(--faint);
-  margin-top: 2px;
-}
-.theme-note {
-  margin-top: 20px;
-  font-size: 14px;
-  color: var(--muted);
-}
-.theme-note code {
-  font: 12.5px var(--font-mono);
-  color: var(--teal);
-  background: rgba(148, 226, 213, 0.08);
-  border: 1px solid var(--border);
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
 /* ---------- live dashboard mock ---------- */
 .live-wrap {
   display: grid;
@@ -1244,9 +1191,6 @@ footer {
   .stat:nth-child(-n + 2) {
     border-bottom: 1px solid var(--border);
   }
-  .theme-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .live-wrap {
     grid-template-columns: 1fr;
   }
@@ -1305,10 +1249,6 @@ footer {
     border-bottom: 1px solid var(--border);
   }
 
-  .theme-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .section {
     padding: 56px 0;
   }
@@ -1353,9 +1293,6 @@ footer {
   }
   .copy-btn {
     align-self: flex-end;
-  }
-  .theme-grid {
-    grid-template-columns: 1fr;
   }
   .stats-grid {
     grid-template-columns: 1fr;

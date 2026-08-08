@@ -73,20 +73,6 @@
     document.body.removeChild(ta);
   }
 
-  /* ---------- theme swatches → copy command ---------- */
-  document.querySelectorAll(".theme").forEach((card) => {
-    card.addEventListener("click", () => {
-      const cmd = card.querySelector(".tcmd");
-      if (!cmd) return;
-      const text = cmd.textContent.trim();
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => toast(`copied: ${text}`));
-      } else {
-        toast(`theme: ${text}`);
-      }
-    });
-  });
-
   /* ---------- module filter ---------- */
   const search = document.getElementById("mod-search");
   const chips = document.querySelectorAll("#mod-chips .chip");
