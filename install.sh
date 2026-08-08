@@ -77,6 +77,7 @@ fetch_tag() {
 	echo "$tag"
 }
 
+echo "Resolving latest version..."
 TAG=$(fetch_tag)
 
 if [ -z "$TAG" ]; then
@@ -119,7 +120,7 @@ download() {
 		if command -v curl >/dev/null 2>&1; then
 			curl -fL --progress-bar "$url" -o "$dest" && return 0
 		elif command -v wget >/dev/null 2>&1; then
-			wget -q "$url" -O "$dest" 2>/dev/null && return 0
+			wget "$url" -O "$dest" 2>&1 && return 0
 		else
 			echo "Error: neither curl nor wget found"
 			return 1
@@ -139,6 +140,7 @@ if ! download "$URL" "$TMPDIR/$BIN.tar.gz"; then
 fi
 
 # Validate download (test if it's a valid gzip tar without extracting)
+echo "Validating download..."
 if ! tar -tzf "$TMPDIR/$BIN.tar.gz" >/dev/null 2>&1; then
 	echo "Error: downloaded file is not a valid gzip archive"
 	echo "  The release may not include a binary for $ARCH_ALIAS"
@@ -197,7 +199,7 @@ verify_checksum() {
 verify_checksum
 
 # Extract
-echo "Installing $BIN..."
+echo "Extracting..."
 if ! tar xzf "$TMPDIR/$BIN.tar.gz" -C "$TMPDIR" 2>/dev/null; then
 	echo "Error: failed to extract archive"
 	exit 1
@@ -219,6 +221,7 @@ backup_existing() {
 }
 
 # Install (try target dir, fall back to ~/.local/bin)
+echo "Installing $BIN..."
 TARGET=""
 if mkdir -p "$INSTALL_DIR" 2>/dev/null; then
 	backup_existing "$INSTALL_DIR/$BIN"
