@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786160227346,
+  "lastUpdate": 1786184651892,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -755,6 +755,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 12012007,
             "range": "± 306076",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "400d737cba0d74ededc11d51b90cc1e6eb7b55a4",
+          "message": "perfect score push — back-to-top, module search, typing fallback, platform hint, jargon tooltips\n\n- back-to-top button: fixed position, appears after scrolling past hero\n- module search: filter 39 modules by name with live count\n- hero typing animation: line-by-line fallback when hero.html fails to load\n- platform hint: detects OS/arch from UA, shows under install command\n- jargon tooltips: abbr underlines on WASM/supply-chain terms\n- CSS: .btt, .mod-search, .plat-hint, abbr styling",
+          "timestamp": "2026-08-08T15:44:06+05:30",
+          "tree_id": "e9c1080309c7b2ccc762f81078d8b6241d157588",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/400d737cba0d74ededc11d51b90cc1e6eb7b55a4"
+        },
+        "date": 1786184651193,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11549101,
+            "range": "± 384776",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11429679,
+            "range": "± 281917",
             "unit": "ns/iter"
           }
         ]
