@@ -60,6 +60,265 @@ pub trait Module: Send + Sync {
     fn collect(&self, ctx: &Context) -> crate::Result<InfoValue>;
 }
 
+/// Single source of truth for all built-in modules. Every consumer (registry,
+/// list_modules, template placeholders, section grouping, label mapping)
+/// derives from this catalog — add a module here and it propagates everywhere.
+pub struct ModuleEntry {
+    pub name: &'static str,
+    pub section: Option<&'static str>,
+    pub is_static: bool,
+    pub label: &'static str,
+}
+
+pub const MODULE_CATALOG: &[ModuleEntry] = &[
+    // System
+    ModuleEntry {
+        name: "os",
+        section: Some("System"),
+        is_static: true,
+        label: "OS",
+    },
+    ModuleEntry {
+        name: "host",
+        section: Some("System"),
+        is_static: true,
+        label: "Host",
+    },
+    ModuleEntry {
+        name: "kernel",
+        section: Some("System"),
+        is_static: true,
+        label: "Kernel",
+    },
+    ModuleEntry {
+        name: "uptime",
+        section: Some("System"),
+        is_static: false,
+        label: "Uptime",
+    },
+    ModuleEntry {
+        name: "locale",
+        section: Some("System"),
+        is_static: true,
+        label: "Locale",
+    },
+    // Software
+    ModuleEntry {
+        name: "packages",
+        section: Some("Software"),
+        is_static: true,
+        label: "Packages",
+    },
+    ModuleEntry {
+        name: "shell",
+        section: Some("Software"),
+        is_static: true,
+        label: "Shell",
+    },
+    ModuleEntry {
+        name: "terminal",
+        section: Some("Software"),
+        is_static: true,
+        label: "Terminal",
+    },
+    ModuleEntry {
+        name: "de",
+        section: Some("Software"),
+        is_static: true,
+        label: "DE",
+    },
+    ModuleEntry {
+        name: "wm",
+        section: Some("Software"),
+        is_static: true,
+        label: "WM",
+    },
+    ModuleEntry {
+        name: "project",
+        section: Some("Software"),
+        is_static: true,
+        label: "Project",
+    },
+    ModuleEntry {
+        name: "git",
+        section: Some("Software"),
+        is_static: true,
+        label: "Git",
+    },
+    ModuleEntry {
+        name: "context",
+        section: Some("Software"),
+        is_static: true,
+        label: "Context",
+    },
+    ModuleEntry {
+        name: "health",
+        section: Some("Software"),
+        is_static: true,
+        label: "Health",
+    },
+    ModuleEntry {
+        name: "container",
+        section: Some("Software"),
+        is_static: true,
+        label: "Container",
+    },
+    ModuleEntry {
+        name: "wallpaper",
+        section: Some("Software"),
+        is_static: true,
+        label: "Wallpaper",
+    },
+    ModuleEntry {
+        name: "weather",
+        section: Some("Software"),
+        is_static: true,
+        label: "Weather",
+    },
+    ModuleEntry {
+        name: "fsdeep",
+        section: Some("Software"),
+        is_static: true,
+        label: "Fsdeep",
+    },
+    // Hardware
+    ModuleEntry {
+        name: "cpu",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "CPU",
+    },
+    ModuleEntry {
+        name: "cpucache",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "Cache",
+    },
+    ModuleEntry {
+        name: "cpuusage",
+        section: Some("Hardware"),
+        is_static: false,
+        label: "CPU Usage",
+    },
+    ModuleEntry {
+        name: "gpu",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "GPU",
+    },
+    ModuleEntry {
+        name: "memory",
+        section: Some("Hardware"),
+        is_static: false,
+        label: "Memory",
+    },
+    ModuleEntry {
+        name: "swap",
+        section: Some("Hardware"),
+        is_static: false,
+        label: "Swap",
+    },
+    ModuleEntry {
+        name: "disk",
+        section: Some("Hardware"),
+        is_static: false,
+        label: "Disk",
+    },
+    ModuleEntry {
+        name: "battery",
+        section: Some("Hardware"),
+        is_static: false,
+        label: "Battery",
+    },
+    ModuleEntry {
+        name: "temperature",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "Temp",
+    },
+    ModuleEntry {
+        name: "display",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "Display",
+    },
+    ModuleEntry {
+        name: "resolution",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "Resolution",
+    },
+    ModuleEntry {
+        name: "colors",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "Colors",
+    },
+    // Network
+    ModuleEntry {
+        name: "network",
+        section: Some("Network"),
+        is_static: false,
+        label: "Network",
+    },
+    ModuleEntry {
+        name: "wifi",
+        section: Some("Network"),
+        is_static: true,
+        label: "WiFi",
+    },
+    ModuleEntry {
+        name: "publicip",
+        section: Some("Network"),
+        is_static: true,
+        label: "Public IP",
+    },
+    ModuleEntry {
+        name: "bluetooth",
+        section: Some("Network"),
+        is_static: true,
+        label: "Bluetooth",
+    },
+    ModuleEntry {
+        name: "media",
+        section: Some("Network"),
+        is_static: false,
+        label: "Media",
+    },
+    ModuleEntry {
+        name: "dns",
+        section: Some("Network"),
+        is_static: true,
+        label: "DNS",
+    },
+    // Processes
+    ModuleEntry {
+        name: "processes",
+        section: Some("Processes"),
+        is_static: false,
+        label: "Processes",
+    },
+    // Layout-only (no section, not collected as a module)
+    ModuleEntry {
+        name: "title",
+        section: None,
+        is_static: true,
+        label: "Title",
+    },
+    // Custom commands (always dynamic)
+    ModuleEntry {
+        name: "custom",
+        section: Some("Software"),
+        is_static: false,
+        label: "Custom",
+    },
+];
+
+/// Look up a module entry by name.
+pub fn find_module(name: &str) -> Option<&'static ModuleEntry> {
+    MODULE_CATALOG.iter().find(|m| m.name == name)
+}
+
 pub struct SystemInfo {
     pub entries: Vec<(&'static str, InfoValue)>,
 }

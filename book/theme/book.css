@@ -1,7 +1,6 @@
 /* flexfetch mdbook theme — matches landing page */
 
-@import url("https://api.fontshare.com/css?f[]=clash-display@200,300,400,500,600,700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap");
 
 :root {
   --bg: #000000;
@@ -16,7 +15,7 @@
   --faint: #333338;
   --accent: #00e5a0;
   --accent-2: #00c8ff;
-  --font-display: "Clash Display", system-ui, sans-serif;
+  --font-display: "Instrument Serif", "Georgia", serif;
   --font-body: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
@@ -70,10 +69,11 @@ body {
 }
 
 #sidebar .chapter > li > a {
-  font-weight: 500;
+  font-weight: 400;
+  font-style: italic;
   color: var(--text-strong);
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 15px;
   padding: 8px 20px;
 }
 
@@ -116,18 +116,20 @@ body {
 
 h1 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
+  font-style: italic;
   color: var(--text-strong);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   margin-top: 24px;
   margin-bottom: 16px;
 }
 
 h2 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
+  font-style: italic;
   color: var(--text-strong);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
   margin-top: 32px;
@@ -136,7 +138,8 @@ h2 {
 
 h3 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
+  font-style: italic;
   color: var(--text-strong);
   margin-top: 24px;
   margin-bottom: 8px;
@@ -146,7 +149,8 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
+  font-style: italic;
   color: var(--text-strong);
   margin-top: 20px;
   margin-bottom: 8px;

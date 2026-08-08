@@ -2,22 +2,31 @@
 
 ## Live Dashboard
 
-Real-time system monitor — CPU and memory gauges with 60-sample sparklines, top
-processes by CPU, and per-interface network throughput:
+Real-time system monitor — CPU and memory gauges with sparklines, top processes,
+and per-interface network throughput:
 
 ```bash
 flexfetch --live
 ```
 
-- `q` / `Esc` — quit
-- `Space` — refresh immediately (rates and CPU% are computed from actual elapsed
-  time, so a manual refresh is always accurate)
-- Editing `~/.config/flexfetch/config.toml` hot-reloads custom modules on the
-  next tick (mtime-based, no external watcher)
+### Controls
 
-Data sources are Linux `/proc` + `/sys` (CPU ticks, per-process `stat`/`statm`,
-interface byte counters); the memory gauge reuses the existing `memory`
-collector. Gated behind the `live` feature (default on).
+| Key       | Action              |
+| --------- | ------------------- |
+| `q`/`Esc` | Quit                |
+| `Space`   | Refresh immediately |
+
+### Data sources
+
+Linux `/proc` + `/sys` (CPU ticks, per-process `stat`/`statm`, interface byte
+counters). The memory gauge reuses the existing `memory` collector.
+
+### Hot reload
+
+Editing `~/.config/flexfetch/config.toml` hot-reloads custom modules on the
+next tick (mtime-based, no external watcher).
+
+Gated behind the `live` feature (default on).
 
 ## Config Wizard
 
@@ -29,7 +38,15 @@ preview, layout (box style + frame), then writes
 flexfetch --wizard
 ```
 
-- `↑`/`↓` move · `space` toggle · `a` select all · `enter` next · `q`/`Esc` quit
+### Controls
+
+| Key       | Action     |
+| --------- | ---------- |
+| `↑`/`↓`   | Move       |
+| `Space`   | Toggle     |
+| `a`       | Select all |
+| `Enter`   | Next step  |
+| `q`/`Esc` | Quit       |
 
 ## Remote Fetch over SSH
 
@@ -53,6 +70,9 @@ flexfetch --watch --watch-interval 5       # every 5 seconds
 
 Press `Ctrl+C` to stop.
 
+Static modules (os/host/kernel/…) are collected once and reused. Dynamic
+modules (cpuusage/memory/disk/network/battery/…) are re-collected every tick.
+
 ## Smart Fetch
 
 Context-relevant info based on the current directory:
@@ -61,9 +81,9 @@ Context-relevant info based on the current directory:
 flexfetch --smart
 ```
 
-| Module    | Shows                                                                  |
-| --------- | ---------------------------------------------------------------------- |
-| `git`     | Branch, ahead/behind vs upstream, dirty file count                     |
+| Module    | Shows                                                                   |
+| --------- | ----------------------------------------------------------------------- |
+| `git`     | Branch, ahead/behind vs upstream, dirty file count                      |
 | `project` | Project type from manifests (`Cargo.toml`, `package.json`, `go.mod`, …) |
 | `context` | Container, Python virtualenv, SSH session                               |
 
@@ -83,3 +103,40 @@ flexfetch --health
 
 Score starts at 100 and deducts for disk >90%, swap >50%, load >1/core, or
 battery <80%. It's also a regular module — add `health` to your module list.
+
+## Demo Mode
+
+Showcase mode — every module + every visual feature, for screenshots and
+social previews:
+
+```bash
+flexfetch --demo
+```
+
+## Diff Mode
+
+Compare two systems side-by-side:
+
+```bash
+flexfetch --diff local server1
+flexfetch --diff local export.json
+```
+
+Each target can be `local`, `host@remote`, or a path to a flexfetch JSON
+export file.
+
+## Environment Doctor
+
+Validate terminal, color, config, and collectors:
+
+```bash
+flexfetch --doctor
+```
+
+## Self-update
+
+Check the latest GitHub release and re-run the install script:
+
+```bash
+flexfetch --update
+```

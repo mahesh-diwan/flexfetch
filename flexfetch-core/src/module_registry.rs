@@ -1,58 +1,16 @@
-use crate::{Context, InfoValue, Module, SystemInfo};
+use crate::{Context, InfoValue, Module, SystemInfo, MODULE_CATALOG};
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
 type ModuleBuilder = Box<dyn Module>;
 
+/// Derive template module names from the catalog — single source of truth.
 fn extract_template_modules(template_str: &str) -> HashSet<String> {
-    let mut modules = HashSet::new();
-    let known = [
-        "os",
-        "host",
-        "kernel",
-        "uptime",
-        "packages",
-        "shell",
-        "terminal",
-        "de",
-        "wm",
-        "cpu",
-        "cpucache",
-        "cpuusage",
-        "memory",
-        "gpu",
-        "disk",
-        "display",
-        "network",
-        "battery",
-        "locale",
-        "resolution",
-        "colors",
-        "custom",
-        "processes",
-        "title",
-        "bluetooth",
-        "media",
-        "dns",
-        "temperature",
-        "swap",
-        "publicip",
-        "wifi",
-        "git",
-        "project",
-        "context",
-        "health",
-        "weather",
-        "container",
-        "wallpaper",
-        "fsdeep",
-    ];
-    for word in known {
-        if template_str.contains(word) {
-            modules.insert(word.to_string());
-        }
-    }
-    modules
+    MODULE_CATALOG
+        .iter()
+        .filter(|m| template_str.contains(m.name))
+        .map(|m| m.name.to_string())
+        .collect()
 }
 
 pub struct ModuleRegistry {
@@ -313,34 +271,8 @@ impl ModuleRegistry {
                     let result = module.collect(ctx);
                     (*n, result)
                 })
-        }; // Modules whose values are effectively static within a session. Note
-           // `custom` is deliberately NOT here: user-defined commands are arbitrary
-           // and may be time-varying (e.g. `date`), so they re-collect every tick.
-        let static_modules: [&str; 22] = [
-            "os",
-            "host",
-            "kernel",
-            "shell",
-            "terminal",
-            "de",
-            "wm",
-            "locale",
-            "packages",
-            "cpu",
-            "cpucache",
-            "gpu",
-            "colors",
-            "resolution",
-            "display",
-            "project",
-            "git",
-            "context",
-            "container",
-            "wallpaper",
-            "fsdeep",
-            "weather",
-        ];
-        let is_static = |name: &str| static_modules.contains(&name);
+        }; // Derive static/dynamic from catalog — no hardcoded list to keep in sync.
+        let is_static = |name: &str| MODULE_CATALOG.iter().any(|m| m.name == name && m.is_static);
 
         // Reuse cached static values that are still requested; collect the rest.
         let mut info = SystemInfo::new();

@@ -5,68 +5,83 @@ full set; `-m "a:b:c"` or `modules = [...]` in config selects them.
 
 ## System
 
-| Module            | Shows                                                        |
-| ----------------- | ------------------------------------------------------------ |
-| `os`              | Distro name, ID, version, logo                               |
-| `host`            | Machine / product name                                       |
-| `kernel`          | Kernel release                                               |
-| `uptime`          | How long the system has been up                              |
-| `locale`          | Language / locale settings                                   |
-| `shell`           | User's shell                                                 |
-| `terminal`        | Terminal emulator                                            |
-| `de`              | Desktop environment                                          |
-| `wm`              | Window manager                                               |
+| Module   | Shows                           | Static? |
+| -------- | ------------------------------- | ------- |
+| `os`     | Distro name, ID, version, logo  | Yes     |
+| `host`   | Machine / product name          | Yes     |
+| `kernel` | Kernel release                  | Yes     |
+| `uptime` | How long the system has been up | No      |
+| `locale` | Language / locale settings      | Yes     |
 
 ## Hardware
 
-| Module            | Shows                                                        |
-| ----------------- | ------------------------------------------------------------ |
-| `cpu`             | Model, cores, frequency                                      |
-| `cpucache`        | L1d/L1i/L2/L3 cache sizes                                    |
-| `cpuusage`        | Current CPU usage %                                          |
-| `gpu`             | Graphics devices                                             |
-| `memory`          | Used / total RAM + percentage                                |
-| `swap`            | Swap usage                                                   |
-| `disk`            | Mount usage (progress bar option)                            |
-| `battery`         | Charge percentage + status                                   |
-| `temperature`     | Sensor temperatures                                          |
-| `display`         | Display / resolution info                                    |
-| `resolution`      | Screen resolution                                            |
-| `bluetooth`       | Paired devices                                               |
-| `media`           | Now-playing via MPRIS (or `nowplaying-cli` on macOS)         |
+| Module        | Shows                             | Static? |
+| ------------- | --------------------------------- | ------- |
+| `cpu`         | Model, cores, frequency           | Yes     |
+| `cpucache`    | L1d/L1i/L2/L3 cache sizes         | Yes     |
+| `cpuusage`    | Current CPU usage %               | No      |
+| `gpu`         | Graphics devices                  | Yes     |
+| `memory`      | Used / total RAM + percentage     | No      |
+| `swap`        | Swap usage                        | No      |
+| `disk`        | Mount usage (progress bar option) | No      |
+| `battery`     | Charge percentage + status        | No      |
+| `temperature` | Sensor temperatures               | Yes     |
+| `display`     | Display / resolution info         | Yes     |
+| `resolution`  | Screen resolution                 | Yes     |
+| `colors`      | Terminal color palette            | Yes     |
 
 ## Network
 
-| Module            | Shows                                                        |
-| ----------------- | ------------------------------------------------------------ |
-| `network`         | Interface addresses + speeds                                 |
-| `wifi`            | Wireless SSID / signal                                       |
-| `publicip`        | Public IP (via curl)                                         |
-| `dns`             | Configured DNS servers                                       |
+| Module      | Shows                                                | Static? |
+| ----------- | ---------------------------------------------------- | ------- |
+| `network`   | Interface addresses + speeds                         | No      |
+| `wifi`      | Wireless SSID / signal                               | Yes     |
+| `publicip`  | Public IP (via curl)                                 | Yes     |
+| `bluetooth` | Paired devices                                       | Yes     |
+| `media`     | Now-playing via MPRIS (or `nowplaying-cli` on macOS) | No      |
+| `dns`       | Configured DNS servers                               | Yes     |
 
 ## Software
 
-| Module            | Shows                                                        |
-| ----------------- | ------------------------------------------------------------ |
-| `packages`        | Installed packages (apt/rpm/pacman/flatpak/snap breakdown)   |
-| `processes`       | Process count                                                |
-| `colors`          | Terminal color palette                                       |
+| Module      | Shows                                                      | Static? |
+| ----------- | ---------------------------------------------------------- | ------- |
+| `packages`  | Installed packages (apt/rpm/pacman/flatpak/snap breakdown) | Yes     |
+| `shell`     | User's shell                                               | Yes     |
+| `terminal`  | Terminal emulator                                          | Yes     |
+| `de`        | Desktop environment                                        | Yes     |
+| `wm`        | Window manager                                             | Yes     |
+| `processes` | Process count                                              | No      |
+| `custom`    | Your `[custom]` shell-command modules                      | No      |
 
 ## Context & extras
 
-| Module            | Shows                                                        |
-| ----------------- | ------------------------------------------------------------ |
-| `health`          | 0–100 system health score (disk/swap/load/battery)           |
-| `git`             | Branch, ahead/behind, dirty count (via `--smart`)            |
-| `project`         | Project type from manifests (via `--smart`)                  |
-| `context`         | Container / venv / SSH session (via `--smart`)               |
-| `custom`          | Your `[custom]` shell-command modules                        |
+These modules are activated with `--smart`:
+
+| Module      | Shows                                                                   | Static? |
+| ----------- | ----------------------------------------------------------------------- | ------- |
+| `health`    | 0–100 system health score (disk/swap/load/battery)                      | Yes     |
+| `git`       | Branch, ahead/behind, dirty count                                       | Yes     |
+| `project`   | Project type from manifests (`Cargo.toml`, `package.json`, `go.mod`, …) | Yes     |
+| `context`   | Container / venv / SSH session                                          | Yes     |
+| `wallpaper` | Current wallpaper path                                                  | Yes     |
+| `weather`   | Current weather (via API)                                               | Yes     |
+| `container` | Container/distrobox detection                                           | Yes     |
+| `fsdeep`    | Filesystem depth info                                                   | Yes     |
 
 ## Layout directives
 
-| Name        | Purpose                    |
-| ----------- | -------------------------- |
-| `title`     | Gradient page title        |
-| `separator` | Horizontal rule            |
+| Name        | Purpose             |
+| ----------- | ------------------- |
+| `title`     | Gradient page title |
+| `separator` | Horizontal rule     |
 
 These are template-only and are skipped by the plain renderer.
+
+## Static vs dynamic
+
+**Static modules** are collected once per session and reused in watch/live
+mode (their values don't change mid-session). **Dynamic modules** are
+re-collected every tick in watch/live mode.
+
+Dynamic: `uptime`, `cpuusage`, `memory`, `swap`, `disk`, `battery`,
+`network`, `media`, `processes`, `custom`.

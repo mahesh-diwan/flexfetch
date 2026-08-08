@@ -1112,48 +1112,11 @@ fn write_imported_config(cli: &Cli, toml_str: &str) {
 }
 
 fn list_modules() {
-    let builtins = [
-        "os",
-        "host",
-        "kernel",
-        "uptime",
-        "locale",
-        "cpu",
-        "cpucache",
-        "cpuusage",
-        "memory",
-        "swap",
-        "disk",
-        "gpu",
-        "network",
-        "dns",
-        "display",
-        "bluetooth",
-        "media",
-        "battery",
-        "temperature",
-        "processes",
-        "packages",
-        "shell",
-        "terminal",
-        "de",
-        "wm",
-        "colors",
-        "custom",
-        "publicip",
-        "wifi",
-        "git",
-        "project",
-        "context",
-        "health",
-        "weather",
-        "container",
-        "wallpaper",
-        "fsdeep",
-    ];
     println!("Built-in modules:");
-    for m in builtins {
-        println!("  {m}");
+    for m in flexfetch_core::MODULE_CATALOG {
+        if m.name != "title" {
+            println!("  {}", m.name);
+        }
     }
     println!("\nLayout directives (template-only): title, separator");
     println!("\nPlugins: place .lua files in ~/.config/flexfetch/plugins/");

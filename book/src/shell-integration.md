@@ -6,7 +6,37 @@
 
 ```bash
 flexfetch --prompt            # cachyos | CPU 12% | RAM 3.2 GiB/15.3 GiB
+```
+
+### Bash
+
+```bash
 PS1="$(flexfetch --prompt) $ "
+```
+
+### Zsh
+
+```bash
+PROMPT="$(flexfetch --prompt) % "
+```
+
+### Fish
+
+```bash
+function fish_prompt
+    flexfetch --prompt
+    echo -n " "
+end
+```
+
+## Shell hooks
+
+Print a shell hook for cd-into-git-repo context fetches:
+
+```bash
+eval "$(flexfetch --hook bash)"   # bash
+eval "$(flexfetch --hook zsh)"    # zsh
+eval "$(flexfetch --hook fish)"   # fish
 ```
 
 ## MOTD

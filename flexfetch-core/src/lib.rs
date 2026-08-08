@@ -28,7 +28,7 @@ pub use error::{Error, Result};
 pub use image_logo::{
     get_distro_logo_path, get_module_logo_path, ImageLogo, ImageProtocol, LogoMode,
 };
-pub use module::{InfoValue, Module, SystemInfo};
+pub use module::{find_module, InfoValue, Module, ModuleEntry, SystemInfo, MODULE_CATALOG};
 pub use module_registry::ModuleRegistry;
 pub use template::TeraEngine;
 

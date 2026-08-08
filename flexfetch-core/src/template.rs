@@ -256,16 +256,7 @@ fn progress_bar_filter(
 /// `show_section_*` flags in render_tera — so gate it for the tera build.
 #[cfg(not(feature = "tera"))]
 fn section_for(module: &str) -> Option<&'static str> {
-    match module {
-        "os" | "kernel" | "host" | "uptime" | "locale" => Some("System"),
-        "packages" | "shell" | "terminal" | "de" | "wm" | "project" | "git" | "context"
-        | "health" | "container" | "wallpaper" | "weather" | "fsdeep" => Some("Software"),
-        "cpu" | "cpucache" | "cpuusage" | "gpu" | "memory" | "swap" | "disk" | "battery"
-        | "temperature" | "display" | "resolution" | "colors" => Some("Hardware"),
-        "network" | "wifi" | "publicip" | "bluetooth" | "media" => Some("Network"),
-        "processes" => Some("Processes"),
-        _ => None,
-    }
+    crate::find_module(module).and_then(|m| m.section)
 }
 
 /// Phase 7.8: Nerd Font battery glyph for a charge level (0-100). Matches
@@ -566,64 +557,25 @@ impl TeraEngine {
 
         // Phase 7.5: which sections have content (fastfetch grouping). Each
         // header in default.tera is gated on its flag, so empty sections are
-        // skipped entirely.
-        let has_any = |mods: &[&str]| {
-            mods.iter()
-                .any(|m| info.entries.iter().any(|(n, _)| n == m))
+        // skipped entirely. Section membership derived from MODULE_CATALOG.
+        let has_section = |section: &str| {
+            config.display.sections
+                && crate::MODULE_CATALOG
+                    .iter()
+                    .filter(|m| m.section == Some(section))
+                    .any(|m| info.entries.iter().any(|(n, _)| *n == m.name))
         };
-        ctx.insert(
-            "show_section_system",
-            &(config.display.sections && has_any(&["os", "kernel", "host", "uptime", "locale"])),
-        );
-        ctx.insert(
-            "show_section_software",
-            &(config.display.sections
-                && has_any(&[
-                    "packages",
-                    "shell",
-                    "terminal",
-                    "de",
-                    "wm",
-                    "project",
-                    "git",
-                    "context",
-                    "health",
-                    "container",
-                    "wallpaper",
-                    "weather",
-                    "fsdeep",
-                ])),
-        );
-        ctx.insert(
-            "show_section_hardware",
-            &(config.display.sections
-                && has_any(&[
-                    "cpu",
-                    "cpucache",
-                    "cpuusage",
-                    "gpu",
-                    "memory",
-                    "swap",
-                    "disk",
-                    "battery",
-                    "temperature",
-                    "display",
-                    "resolution",
-                    "colors",
-                ])),
-        );
-        ctx.insert(
-            "show_section_network",
-            &(config.display.sections
-                && has_any(&["network", "wifi", "publicip", "bluetooth", "media"])),
-        );
+        ctx.insert("show_section_system", &has_section("System"));
+        ctx.insert("show_section_software", &has_section("Software"));
+        ctx.insert("show_section_hardware", &has_section("Hardware"));
+        ctx.insert("show_section_network", &has_section("Network"));
         ctx.insert(
             "show_section_processes",
-            &(config.display.sections && has_any(&["processes"])),
+            &(config.display.sections && info.entries.iter().any(|(n, _)| *n == "processes")),
         );
         ctx.insert(
             "show_section_plugins",
-            &(config.display.sections && has_any(&["plugins"])),
+            &(config.display.sections && info.entries.iter().any(|(n, _)| *n == "plugins")),
         );
 
         // Phase 7.7: Nerd Font auto-detect — when the terminal isn't known to
@@ -1131,42 +1083,9 @@ pub fn render_flash(info: &SystemInfo) -> String {
 }
 
 fn label_for(name: &str) -> String {
-    match name {
-        "os" => "OS".into(),
-        "host" => "Host".into(),
-        "kernel" => "Kernel".into(),
-        "uptime" => "Uptime".into(),
-        "locale" => "Locale".into(),
-        "project" => "Project".into(),
-        "git" => "Git".into(),
-        "context" => "Context".into(),
-        "cpu" => "CPU".into(),
-        "cpucache" => "Cache".into(),
-        "cpuusage" => "CPU Usage".into(),
-        "gpu" => "GPU".into(),
-        "memory" => "Memory".into(),
-        "swap" => "Swap".into(),
-        "disk" => "Disk".into(),
-        "network" => "Network".into(),
-        "resolution" => "Resolution".into(),
-        "display" => "Display".into(),
-        "wifi" => "WiFi".into(),
-        "publicip" => "Public IP".into(),
-        "battery" => "Battery".into(),
-        "temperature" => "Temp".into(),
-        "bluetooth" => "Bluetooth".into(),
-        "media" => "Media".into(),
-        "processes" => "Processes".into(),
-        "packages" => "Packages".into(),
-        "shell" => "Shell".into(),
-        "terminal" => "Terminal".into(),
-        "de" => "DE".into(),
-        "wm" => "WM".into(),
-        "colors" => "Colors".into(),
-        "custom" => "Custom".into(),
-        "health" => "Health".into(),
-        other => other.to_string(),
-    }
+    crate::find_module(name)
+        .map(|m| m.label.to_string())
+        .unwrap_or_else(|| name.to_string())
 }
 
 fn plain_value(name: &str, value: &InfoValue) -> Option<String> {
