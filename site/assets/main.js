@@ -26,18 +26,21 @@
   /* ---------- hero: load the real rendered output ---------- */
   const hero = document.getElementById("hero-body");
   if (hero) {
+    hero.classList.add("loading");
     const fallback =
       "mahesh-diwan@cachyos-x8664\n────────────────────────────\n── System ──\nOS       : CachyOS\nHost     : cachyos-x8664\nKernel   : Linux 7.1.3-2-cachyos x86_64\nUptime   : 4d 18h 47m\n── Software ──\nShell    : fish\nDE       : Hyprland\n── Hardware ──\nCPU      : 12th Gen Intel Core i5-12450H (12 cores)\nMemory   : 8.3 GiB / 15.3 GiB (54%)\nGPU      : i915\nDisk     : /: 476.6G / 398.4G 84%";
     fetch("assets/hero.html")
       .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
       .then((html) => {
         hero.innerHTML = html;
+        hero.classList.remove("loading");
         const cursor = document.createElement("span");
         cursor.className = "cursor";
         hero.appendChild(cursor);
       })
       .catch(() => {
         hero.textContent = fallback;
+        hero.classList.remove("loading");
       });
   }
 
