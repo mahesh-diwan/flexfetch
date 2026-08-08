@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786121227322,
+  "lastUpdate": 1786158295525,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -647,6 +647,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11132013,
             "range": "± 157215",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "36fa99456c0c17d32756f499aee728387ee12a54",
+          "message": "install: add progress indicators for every silent step\n\n- Resolving latest version... (before API call)\n- Validating download... (before tar check)\n- Extracting... (before tar extract)\n- Installing... (before file move)\n- wget now shows progress (removed -q)",
+          "timestamp": "2026-08-08T08:31:47+05:30",
+          "tree_id": "4c88490f2e32c1a2923d664eee8665f295a63ed0",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/36fa99456c0c17d32756f499aee728387ee12a54"
+        },
+        "date": 1786158294829,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 11063724,
+            "range": "± 86470",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 11080348,
+            "range": "± 468425",
             "unit": "ns/iter"
           }
         ]
