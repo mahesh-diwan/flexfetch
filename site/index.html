@@ -21,8 +21,9 @@
 </head>
 <body>
   <a href="#features" class="skip-link">Skip to content</a>
-  <div class="bg-grid"></div>
+  <div class="bg-grid" id="bg-grid"></div>
   <div class="bg-glow"></div>
+  <div class="cursor-glow" id="cursor-glow"></div>
 
   <!-- ============ NAV ============ -->
   <nav class="nav" id="nav">
@@ -87,7 +88,7 @@
   </header>
 
   <!-- ============ TERMINAL (full-bleed) ============ -->
-  <div class="term reveal in">
+  <div class="term reveal in term-reveal">
     <div class="term-bar">
       <span class="term-dot r" aria-hidden="true"></span>
       <span class="term-dot y" aria-hidden="true"></span>
@@ -139,8 +140,8 @@ Locale   : en_IN.UTF-8</pre>
   <section class="section" id="features">
     <div class="container">
       <div class="section-head reveal">
-        <h2>Everything a fetch should be — and nothing it shouldn't.</h2>
-        <p>Every module is a direct read: <code>/proc</code>, sysfs, the Windows registry or macOS APIs. No subprocess spawns, no parsing of your neighbor's output, no startup cost.</p>
+        <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
+        <p>Every module reads the system directly: <code>/proc</code>, sysfs, the Windows registry or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
       </div>
       <div class="feat-grid">
         <div class="feat reveal">
@@ -170,7 +171,7 @@ Locale   : en_IN.UTF-8</pre>
         <div class="feat reveal d1">
           <div class="ico" aria-hidden="true">🔌</div>
           <h3>Lua &amp; WASM plugins</h3>
-          <p>Write a custom module in Lua in five minutes, or ship memory-safe <abbr title="WebAssembly — a binary instruction format for a stack-based virtual machine, enabling near-native performance in a sandboxed environment">WebAssembly</abbr> plugins that run fuel-limited inside a sandbox. Auto-loaded from <code>~/.config/flexfetch/plugins/</code>.</p>
+          <p>Write a custom module in Lua in five minutes, or ship memory-safe <abbr title="WebAssembly — a binary instruction format for a stack-based virtual machine, enabling near-native performance in a sandboxed environment">WebAssembly</abbr> plugins that run with resource limits inside a sandbox. Auto-loaded from <code>~/.config/flexfetch/plugins/</code>.</p>
 
         </div>
         <div class="feat reveal d2">
@@ -196,6 +197,7 @@ Locale   : en_IN.UTF-8</pre>
       </div>
 
       <div class="mod-search">
+        <label for="mod-search" class="sr-only">Search modules</label>
         <input type="text" id="mod-search" placeholder="search modules…" autocomplete="off" />
         <div class="mod-search-count" id="mod-search-count"></div>
       </div>
@@ -290,7 +292,7 @@ Locale   : en_IN.UTF-8</pre>
         <div class="inst reveal">
           <span class="badge">official</span>
           <h3>curl installer</h3>
-          <p>Detects your platform, verifies the checksum before unpacking, and fails closed on any mismatch.</p>
+          <p>Detects your platform, verifies the checksum before unpacking, and refuses to install anything if the file doesn't match.</p>
           <div class="cmd">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</div>
           <div class="plat-hint" id="plat-hint"></div>
           <div class="note">checksum + signature verified</div>
@@ -341,20 +343,20 @@ Locale   : en_IN.UTF-8</pre>
         </div>
         <div class="eco reveal d1">
           <h3>WASM sandbox</h3>
-          <p>Compile a plugin to WebAssembly and flexfetch runs it fuel-limited inside a wasmtime sandbox. Memory-safe by construction.</p>
+          <p>Compile a plugin to WebAssembly and flexfetch runs it with resource limits inside an isolated sandbox. Memory-safe by construction.</p>
           <ul>
-            <li>fuel metering kills runaway loops</li>
+            <li>execution time and memory limits</li>
             <li>no host imports unless granted</li>
-            <li>strict JSON ABI for values</li>
+            <li>structured data exchange between plugin and host</li>
           </ul>
         </div>
         <div class="eco reveal d2">
           <h3>Signed registry</h3>
-          <p><code>flexfetch plugin search|install|list|update</code> against a TOML registry. Every entry verified with Ed25519 before the SHA-256 download check.</p>
+          <p><code>flexfetch plugin search|install|list|update</code> against a TOML registry. Every entry is cryptographically signed before the checksum is verified.</p>
           <ul>
-            <li>min_flexfetch_version gating</li>
+            <li>version compatibility check</li>
             <li>publisher CLI: <code>registry_sign</code></li>
-            <li>fail-closed on any tamper</li>
+            <li>refuses to install anything that fails verification</li>
           </ul>
         </div>
       </div>

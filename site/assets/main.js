@@ -210,6 +210,37 @@
     });
   }
 
+  /* ---------- cursor glow ---------- */
+  const glow = document.getElementById("cursor-glow");
+  if (glow && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let raf = false;
+    document.addEventListener("mousemove", (e) => {
+      if (!raf) {
+        requestAnimationFrame(() => {
+          glow.style.left = e.clientX + "px";
+          glow.style.top = e.clientY + "px";
+          raf = false;
+        });
+        raf = true;
+      }
+    }, { passive: true });
+  }
+
+  /* ---------- blueprint grid parallax ---------- */
+  const bgGrid = document.getElementById("bg-grid");
+  if (bgGrid) {
+    let ticking = false;
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          bgGrid.style.transform = "translateY(" + (window.scrollY * 0.3) + "px)";
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+
   /* ---------- platform hint ---------- */
   const platHint = document.getElementById("plat-hint");
   if (platHint) {
