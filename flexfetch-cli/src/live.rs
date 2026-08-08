@@ -18,7 +18,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Cell, Gauge, Paragraph, Row, Sparkline, Table, Wrap},
+    widgets::{Gauge, Paragraph, Sparkline},
     Frame, Terminal,
 };
 use std::collections::{HashMap, VecDeque};
@@ -407,7 +407,13 @@ impl App {
         let area = frame.area();
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Length(1), Constraint::Min(0)])
+            .constraints([
+                Constraint::Length(1), // header
+                Constraint::Length(1), // CPU gauge
+                Constraint::Length(1), // Memory gauge
+                Constraint::Length(4), // network sparkline
+                Constraint::Length(1), // footer
+            ])
             .split(area);
 
         // Header bar
@@ -437,164 +443,88 @@ impl App {
         let header = Line::from(spans);
         frame.render_widget(Paragraph::new(header), chunks[0]);
 
-        let main = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(45), Constraint::Percentage(55)])
-            .split(chunks[1]);
+        // CPU gauge (flat, no border)
+        let cpu_line = Line::from(vec![
+            Span::styled(
+                "  CPU   ",
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("{:>5.1}%  ", snap.cpu_pct),
+                Style::default().fg(Color::White),
+            ),
+        ]);
+        frame.render_widget(Paragraph::new(cpu_line), chunks[1]);
 
-        let left = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Length(6),
-                Constraint::Length(6),
-                Constraint::Min(4),
-            ])
-            .split(main[0]);
-
-        self.draw_cpu(frame, left[0]);
-        self.draw_mem(frame, left[1]);
-        self.draw_net(frame, left[2]);
-        self.draw_procs(frame, main[1]);
-    }
-
-    fn draw_cpu(&self, frame: &mut Frame, area: Rect) {
-        let snap = &self.snapshot;
-        let block = Block::bordered().title(Line::from(" CPU "));
-        let inner = block.inner(area);
-        frame.render_widget(block, area);
-
-        let gauge = Gauge::default()
+        let cpu_gauge = Gauge::default()
             .gauge_style(Style::default().fg(gauge_color(snap.cpu_pct)))
-            .ratio(snap.cpu_pct.clamp(0.0, 100.0) / 100.0)
-            .label(format!("{:>5.1}%", snap.cpu_pct));
-        frame.render_widget(gauge, Rect::new(inner.x, inner.y, inner.width, 1));
-
-        let data: Vec<u64> = snap.cpu_history.iter().copied().collect();
-        let spark = Sparkline::default()
-            .data(&data)
-            .max(100)
-            .style(Style::default().fg(Color::Cyan));
+            .ratio(snap.cpu_pct.clamp(0.0, 100.0) / 100.0);
         frame.render_widget(
-            spark,
+            cpu_gauge,
             Rect::new(
-                inner.x,
-                inner.y.saturating_add(1),
-                inner.width,
-                inner.height.saturating_sub(1),
+                chunks[1].x + 14,
+                chunks[1].y,
+                chunks[1].width.saturating_sub(16),
+                1,
             ),
         );
-    }
 
-    fn draw_mem(&self, frame: &mut Frame, area: Rect) {
-        let snap = &self.snapshot;
-        let block = Block::bordered().title(Line::from(" Memory "));
-        let inner = block.inner(area);
-        frame.render_widget(block, area);
+        // Memory gauge (flat, no border)
+        let mem_line = Line::from(vec![
+            Span::styled(
+                "  Memory",
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("{:>5.1}%  ", snap.mem_pct as f64),
+                Style::default().fg(Color::White),
+            ),
+        ]);
+        frame.render_widget(Paragraph::new(mem_line), chunks[2]);
 
-        let gauge = Gauge::default()
+        let mem_gauge = Gauge::default()
             .gauge_style(Style::default().fg(gauge_color(snap.mem_pct as f64)))
-            .ratio(snap.mem_pct as f64 / 100.0)
-            .label(format!(
-                "{:>4}%  {} / {}",
-                snap.mem_pct, snap.mem_used, snap.mem_total
-            ));
-        frame.render_widget(gauge, Rect::new(inner.x, inner.y, inner.width, 1));
-
-        let data: Vec<u64> = snap.mem_history.iter().copied().collect();
-        let spark = Sparkline::default()
-            .data(&data)
-            .max(100)
-            .style(Style::default().fg(Color::Green));
+            .ratio(snap.mem_pct as f64 / 100.0);
         frame.render_widget(
-            spark,
+            mem_gauge,
             Rect::new(
-                inner.x,
-                inner.y.saturating_add(1),
-                inner.width,
-                inner.height.saturating_sub(1),
+                chunks[2].x + 14,
+                chunks[2].y,
+                chunks[2].width.saturating_sub(16),
+                1,
             ),
         );
-    }
 
-    fn draw_net(&self, frame: &mut Frame, area: Rect) {
-        let snap = &self.snapshot;
-        let block = Block::bordered().title(Line::from(" Network "));
-        let inner = block.inner(area);
-        frame.render_widget(block, area);
-
-        let mut lines: Vec<Line> = snap
-            .net_rates
-            .iter()
-            .map(|(name, rx, tx)| {
-                Line::from(vec![
-                    Span::styled(
-                        format!("{name:<12}"),
-                        Style::default()
-                            .fg(Color::White)
-                            .add_modifier(Modifier::BOLD),
-                    ),
-                    Span::styled(
-                        format!("▼ {}  ", fmt_rate(*rx)),
-                        Style::default().fg(Color::Green),
-                    ),
-                    Span::styled(
-                        format!("▲ {}", fmt_rate(*tx)),
-                        Style::default().fg(Color::Yellow),
-                    ),
-                ])
-            })
-            .collect();
-        if lines.is_empty() {
-            lines.push(Line::from(Span::styled(
-                "no interfaces",
-                Style::default().fg(Color::DarkGray),
-            )));
+        // Network sparkline
+        let net_data: Vec<u64> = snap.net_rates.iter().map(|(_, rx, _)| *rx as u64).collect();
+        if !net_data.is_empty() {
+            let spark = Sparkline::default()
+                .data(&net_data)
+                .max(10_000_000) // 10 MB/s max
+                .style(Style::default().fg(Color::Cyan));
+            frame.render_widget(spark, chunks[3]);
         }
-        let para = Paragraph::new(lines).wrap(Wrap { trim: false });
-        frame.render_widget(para, inner);
-    }
 
-    fn draw_procs(&self, frame: &mut Frame, area: Rect) {
-        let snap = &self.snapshot;
-        let block = Block::bordered().title(Line::from(" Top processes "));
-        let inner = block.inner(area);
-        frame.render_widget(block, area);
-
-        let rows: Vec<Row> = snap
-            .processes
-            .iter()
-            .map(|p| {
-                Row::new(vec![
-                    Cell::from(p.pid.to_string()),
-                    Cell::from(format!("{:>6.1}%", p.cpu_pct)),
-                    Cell::from(format!("{:>6.0} MB", p.mem_mb)),
-                    Cell::from(p.name.clone()),
-                ])
-            })
-            .collect();
-
-        let widths = [
-            Constraint::Length(7),
-            Constraint::Length(9),
-            Constraint::Length(10),
-            Constraint::Min(10),
-        ];
-        let table = Table::new(rows, widths)
-            .header(
-                Row::new(vec![
-                    Cell::from("PID"),
-                    Cell::from("CPU"),
-                    Cell::from("MEM"),
-                    Cell::from("COMMAND"),
-                ])
-                .style(
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
+        // Footer: net rates + quit hint
+        let total_rx: u64 = snap.net_rates.iter().map(|(_, rx, _)| *rx as u64).sum();
+        let total_tx: u64 = snap.net_rates.iter().map(|(_, _, tx)| *tx as u64).sum();
+        let footer = Line::from(vec![
+            Span::styled(
+                format!(
+                    "  net ↓ {} ↑ {}  ",
+                    fmt_rate(total_rx as f64),
+                    fmt_rate(total_tx as f64)
                 ),
-            )
-            .block(Block::default());
-        frame.render_widget(table, inner);
+                Style::default().fg(Color::DarkGray),
+            ),
+            Span::raw(" ".repeat(area.width.saturating_sub(40) as usize)),
+            Span::styled("press q to quit  ", Style::default().fg(Color::DarkGray)),
+        ]);
+        frame.render_widget(Paragraph::new(footer), chunks[4]);
     }
 }
 
