@@ -545,50 +545,6 @@ pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<Stri
     Ok(result)
 }
 
-pub mod image {
-    use super::*;
-
-    pub fn export_svg(info: &SystemInfo, config: &Config) -> crate::Result<String> {
-        super::export_svg(info, config)
-    }
-
-    pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Result<()> {
-        super::export_png(info, config, path)
-    }
-}
-
-pub mod text {
-    use super::*;
-
-    pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<String> {
-        super::export_markdown(info, config)
-    }
-
-    pub fn export_csv(info: &SystemInfo) -> crate::Result<String> {
-        super::export_csv(info)
-    }
-}
-
-pub mod structured {
-    use super::*;
-
-    pub fn export_prometheus(info: &SystemInfo) -> crate::Result<String> {
-        super::export_prometheus(info)
-    }
-
-    pub fn export_github(info: &SystemInfo) -> crate::Result<String> {
-        super::export_github(info)
-    }
-
-    pub fn export_ansible(info: &SystemInfo) -> crate::Result<String> {
-        super::export_ansible(info)
-    }
-
-    pub fn export_terraform(info: &SystemInfo) -> crate::Result<String> {
-        super::export_terraform(info)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -675,36 +631,5 @@ mod tests {
         assert!(out.contains("flexfetch_kernel 1"));
         // cpu.cores "12" IS numeric → stays numeric
         assert!(out.contains("flexfetch_cpu{cores=\"12\"} 12"));
-    }
-
-    #[test]
-    fn text_module_csv_delegates() {
-        let out = super::text::export_csv(&sample_info()).unwrap();
-        assert!(out.starts_with("key,value\n"));
-    }
-
-    #[test]
-    fn structured_module_prometheus_delegates() {
-        let out = super::structured::export_prometheus(&sample_info()).unwrap();
-        assert!(out.contains("flexfetch_kernel 1"));
-    }
-
-    #[test]
-    fn structured_module_github_delegates() {
-        let out = super::structured::export_github(&sample_info()).unwrap();
-        assert!(out.contains("::group::"));
-    }
-
-    #[test]
-    fn structured_module_ansible_delegates() {
-        let out = super::structured::export_ansible(&sample_info()).unwrap();
-        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
-        assert!(v.get("ansible_flexfetch").is_some());
-    }
-
-    #[test]
-    fn structured_module_terraform_delegates() {
-        let out = super::structured::export_terraform(&sample_info()).unwrap();
-        assert!(out.contains("variable \"os_pretty_name\""));
     }
 }
