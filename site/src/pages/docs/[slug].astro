@@ -23,7 +23,7 @@ const docs = await getCollection('docs');
           <ul>
             {docs.map((e) => (
               <li>
-                <a href={`/docs/${e.slug}/`} class={e.slug === entry.slug ? 'active' : ''}>
+                <a href={`${import.meta.env.BASE_URL}/docs/${e.slug}/`} class={e.slug === entry.slug ? 'active' : ''}>
                   {e.data.title}
                 </a>
               </li>

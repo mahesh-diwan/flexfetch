@@ -77,3 +77,37 @@ from there.
 **`--update-db` returns an error.**
 The crowdsourced hardware database requires an internet connection. It falls
 back to the bundled seed when offline.
+
+**Why no Windows support?**
+flexfetch reads `/proc` and `/sys` directly for hardware detection — these
+don't exist on Windows. A Windows port would require WMI queries and
+`GetSystemInfo` APIs, which is a different architecture. The current focus is
+Linux and macOS, where the zero-subprocess approach pays off most.
+
+**How do I customize colors?**
+Set `color_keys`, `color_values`, and `color_sep` in `[display]` in your
+config file (`~/.config/flexfetch/config.toml`). You can also use
+`--theme <name>` to switch between 28 preset color schemes, or define a
+complete custom theme in the `[theme]` section.
+
+**What's the difference from fastfetch?**
+Both read `/proc` directly with zero subprocesses. flexfetch adds Lua and
+WASM plugins, Tera templates with Jinja2-style logic, a real-time
+dashboard (`--live`), context-aware smart fetch, health scoring, and remote
+SSH fetch. fastfetch has more logo coverage (527+ distros via its logo DB);
+flexfetch imports those logos and adds its own theming layer on top.
+
+**Can I add my own modules?**
+Yes. Drop a `.lua` file in `~/.config/flexfetch/plugins/` — it will appear
+in output automatically. Lua plugins have access to a host API for reading
+files, running commands, and formatting output. See [Plugins](/docs/plugins)
+for the full API.
+
+**Does flexfetch work in containers?**
+Yes — flexfetch detects containers via `/proc/1/cgroup` and `/proc/self/cgroup`
+and adjusts output accordingly. It runs fine in Docker, Podman, LXC, and
+Kubernetes pods without modification.
+
+**How do I use flexfetch in a script?**
+Use `-f json` for structured output: `flexfetch -f json | jq '.modules.memory'`.
+The JSON format is stable and designed for programmatic consumption.

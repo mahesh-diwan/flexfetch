@@ -58,23 +58,12 @@ import Layout from '../layouts/Layout.astro';
   <!-- ============ STATS ============ -->
   <section class="section stats" id="stats">
     <div class="container">
-      <div class="stats-grid">
-        <div class="stat reveal">
-          <div class="stat-value">38</div>
-          <div class="stat-label">Modules</div>
-        </div>
-        <div class="stat reveal d1">
-          <div class="stat-value">527</div>
-          <div class="stat-label">Logos</div>
-        </div>
-        <div class="stat reveal d2">
-          <div class="stat-value">0</div>
-          <div class="stat-label">Subprocesses</div>
-        </div>
-        <div class="stat reveal d3">
-          <div class="stat-value">1.7 MB</div>
-          <div class="stat-label">Binary Size</div>
-        </div>
+      <div class="stats-row">
+        <span class="stat-badge">38 modules</span>
+        <span class="stat-badge">527 logos</span>
+        <span class="stat-badge">0 subprocesses</span>
+        <span class="stat-badge">1.7 MB</span>
+        <span class="stat-badge rust">Rust</span>
       </div>
     </div>
   </section>
@@ -86,7 +75,7 @@ import Layout from '../layouts/Layout.astro';
         <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
         <p>Every module reads the system directly: <code>/proc</code>, sysfs, or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
       </div>
-      <div class="feature-list">
+      <div class="bento-grid">
         <div class="feature-item reveal">
           <span class="feature-check" aria-hidden="true">✓</span>
           <div>
@@ -142,12 +131,19 @@ import Layout from '../layouts/Layout.astro';
       </div>
       <div class="inst-grid">
         <div class="inst reveal">
-          <span class="badge">official</span>
-          <h3>curl installer</h3>
-          <p>Detects your platform, verifies the checksum before unpacking, and refuses to install anything if the file doesn't match.</p>
-          <div class="cmd-wrap">
-            <code id="cmd-curl2">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
-            <button class="copy-btn" data-copy="cmd-curl2" aria-label="Copy command">Copy</button>
+          <div class="inst-head">
+            <span class="badge">official</span>
+            <h3>curl installer</h3>
+            <p>Detects your platform, verifies the checksum before unpacking, and refuses to install anything if the file doesn't match.</p>
+          </div>
+          <div class="code-block">
+            <div class="code-tabs">
+              <span class="code-tab active">install</span>
+            </div>
+            <div class="code-body">
+              <code id="cmd-curl2">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
+              <button class="copy-btn" data-copy="cmd-curl2" aria-label="Copy command">Copy</button>
+            </div>
           </div>
           <div class="plat-hint" id="plat-hint2"></div>
           <div class="note">Linux & macOS · checksum + signature verified</div>
@@ -168,10 +164,125 @@ import Layout from '../layouts/Layout.astro';
       fetch("/flexfetch/terminal-shot.png", { method: "HEAD" })
         .then(r => {
           if (r.ok) {
-            heroTerm.innerHTML = '<img src="/flexfetch/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;display:block;" />';
+            heroTerm.innerHTML = '<img src="/flexfetch/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;display:block;border-radius:0 0 7px 7px;" />';
           }
         })
         .catch(() => {});
     }
   </script>
+  <style>
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .stat-badge {
+      font: 500 13px var(--font-mono);
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 16px;
+      transition: border-color var(--duration-fast) var(--ease-out);
+    }
+
+    .stat-badge:hover {
+      border-color: var(--border-strong);
+    }
+
+    .stat-badge.rust {
+      color: var(--accent);
+      border-color: rgba(232, 145, 58, 0.3);
+      background: rgba(232, 145, 58, 0.06);
+    }
+
+    .code-block {
+      background: #08090d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      padding: 0 12px;
+    }
+
+    .code-tab {
+      font: 500 11px var(--font-mono);
+      color: var(--muted);
+      padding: 10px 16px;
+      border-bottom: 2px solid transparent;
+      cursor: default;
+    }
+
+    .code-tab.active {
+      color: var(--text-strong);
+      border-bottom-color: var(--accent);
+    }
+
+    .code-body {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+    }
+
+    .code-body code {
+      font: 13px var(--font-mono);
+      color: var(--accent);
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .inst-head {
+      padding: 0 0 16px 0;
+    }
+
+    .inst-head h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text-strong);
+      margin-bottom: 6px;
+    }
+
+    .inst-head p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .hero-term {
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-term .term-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .hero-term .term-body img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    @media (max-width: 1024px) {
+      .hero-term {
+        min-height: 280px;
+        max-width: 540px;
+        margin: 0 auto;
+      }
+    }
+  </style>
 </Layout>
