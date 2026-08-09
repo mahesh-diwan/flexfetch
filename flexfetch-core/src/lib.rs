@@ -10,6 +10,7 @@ pub mod fastfetch_logos;
 pub mod hardware_db;
 pub mod image_logo;
 pub mod logo;
+pub mod logo_data;
 pub mod module;
 pub mod module_registry;
 pub mod template;
