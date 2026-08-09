@@ -708,3 +708,71 @@ pub fn gradient_text(text: &str, colors: &[[u8; 3]]) -> String {
     result.push_str(RESET);
     result
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_config(theme: &str) -> Config {
+        let mut config = Config::default_for_testing();
+        config.display.theme = Some(theme.to_string());
+        config
+    }
+
+    #[test]
+    fn resolve_default_returns_catppuccin() {
+        let config = Config::default_for_testing();
+        let theme = resolve(&config);
+        assert!(!theme.title.is_empty());
+    }
+
+    #[test]
+    fn resolve_catppuccin() {
+        let config = test_config("catppuccin");
+        let theme = resolve(&config);
+        assert!(!theme.title.is_empty());
+        assert!(!theme.keys.is_empty());
+    }
+
+    #[test]
+    fn resolve_random_returns_valid_theme() {
+        let config = test_config("random");
+        let theme = resolve(&config);
+        assert!(!theme.title.is_empty());
+    }
+
+    #[test]
+    fn find_preset_returns_some_for_known() {
+        assert!(find_preset("catppuccin").is_some());
+        assert!(find_preset("dracula").is_some());
+    }
+
+    #[test]
+    fn find_preset_returns_none_for_unknown() {
+        assert!(find_preset("nonexistent_theme").is_none());
+    }
+
+    #[test]
+    fn preset_names_contains_catppuccin() {
+        let names = preset_names();
+        assert!(names.contains(&"catppuccin"));
+    }
+
+    #[test]
+    fn resolve_ansi_named_colors() {
+        assert_eq!(resolve_ansi("red"), "\x1b[31m");
+        assert_eq!(resolve_ansi("green"), "\x1b[32m");
+        assert_eq!(resolve_ansi("blue"), "\x1b[34m");
+    }
+
+    #[test]
+    fn resolve_ansi_passthrough_escape() {
+        let esc = "\x1b[38;2;255;128;0m";
+        assert_eq!(resolve_ansi(esc), esc);
+    }
+
+    #[test]
+    fn resolve_ansi_unknown_returns_empty() {
+        assert_eq!(resolve_ansi("notacolor"), "");
+    }
+}
