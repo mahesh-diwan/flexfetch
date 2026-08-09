@@ -153,6 +153,48 @@ pub struct CustomModule {
 }
 
 impl DisplayConfig {
+    /// Merge two DisplayConfig instances. `override_config` values win over
+    /// `base` values, except for Option fields where None means "keep base".
+    fn merge(base: DisplayConfig, override_config: DisplayConfig) -> DisplayConfig {
+        DisplayConfig {
+            separator: override_config.separator,
+            key_width: override_config.key_width,
+            theme: override_config.theme.or(base.theme),
+            color_title: override_config.color_title.or(base.color_title),
+            color_keys: override_config.color_keys.or(base.color_keys),
+            color_values: override_config.color_values.or(base.color_values),
+            color_sep: override_config.color_sep.or(base.color_sep),
+            gradient: override_config.gradient || base.gradient,
+            gradient_colors: override_config.gradient_colors.or(base.gradient_colors),
+            logo_mode: override_config.logo_mode,
+            gradient_title: override_config.gradient_title,
+            progress_bars: override_config.progress_bars,
+            box_style: override_config.box_style,
+            palette_style: override_config.palette_style,
+            frame: override_config.frame,
+            logo_gradient: override_config.logo_gradient,
+            sections: override_config.sections,
+            // Icons: override wins unconditionally
+            icon_os: override_config.icon_os,
+            icon_kernel: override_config.icon_kernel,
+            icon_host: override_config.icon_host,
+            icon_uptime: override_config.icon_uptime,
+            icon_locale: override_config.icon_locale,
+            icon_cpu: override_config.icon_cpu,
+            icon_gpu: override_config.icon_gpu,
+            icon_memory: override_config.icon_memory,
+            icon_swap: override_config.icon_swap,
+            icon_disk: override_config.icon_disk,
+            icon_network: override_config.icon_network,
+            icon_interface: override_config.icon_interface,
+            icon_resolution: override_config.icon_resolution,
+            icon_battery: override_config.icon_battery,
+            icon_processes: override_config.icon_processes,
+            icon_end: override_config.icon_end,
+            icon_temp: override_config.icon_temp,
+        }
+    }
+
     pub fn default_separator() -> String {
         ": ".to_string()
     }
@@ -433,63 +475,7 @@ fn merge_config(base: Config, override_config: Config) -> Config {
             base.template
         },
         plugins_dir: override_config.plugins_dir.or(base.plugins_dir),
-        display: DisplayConfig {
-            separator: if override_config.display.separator != ": " {
-                override_config.display.separator
-            } else {
-                base.display.separator
-            },
-            key_width: if override_config.display.key_width != 8 {
-                override_config.display.key_width
-            } else {
-                base.display.key_width
-            },
-            theme: override_config.display.theme.or(base.display.theme),
-            color_title: override_config
-                .display
-                .color_title
-                .or(base.display.color_title),
-            color_keys: override_config
-                .display
-                .color_keys
-                .or(base.display.color_keys),
-            color_values: override_config
-                .display
-                .color_values
-                .or(base.display.color_values),
-            color_sep: override_config.display.color_sep.or(base.display.color_sep),
-            gradient: override_config.display.gradient || base.display.gradient,
-            gradient_colors: override_config
-                .display
-                .gradient_colors
-                .or(base.display.gradient_colors),
-            logo_mode: override_config.display.logo_mode,
-            gradient_title: override_config.display.gradient_title,
-            progress_bars: override_config.display.progress_bars,
-            box_style: override_config.display.box_style,
-            palette_style: override_config.display.palette_style,
-            frame: override_config.display.frame,
-            logo_gradient: override_config.display.logo_gradient,
-            sections: override_config.display.sections,
-            // Icons
-            icon_os: override_config.display.icon_os,
-            icon_kernel: override_config.display.icon_kernel,
-            icon_host: override_config.display.icon_host,
-            icon_uptime: override_config.display.icon_uptime,
-            icon_locale: override_config.display.icon_locale,
-            icon_cpu: override_config.display.icon_cpu,
-            icon_gpu: override_config.display.icon_gpu,
-            icon_memory: override_config.display.icon_memory,
-            icon_swap: override_config.display.icon_swap,
-            icon_disk: override_config.display.icon_disk,
-            icon_network: override_config.display.icon_network,
-            icon_interface: override_config.display.icon_interface,
-            icon_resolution: override_config.display.icon_resolution,
-            icon_battery: override_config.display.icon_battery,
-            icon_processes: override_config.display.icon_processes,
-            icon_end: override_config.display.icon_end,
-            icon_temp: override_config.display.icon_temp,
-        },
+        display: DisplayConfig::merge(base.display, override_config.display),
         custom: if !override_config.custom.is_empty() {
             override_config.custom
         } else {
