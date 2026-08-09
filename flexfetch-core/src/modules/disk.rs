@@ -9,38 +9,37 @@ impl Module for DiskModule {
         // POSIX path: /proc/mounts roots + statvfs (Phase 4.1, zero subprocess).
         #[cfg(not(target_os = "windows"))]
         {
-            let mut mounts: Vec<String> =
-                if let Ok(content) = ctx.read_file("/proc/mounts") {
-                    content
-                        .lines()
-                        .filter_map(|line| {
-                            let parts: Vec<&str> = line.split_whitespace().collect();
-                            if parts.len() >= 3 {
-                                let (mp, fstype) = (parts[1], parts[2]);
-                                if [
-                                    "ext2",
-                                    "ext3",
-                                    "ext4",
-                                    "btrfs",
-                                    "xfs",
-                                    "zfs",
-                                    "apfs",
-                                    "f2fs",
-                                    "overlay",
-                                    "overlayfs",
-                                ]
-                                .contains(&fstype)
-                                    && (mp == "/" || mp == "/home")
-                                {
-                                    return Some(mp.to_string());
-                                }
+            let mut mounts: Vec<String> = if let Ok(content) = ctx.read_file("/proc/mounts") {
+                content
+                    .lines()
+                    .filter_map(|line| {
+                        let parts: Vec<&str> = line.split_whitespace().collect();
+                        if parts.len() >= 3 {
+                            let (mp, fstype) = (parts[1], parts[2]);
+                            if [
+                                "ext2",
+                                "ext3",
+                                "ext4",
+                                "btrfs",
+                                "xfs",
+                                "zfs",
+                                "apfs",
+                                "f2fs",
+                                "overlay",
+                                "overlayfs",
+                            ]
+                            .contains(&fstype)
+                                && (mp == "/" || mp == "/home")
+                            {
+                                return Some(mp.to_string());
                             }
-                            None
-                        })
-                        .collect()
-                } else {
-                    vec!["/".to_string()]
-                };
+                        }
+                        None
+                    })
+                    .collect()
+            } else {
+                vec!["/".to_string()]
+            };
             // Fallback: if nothing matched (e.g. container with an unrecognized
             // root fstype), still show "/" rather than an empty list.
             if mounts.is_empty() {

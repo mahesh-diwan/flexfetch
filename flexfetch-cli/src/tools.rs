@@ -194,7 +194,6 @@ fn report(ok: bool, name: &str, ok_msg: &str, bad_msg: &str) {
 /// The flexfetch config dir: `$XDG_CONFIG_HOME/flexfetch` or
 /// `$HOME/.config/flexfetch` (fallback). Single source of truth for the XDG
 /// resolution that was copy-pasted across tools/wizard/registry.
-
 pub fn config_dir() -> PathBuf {
     let xdg = std::env::var("XDG_CONFIG_HOME")
         .map(PathBuf::from)

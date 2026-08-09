@@ -128,10 +128,7 @@ where
 
 #[derive(Clone)]
 struct ProcInfo {
-    pid: i32,
-    name: String,
     cpu_pct: f64,
-    mem_mb: f64,
 }
 
 /// Immutable view handed to the renderer each tick. Owned (no borrows), so it
@@ -298,27 +295,16 @@ fn sample_processes(
                 let ticks = utime + stime;
                 cur.insert(pid, ticks);
 
-                let rss_pages: u64 = std::fs::read_to_string(base.join("statm"))
-                    .ok()
-                    .and_then(|s| s.split_whitespace().nth(1).and_then(|v| v.parse().ok()))
-                    .unwrap_or(0);
-
                 if let Some(&prev_ticks) = proc_prev.get(&pid) {
                     let dproc = ticks.saturating_sub(prev_ticks);
                     let dtotal = stat_total.saturating_sub(*proc_total_prev);
                     // First sample has no baseline for processes yet; skip it.
                     if dtotal > 0 {
                         let cpu_pct = dproc as f64 / dtotal as f64 * cores as f64 * 100.0;
-                        let mem_mb = rss_pages as f64 * 4096.0 / (1024.0 * 1024.0);
                         if name.is_empty() || name == "kthreadd" {
                             continue;
                         }
-                        procs.push(ProcInfo {
-                            pid,
-                            name,
-                            cpu_pct,
-                            mem_mb,
-                        });
+                        procs.push(ProcInfo { cpu_pct });
                     }
                 }
             }

@@ -45,7 +45,8 @@ impl Module for OsModule {
             // Only spawns `cmd.exe /c ver` on an actual WSL system (off the
             // default path otherwise, so cold start is unaffected).
             if std::path::Path::new("/proc/sys/fs/binfmt_misc/WSLInterop").exists() {
-                let kernel = ctx.read_file("/proc/sys/kernel/osrelease")
+                let kernel = ctx
+                    .read_file("/proc/sys/kernel/osrelease")
                     .unwrap_or_default()
                     .to_lowercase();
                 let wsl = if kernel.contains("wsl2") || kernel.contains("microsoft-standard") {

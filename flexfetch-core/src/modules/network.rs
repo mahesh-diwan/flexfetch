@@ -26,7 +26,8 @@ impl Module for NetworkModule {
                         continue;
                     }
                     let (ip4, ip6) = addrs.get(&name).cloned().unwrap_or_default();
-                    let mac = ctx.read_file(format!("/sys/class/net/{name}/address"))
+                    let mac = ctx
+                        .read_file(format!("/sys/class/net/{name}/address"))
                         .ok()
                         .map(|s| s.trim().to_string())
                         .unwrap_or_default();
