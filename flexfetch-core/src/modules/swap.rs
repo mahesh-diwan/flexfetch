@@ -4,10 +4,10 @@ use std::collections::HashMap;
 pub struct SwapModule;
 
 impl Module for SwapModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         #[cfg(target_os = "linux")]
         {
-            if let Ok(content) = std::fs::read_to_string("/proc/swaps") {
+            if let Ok(content) = ctx.read_file("/proc/swaps") {
                 let mut total_kb = 0u64;
                 let mut used_kb = 0u64;
 

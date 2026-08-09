@@ -3,14 +3,14 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct DiskModule;
 
 impl Module for DiskModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut disks = Vec::new();
 
         // POSIX path: /proc/mounts roots + statvfs (Phase 4.1, zero subprocess).
         #[cfg(not(target_os = "windows"))]
         {
             let mut mounts: Vec<String> =
-                if let Ok(content) = std::fs::read_to_string("/proc/mounts") {
+                if let Ok(content) = ctx.read_file("/proc/mounts") {
                     content
                         .lines()
                         .filter_map(|line| {

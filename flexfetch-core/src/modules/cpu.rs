@@ -18,13 +18,13 @@ struct CpuStats {
 pub struct CpuModule;
 
 impl Module for CpuModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         #[cfg(target_os = "linux")]
         {
             // Read model and cores from /proc/cpuinfo
-            if let Ok(content) = std::fs::read_to_string("/proc/cpuinfo") {
+            if let Ok(content) = ctx.read_file("/proc/cpuinfo") {
                 let mut cores = 0u32;
                 for line in content.lines() {
                     if let Some((key, val)) = line.split_once(':') {
@@ -58,7 +58,7 @@ impl Module for CpuModule {
                 for entry in entries.flatten() {
                     let name = entry.file_name().to_string_lossy().to_string();
                     if name.starts_with("thermal_zone") {
-                        if let Ok(temp_str) = std::fs::read_to_string(entry.path().join("temp")) {
+                        if let Ok(temp_str) = ctx.read_file(entry.path().join("temp")) {
                             if let Ok(mk) = temp_str.trim().parse::<u64>() {
                                 map.insert("temp".into(), format!("{}°C", mk / 1000));
                                 break;

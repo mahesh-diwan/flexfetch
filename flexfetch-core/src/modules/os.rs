@@ -4,12 +4,12 @@ use std::collections::HashMap;
 pub struct OsModule;
 
 impl Module for OsModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         #[cfg(target_os = "linux")]
         {
-            if let Ok(content) = std::fs::read_to_string("/etc/os-release") {
+            if let Ok(content) = ctx.read_file("/etc/os-release") {
                 for line in content.lines() {
                     if let Some((key, val)) = line.split_once('=') {
                         let clean = val.trim_matches('"');
@@ -35,7 +35,7 @@ impl Module for OsModule {
                 }
             }
             if !map.contains_key("name") {
-                if let Ok(_arch) = std::fs::read_to_string("/etc/arch-release") {
+                if let Ok(_arch) = ctx.read_file("/etc/arch-release") {
                     map.insert("name".into(), "Arch Linux".into());
                 }
             }
@@ -45,7 +45,7 @@ impl Module for OsModule {
             // Only spawns `cmd.exe /c ver` on an actual WSL system (off the
             // default path otherwise, so cold start is unaffected).
             if std::path::Path::new("/proc/sys/fs/binfmt_misc/WSLInterop").exists() {
-                let kernel = std::fs::read_to_string("/proc/sys/kernel/osrelease")
+                let kernel = ctx.read_file("/proc/sys/kernel/osrelease")
                     .unwrap_or_default()
                     .to_lowercase();
                 let wsl = if kernel.contains("wsl2") || kernel.contains("microsoft-standard") {

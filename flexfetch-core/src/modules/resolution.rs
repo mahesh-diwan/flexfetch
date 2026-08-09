@@ -5,7 +5,7 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct ResolutionModule;
 
 impl Module for ResolutionModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Explicit element type: on Windows no push ever happens (the collectors
         // are Linux-only), so inference cannot otherwise resolve the Vec.
         let mut resolutions: Vec<String> = Vec::new();
@@ -19,7 +19,7 @@ impl Module for ResolutionModule {
                 for entry in dirs {
                     let modes_path = entry.path().join("modes");
                     if modes_path.exists() {
-                        if let Ok(content) = std::fs::read_to_string(&modes_path) {
+                        if let Ok(content) = ctx.read_file(&modes_path) {
                             for line in content.lines() {
                                 let m = line.trim();
                                 if !m.is_empty() && !resolutions.contains(&m.to_string()) {

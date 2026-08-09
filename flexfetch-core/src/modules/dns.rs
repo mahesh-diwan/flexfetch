@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub struct DnsModule;
 
 impl Module for DnsModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Explicit element type: on Windows no push ever happens (the collectors
         // are Linux/macOS), so inference cannot otherwise resolve the Vec.
         let mut servers: Vec<String> = Vec::new();
@@ -14,7 +14,7 @@ impl Module for DnsModule {
 
         #[cfg(target_os = "linux")]
         {
-            if let Ok(content) = std::fs::read_to_string("/etc/resolv.conf") {
+            if let Ok(content) = ctx.read_file("/etc/resolv.conf") {
                 for line in content.lines() {
                     let line = line.trim();
                     if line.starts_with('#') || line.is_empty() {
@@ -38,7 +38,7 @@ impl Module for DnsModule {
 
         #[cfg(target_os = "macos")]
         {
-            if let Ok(content) = std::fs::read_to_string("/etc/resolv.conf") {
+            if let Ok(content) = ctx.read_file("/etc/resolv.conf") {
                 for line in content.lines() {
                     let line = line.trim();
                     if let Some(rest) = line.strip_prefix("nameserver") {

@@ -4,7 +4,7 @@ use std::path::Path;
 pub struct ShellModule;
 
 impl Module for ShellModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let shell = std::env::var("SHELL")
             .ok()
             .and_then(|s| {
@@ -14,7 +14,7 @@ impl Module for ShellModule {
             })
             .or_else(|| {
                 let user = std::env::var("USER").ok()?;
-                let content = std::fs::read_to_string("/etc/passwd").ok()?;
+                let content = ctx.read_file("/etc/passwd").ok()?;
                 for line in content.lines() {
                     if line.starts_with(&format!("{}:", user)) {
                         let shell_path = line.split(':').nth(6)?;

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub struct BatteryModule;
 
 impl Module for BatteryModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         #[cfg(target_os = "linux")]
@@ -19,12 +19,12 @@ impl Module for BatteryModule {
                         continue;
                     }
                     let base = entry.path();
-                    if let Ok(cap) = std::fs::read_to_string(base.join("capacity")) {
+                    if let Ok(cap) = ctx.read_file(base.join("capacity")) {
                         let pct_str = cap.trim().to_string();
                         map.insert("percent_int".into(), pct_str.clone());
                         map.insert("percent".into(), format!("{}%", pct_str));
                     }
-                    if let Ok(status) = std::fs::read_to_string(base.join("status")) {
+                    if let Ok(status) = ctx.read_file(base.join("status")) {
                         map.insert("status".into(), status.trim().to_string());
                     }
                     break;

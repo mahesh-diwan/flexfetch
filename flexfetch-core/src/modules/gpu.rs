@@ -5,7 +5,7 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct GpuModule;
 
 impl Module for GpuModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut gpus = Vec::new();
 
         #[cfg(target_os = "linux")]
@@ -20,8 +20,8 @@ impl Module for GpuModule {
                         // Phase 5.8: resolve the vendor:device ID against the
                         // hardware DB (cached + bundled seed) for a friendly
                         // model name; fall back to the driver name otherwise.
-                        let vendor = std::fs::read_to_string(dev.join("vendor")).ok();
-                        let device = std::fs::read_to_string(dev.join("device")).ok();
+                        let vendor = ctx.read_file(dev.join("vendor")).ok();
+                        let device = ctx.read_file(dev.join("device")).ok();
                         if let (Some(v), Some(d)) = (vendor, device) {
                             if let Some(friendly) = crate::hardware_db::lookup(&v, &d) {
                                 if !gpus.contains(&friendly) {

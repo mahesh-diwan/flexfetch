@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub struct TemperatureModule;
 
 impl Module for TemperatureModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         // Try /sys/class/thermal first (most reliable)
@@ -12,7 +12,7 @@ impl Module for TemperatureModule {
             for entry in entries.flatten() {
                 let name = entry.file_name().to_string_lossy().to_string();
                 if name.starts_with("thermal_zone") {
-                    if let Ok(temp_str) = std::fs::read_to_string(entry.path().join("temp")) {
+                    if let Ok(temp_str) = ctx.read_file(entry.path().join("temp")) {
                         if let Ok(mk) = temp_str.trim().parse::<u64>() {
                             map.insert("cpu".into(), format!("{}°C", mk / 1000));
                             break;
@@ -33,7 +33,7 @@ impl Module for TemperatureModule {
                 if let Ok(hm_entries) = std::fs::read_dir(&hwmon_base) {
                     for hm in hm_entries.flatten() {
                         let temp_file = hm.path().join("temp1_input");
-                        if let Ok(temp_str) = std::fs::read_to_string(&temp_file) {
+                        if let Ok(temp_str) = ctx.read_file(&temp_file) {
                             if let Ok(mk) = temp_str.trim().parse::<u64>() {
                                 map.insert("gpu".into(), format!("{}°C", mk / 1000));
                                 break;
@@ -51,7 +51,7 @@ impl Module for TemperatureModule {
         if let Ok(hwmon) = std::fs::read_dir("/sys/class/hwmon") {
             for entry in hwmon.flatten() {
                 let fan_file = entry.path().join("fan1_input");
-                if let Ok(fan_str) = std::fs::read_to_string(&fan_file) {
+                if let Ok(fan_str) = ctx.read_file(&fan_file) {
                     if let Ok(rpm) = fan_str.trim().parse::<u64>() {
                         if rpm > 0 {
                             map.insert("fan".into(), format!("{} RPM", rpm));

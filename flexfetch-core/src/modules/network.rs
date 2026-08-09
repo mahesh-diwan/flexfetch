@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub struct NetworkModule;
 
 impl Module for NetworkModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Explicit type: on macOS the `&mut nets` read loop precedes the first
         // `push`, so inference can't resolve the element type there.
         let mut nets: Vec<HashMap<String, String>> = Vec::new();
@@ -26,7 +26,7 @@ impl Module for NetworkModule {
                         continue;
                     }
                     let (ip4, ip6) = addrs.get(&name).cloned().unwrap_or_default();
-                    let mac = std::fs::read_to_string(format!("/sys/class/net/{name}/address"))
+                    let mac = ctx.read_file(format!("/sys/class/net/{name}/address"))
                         .ok()
                         .map(|s| s.trim().to_string())
                         .unwrap_or_default();

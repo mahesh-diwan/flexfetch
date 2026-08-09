@@ -4,12 +4,12 @@ use std::collections::HashMap;
 pub struct MemoryModule;
 
 impl Module for MemoryModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         #[cfg(target_os = "linux")]
         {
-            if let Ok(content) = std::fs::read_to_string("/proc/meminfo") {
+            if let Ok(content) = ctx.read_file("/proc/meminfo") {
                 let mut total_kb = 0u64;
                 let mut avail_kb = 0u64;
                 let mut free_kb = 0u64;
