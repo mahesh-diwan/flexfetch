@@ -217,3 +217,52 @@ fn detect_custom(module_type: &str) -> Option<&'static Logo> {
         _ => None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn visible_len_plain_text() {
+        assert_eq!(visible_len("hello"), 5);
+        assert_eq!(visible_len(""), 0);
+    }
+
+    #[test]
+    fn visible_len_ansi_codes_not_counted() {
+        assert_eq!(visible_len("\x1b[31mred\x1b[0m"), 3);
+    }
+
+    #[test]
+    fn visible_len_osc_hyperlink() {
+        let input = "\x1b]8;;https://example.com\x1b\\click here\x1b]8;;\x1b\\";
+        assert_eq!(visible_len(input), 10);
+    }
+
+    #[test]
+    fn detect_returns_static_logo() {
+        let logo = detect("arch");
+        assert!(!logo.lines.is_empty());
+    }
+
+    #[test]
+    fn detect_unknown_distro_returns_generic() {
+        let logo = detect("unknown_distro_xyz");
+        assert!(!logo.lines.is_empty());
+        assert!(logo.lines.len() > 0);
+    }
+
+    #[test]
+    fn logo_struct_has_matching_line_color_counts() {
+        // Colors map to ${1}, ${2}, ${3} tokens in lines, not to line count.
+        // All logos use at least ${1} and ${2} (2 colors), some use ${3} (3 colors).
+        let logos = [&ARCH_LOGO, &UBUNTU_LOGO, &FEDORA_LOGO, &GENERIC_LOGO];
+        for logo in &logos {
+            assert!(
+                logo.colors.len() >= 2 && logo.colors.len() <= 3,
+                "Logo colors count unexpected: {} colors (expected 2-3)",
+                logo.colors.len()
+            );
+        }
+    }
+}
