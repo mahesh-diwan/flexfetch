@@ -521,14 +521,9 @@ impl TeraEngine {
             .unwrap_or_default();
 
         let rendered = render_logo(&os_id, info_lines.len(), &grad_stops).unwrap_or_default();
-        let narrow = rendered.is_empty()
-            && std::io::stdout().is_terminal()
-            && std::env::var("COLUMNS")
-                .ok()
-                .and_then(|s| s.trim().parse::<u16>().ok())
-                .map(|w| w < 80)
-                .unwrap_or(false);
-        let logow = if narrow {
+        // ponytail: render_logo already returns None for narrow terminals,
+        // so rendered.is_empty() is the narrow signal — no recompute needed.
+        let logow = if rendered.is_empty() {
             0
         } else {
             crate::logo::logo_width(&rendered) + 3
@@ -1523,5 +1518,40 @@ mod tests {
         assert!(result.contains("test@host"));
         assert!(result.contains("OS"));
         assert!(result.contains("Linux"));
+    }
+
+    #[cfg(feature = "tera")]
+    #[test]
+    fn render_logo_empty_os_id() {
+        // Empty os_id falls through to GENERIC_LOGO — should not panic
+        let result = render_logo("", 10, &[]);
+        assert!(result.is_some());
+        let lines = result.unwrap();
+        assert!(!lines.is_empty());
+    }
+
+    #[cfg(feature = "tera")]
+    #[test]
+    fn render_logo_centering() {
+        // Use a huge info_lines_len so the logo is shorter and gets centered.
+        let result = render_logo("arch", 100, &[]);
+        assert!(result.is_some());
+        let lines = result.unwrap();
+        assert_eq!(lines.len(), 100);
+
+        // Find the first non-empty line (first rendered logo row)
+        let first_logo = lines.iter().position(|l| !l.is_empty());
+        assert!(
+            first_logo.is_some(),
+            "logo should have at least one non-empty line"
+        );
+
+        // Centering: leading empties == trailing empties (or differ by 1)
+        let leading = first_logo.unwrap();
+        let trailing = lines.iter().rev().take_while(|l| l.is_empty()).count();
+        assert!(
+            (leading as isize - trailing as isize).abs() <= 1,
+            "centering should be roughly symmetric: {leading} leading, {trailing} trailing"
+        );
     }
 }
