@@ -164,7 +164,12 @@ import Layout from '../layouts/Layout.astro';
       fetch("/flexfetch/terminal-shot.png", { method: "HEAD" })
         .then(r => {
           if (r.ok) {
-            heroTerm.innerHTML = '<img src="/flexfetch/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;display:block;border-radius:0 0 7px 7px;" />';
+            heroTerm.innerHTML = '<img src="/flexfetch/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;display:block;border-radius:0 0 7px 7px;opacity:0;transition:opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);" />';
+            const termImg = heroTerm.querySelector('img');
+            if (termImg) {
+              termImg.onload = () => { termImg.style.opacity = '1'; };
+              if (termImg.complete) termImg.style.opacity = '1';
+            }
           }
         })
         .catch(() => {});

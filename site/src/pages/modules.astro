@@ -117,4 +117,147 @@ import Layout from '../layouts/Layout.astro';
       });
     }
   </script>
+
+  <style>
+    .live-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .live-feats {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .live-feat h4 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-strong);
+      margin-bottom: 4px;
+    }
+
+    .live-feat p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .live-term {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font: 13px/1.6 var(--font-mono);
+    }
+
+    .live-body {
+      padding: 16px;
+    }
+
+    .live-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .live-row .lbl {
+      width: 60px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .live-row .val {
+      width: 50px;
+      color: var(--text-strong);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .live-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--surface);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .live-bar i {
+      display: block;
+      height: 100%;
+      width: var(--w, 0%);
+      background: var(--accent);
+      border-radius: 3px;
+    }
+
+    .spark {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 32px;
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .spark i {
+      flex: 1;
+      background: var(--accent-2);
+      opacity: 0.5;
+      border-radius: 1px;
+      min-height: 2px;
+    }
+
+    .spark i:nth-child(1) { height: 40%; }
+    .spark i:nth-child(2) { height: 65%; }
+    .spark i:nth-child(3) { height: 30%; }
+    .spark i:nth-child(4) { height: 80%; }
+    .spark i:nth-child(5) { height: 50%; }
+    .spark i:nth-child(6) { height: 90%; }
+    .spark i:nth-child(7) { height: 35%; }
+    .spark i:nth-child(8) { height: 70%; }
+    .spark i:nth-child(9) { height: 45%; }
+    .spark i:nth-child(10) { height: 55%; }
+    .spark i:nth-child(11) { height: 85%; }
+    .spark i:nth-child(12) { height: 25%; }
+    .spark i:nth-child(13) { height: 60%; }
+    .spark i:nth-child(14) { height: 75%; }
+    .spark i:nth-child(15) { height: 40%; }
+    .spark i:nth-child(16) { height: 95%; }
+    .spark i:nth-child(17) { height: 30%; }
+    .spark i:nth-child(18) { height: 50%; }
+    .spark i:nth-child(19) { height: 65%; }
+    .spark i:nth-child(20) { height: 45%; }
+    .spark i:nth-child(21) { height: 80%; }
+    .spark i:nth-child(22) { height: 35%; }
+    .spark i:nth-child(23) { height: 55%; }
+    .spark i:nth-child(24) { height: 70%; }
+    .spark i:nth-child(25) { height: 40%; }
+    .spark i:nth-child(26) { height: 60%; }
+    .spark i:nth-child(27) { height: 85%; }
+    .spark i:nth-child(28) { height: 30%; }
+    .spark i:nth-child(29) { height: 50%; }
+    .spark i:nth-child(30) { height: 75%; }
+    .spark i:nth-child(31) { height: 45%; }
+    .spark i:nth-child(32) { height: 65%; }
+
+    .live-foot {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    @media (max-width: 768px) {
+      .live-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </Layout>
