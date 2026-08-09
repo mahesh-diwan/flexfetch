@@ -549,14 +549,8 @@ fn render_diff(a: &SystemInfo, b: &SystemInfo, name_a: &str, name_b: &str) {
     println!("{:-<1$}", "", w + 2 + 26 + 26);
 
     for name in names {
-        let va = a_map
-            .get(name)
-            .map(|v| info_value_summary(v))
-            .unwrap_or_default();
-        let vb = b_map
-            .get(name)
-            .map(|v| info_value_summary(v))
-            .unwrap_or_default();
+        let va = a_map.get(name).map(|v| v.summary()).unwrap_or_default();
+        let vb = b_map.get(name).map(|v| v.summary()).unwrap_or_default();
         let (ca, cb) = if va != vb {
             ("\x1b[31m", "\x1b[32m")
         } else {
@@ -566,20 +560,6 @@ fn render_diff(a: &SystemInfo, b: &SystemInfo, name_a: &str, name_b: &str) {
             "{:<w$} | {ca}{:<24}\x1b[0m | {cb}{:<24}\x1b[0m",
             name, va, vb
         );
-    }
-}
-
-/// Compact one-line summary of an InfoValue for the diff table.
-fn info_value_summary(v: &InfoValue) -> String {
-    match v {
-        InfoValue::Scalar(s) => s.clone(),
-        InfoValue::Map(m) => {
-            let mut parts: Vec<String> = m.iter().map(|(k, val)| format!("{k}={val}")).collect();
-            parts.sort();
-            parts.join(", ")
-        }
-        InfoValue::List(l) => l.join(", "),
-        InfoValue::Table(t) => format!("{} rows", t.len()),
     }
 }
 

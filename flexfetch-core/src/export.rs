@@ -287,10 +287,10 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
     let img_h = (line_count as u32) * char_h + pad * 2;
 
     let bg_rgb = theme_bg_color(config);
-    let mut img = image::ImageBuffer::from_pixel(
+    let mut img = ::image::ImageBuffer::from_pixel(
         img_w,
         img_h,
-        image::Rgba([bg_rgb[0], bg_rgb[1], bg_rgb[2], 0xff]),
+        ::image::Rgba([bg_rgb[0], bg_rgb[1], bg_rgb[2], 0xff]),
     );
 
     let mut cy = pad;
@@ -299,7 +299,7 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
         for span in line_spans {
             for ch in span.text.chars() {
                 if ch != ' ' {
-                    let color = image::Rgba([span.color[0], span.color[1], span.color[2], 255]);
+                    let color = ::image::Rgba([span.color[0], span.color[1], span.color[2], 255]);
                     for dy in 4..char_h - 2 {
                         for dx in 1..char_w - 1 {
                             let px = cx + dx;
@@ -428,7 +428,7 @@ pub fn export_github(info: &SystemInfo) -> crate::Result<String> {
         if *name == "title" || *name == "separator" {
             continue;
         }
-        let text = info_value_summary(value);
+        let text = value.summary();
         if text.is_empty() {
             continue;
         }
@@ -436,21 +436,6 @@ pub fn export_github(info: &SystemInfo) -> crate::Result<String> {
     }
     output.push_str("::endgroup::\n");
     Ok(output)
-}
-
-/// Compact one-line summary of an InfoValue (shared by the diff table and the
-/// GitHub export so both flatten Maps/Lists/Tables the same way).
-fn info_value_summary(v: &InfoValue) -> String {
-    match v {
-        InfoValue::Scalar(s) => s.clone(),
-        InfoValue::Map(m) => {
-            let mut parts: Vec<String> = m.iter().map(|(k, val)| format!("{k}={val}")).collect();
-            parts.sort();
-            parts.join(", ")
-        }
-        InfoValue::List(l) => l.join(", "),
-        InfoValue::Table(t) => format!("{} rows", t.len()),
-    }
 }
 
 /// OpenMetrics exposition format (Prometheus text protocol v0.0.4): every
@@ -560,6 +545,50 @@ pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<Stri
     Ok(result)
 }
 
+pub mod image {
+    use super::*;
+
+    pub fn export_svg(info: &SystemInfo, config: &Config) -> crate::Result<String> {
+        super::export_svg(info, config)
+    }
+
+    pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Result<()> {
+        super::export_png(info, config, path)
+    }
+}
+
+pub mod text {
+    use super::*;
+
+    pub fn export_markdown(info: &SystemInfo, config: &Config) -> crate::Result<String> {
+        super::export_markdown(info, config)
+    }
+
+    pub fn export_csv(info: &SystemInfo) -> crate::Result<String> {
+        super::export_csv(info)
+    }
+}
+
+pub mod structured {
+    use super::*;
+
+    pub fn export_prometheus(info: &SystemInfo) -> crate::Result<String> {
+        super::export_prometheus(info)
+    }
+
+    pub fn export_github(info: &SystemInfo) -> crate::Result<String> {
+        super::export_github(info)
+    }
+
+    pub fn export_ansible(info: &SystemInfo) -> crate::Result<String> {
+        super::export_ansible(info)
+    }
+
+    pub fn export_terraform(info: &SystemInfo) -> crate::Result<String> {
+        super::export_terraform(info)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -646,5 +675,36 @@ mod tests {
         assert!(out.contains("flexfetch_kernel 1"));
         // cpu.cores "12" IS numeric → stays numeric
         assert!(out.contains("flexfetch_cpu{cores=\"12\"} 12"));
+    }
+
+    #[test]
+    fn text_module_csv_delegates() {
+        let out = super::text::export_csv(&sample_info()).unwrap();
+        assert!(out.starts_with("key,value\n"));
+    }
+
+    #[test]
+    fn structured_module_prometheus_delegates() {
+        let out = super::structured::export_prometheus(&sample_info()).unwrap();
+        assert!(out.contains("flexfetch_kernel 1"));
+    }
+
+    #[test]
+    fn structured_module_github_delegates() {
+        let out = super::structured::export_github(&sample_info()).unwrap();
+        assert!(out.contains("::group::"));
+    }
+
+    #[test]
+    fn structured_module_ansible_delegates() {
+        let out = super::structured::export_ansible(&sample_info()).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        assert!(v.get("ansible_flexfetch").is_some());
+    }
+
+    #[test]
+    fn structured_module_terraform_delegates() {
+        let out = super::structured::export_terraform(&sample_info()).unwrap();
+        assert!(out.contains("variable \"os_pretty_name\""));
     }
 }

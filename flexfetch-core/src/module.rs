@@ -54,6 +54,20 @@ impl InfoValue {
             InfoValue::Table(t) => t.is_empty(),
         }
     }
+
+    pub fn summary(&self) -> String {
+        match self {
+            InfoValue::Scalar(s) => s.clone(),
+            InfoValue::Map(m) => {
+                let mut parts: Vec<String> =
+                    m.iter().map(|(k, val)| format!("{k}={val}")).collect();
+                parts.sort();
+                parts.join(", ")
+            }
+            InfoValue::List(l) => l.join(", "),
+            InfoValue::Table(t) => format!("{} rows", t.len()),
+        }
+    }
 }
 
 pub trait Module: Send + Sync {
