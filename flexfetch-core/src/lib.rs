@@ -20,6 +20,7 @@ pub mod theme;
 pub mod win;
 
 pub mod modules;
+pub mod presets;
 
 pub use cache::get_cache_dir;
 pub use config::Config;

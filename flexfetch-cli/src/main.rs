@@ -1,7 +1,7 @@
 use clap::Parser;
 use flexfetch_cli::{Cli, PluginAction};
 use flexfetch_core::{
-    get_cache_dir, Config, Context, InfoValue, ModuleRegistry, SystemInfo, TeraEngine,
+    get_cache_dir, presets, Config, Context, InfoValue, ModuleRegistry, SystemInfo, TeraEngine,
 };
 use std::collections::HashMap;
 use std::io::IsTerminal;
@@ -409,14 +409,14 @@ pub(crate) fn resolve_modules(cli: &Cli, config: &Config) -> Vec<String> {
     // config.modules and the --minimal/--full/--preset/--modules switches
     // (everything baked in, nothing user-configurable). --demo above wins.
     if cli.flash {
-        return module_group("flash");
+        return presets::module_group("flash");
     }
     let mut modules: Vec<String> = if cli.minimal {
-        module_group("minimal")
+        presets::module_group("minimal")
     } else if cli.full {
-        module_group("full")
+        presets::module_group("full")
     } else if cli.dev {
-        module_group("dev")
+        presets::module_group("dev")
     } else if let Some(ref preset_name) = cli.preset {
         load_preset(preset_name)
     } else if let Some(ref m) = cli.modules {
@@ -824,109 +824,10 @@ pub(crate) fn handle_export(
     true
 }
 
-fn module_group(name: &str) -> Vec<String> {
-    match name {
-        "flash" => {
-            let mut v = module_group("minimal");
-            v.push("memory".into());
-            v
-        }
-        "minimal" => vec![
-            "title".into(),
-            "separator".into(),
-            "os".into(),
-            "kernel".into(),
-            "uptime".into(),
-        ],
-        "full" => Config::default_modules(),
-        "dev" => vec![
-            "title".into(),
-            "separator".into(),
-            "os".into(),
-            "cpu".into(),
-            "memory".into(),
-            "disk".into(),
-            "shell".into(),
-            "terminal".into(),
-        ],
-        _ => Config::default_modules(),
-    }
-}
-
-fn builtin_presets() -> HashMap<String, Vec<String>> {
-    let mut presets = HashMap::new();
-    presets.insert("default".into(), Config::default_modules());
-    presets.insert("minimal".into(), module_group("minimal"));
-    presets.insert("full".into(), module_group("full"));
-    presets.insert("dev".into(), module_group("dev"));
-    presets.insert(
-        "server".into(),
-        vec![
-            "title".into(),
-            "separator".into(),
-            "os".into(),
-            "kernel".into(),
-            "uptime".into(),
-            "cpu".into(),
-            "memory".into(),
-            "disk".into(),
-            "network".into(),
-        ],
-    );
-    presets.insert(
-        "laptop".into(),
-        vec![
-            "title".into(),
-            "separator".into(),
-            "os".into(),
-            "kernel".into(),
-            "uptime".into(),
-            "cpu".into(),
-            "memory".into(),
-            "battery".into(),
-            "shell".into(),
-        ],
-    );
-    presets.insert(
-        "ci".into(),
-        vec![
-            "os".into(),
-            "kernel".into(),
-            "cpu".into(),
-            "memory".into(),
-            "disk".into(),
-            "network".into(),
-        ],
-    );
-    presets.insert(
-        "neofetch".into(),
-        vec![
-            "title".into(),
-            "separator".into(),
-            "os".into(),
-            "host".into(),
-            "kernel".into(),
-            "uptime".into(),
-            "packages".into(),
-            "shell".into(),
-            "de".into(),
-            "wm".into(),
-            "terminal".into(),
-            "cpu".into(),
-            "gpu".into(),
-            "memory".into(),
-            "disk".into(),
-            "battery".into(),
-            "colors".into(),
-        ],
-    );
-    presets
-}
-
 fn load_preset(name: &str) -> Vec<String> {
-    // Check built-in presets first
-    if let Some(modules) = builtin_presets().get(name) {
-        return modules.clone();
+    // Check built-in presets first (via core)
+    if presets::builtin_presets().contains_key(name) {
+        return presets::load_preset(name);
     }
 
     // Check user presets (~/.config/flexfetch/presets/<name>.toml)
@@ -948,7 +849,7 @@ fn load_preset(name: &str) -> Vec<String> {
 }
 
 pub(crate) fn list_presets() {
-    let builtins = builtin_presets();
+    let builtins = presets::builtin_presets();
     println!("Built-in presets:");
     for (name, modules) in &builtins {
         let list: Vec<&str> = modules.iter().map(|s| s.as_str()).collect();
