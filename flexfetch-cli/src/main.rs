@@ -1,5 +1,5 @@
 use clap::Parser;
-use flexfetch_cli::{Cli, Commands, PluginAction};
+use flexfetch_cli::{Cli, PluginAction};
 use flexfetch_core::{
     get_cache_dir, Config, Context, InfoValue, ModuleRegistry, SystemInfo, TeraEngine,
 };
@@ -7,6 +7,11 @@ use std::collections::HashMap;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::time::Duration;
+
+mod cli_dispatch;
+mod config_load;
+mod registry_resolve;
+mod render_output;
 
 #[cfg(feature = "live")]
 mod live;
@@ -18,7 +23,7 @@ mod qr;
 mod plugins;
 mod registry;
 mod ssh;
-mod tools;
+pub(crate) mod tools;
 #[cfg(feature = "live")]
 mod wizard;
 // Phase 8.7 observability: panic hook + --bug-report dump + RUST_LOG gating.
@@ -78,63 +83,13 @@ fn main() {
 
     // Subcommands: `completions <shell>` (clap_complete) and `plugin …`
     // (registry). Dispatch happens before config load — neither needs one.
-    if let Some(command) = &cli.command {
-        match command {
-            #[cfg(feature = "completions")]
-            Commands::Completions { shell } => {
-                use clap::CommandFactory;
-                let mut cmd = Cli::command();
-                clap_complete::generate(*shell, &mut cmd, "flexfetch", &mut std::io::stdout());
-            }
-            Commands::Plugin { action } => registry::run(action),
-        }
+    if cli_dispatch::handle_subcommands(&cli) {
         return;
     }
 
-    if cli.gen_config {
-        generate_config();
-        return;
-    }
-
-    if cli.list_modules {
-        list_modules();
-        return;
-    }
-
-    if cli.list_presets {
-        list_presets();
-        return;
-    }
-
-    // --list-themes: show every built-in theme preset name (Phase 7.8).
-    if cli.list_themes {
-        for name in flexfetch_core::theme::preset_names() {
-            println!("{name}");
-        }
-        return;
-    }
-
-    // --hook <shell>: print a cd-into-git-repo hook for the given shell.
-    if let Some(ref shell) = cli.hook {
-        tools::print_hook(shell);
-        return;
-    }
-
-    // --update: re-run the install script if a newer release exists.
-    if cli.update {
-        tools::self_update();
-        return;
-    }
-
-    // --update-db: refresh the crowdsourced hardware database (needs curl).
-    if cli.update_db {
-        match flexfetch_core::hardware_db::refresh() {
-            Ok(msg) => println!("{msg}"),
-            Err(e) => {
-                eprintln!("update-db: {e}");
-                std::process::exit(1);
-            }
-        }
+    // Pre-config flags: --gen-config, --list-modules, --list-presets,
+    // --list-themes, --hook, --update, --update-db.
+    if cli_dispatch::handle_preflags(&cli) {
         return;
     }
 
@@ -163,26 +118,15 @@ fn main() {
         }
     }
 
-    let config_dir = tools::config_dir();
-    let cache_dir = get_cache_dir();
-
     let config_path = cli.config.as_ref().map(std::path::Path::new);
     // `mut`: watch mode rebuilds config on hot-reload. `--flash` skips the
     // config file entirely — baked-in defaults only (no file IO on the fast
     // path is the whole point).
-    let mut config = if cli.flash {
-        Config::default_for_testing()
-    } else {
-        Config::load(config_path).unwrap_or_else(|_| Config::default_for_testing())
-    };
-
-    // `mut`: watch mode rebuilds ctx on config hot-reload.
-    let mut ctx = Context::new(
-        config_dir.clone(),
-        cache_dir.clone(),
-        cli.debug,
-        config.custom.clone(),
-    );
+    let loaded = config_load::load(config_path, cli.flash, cli.debug);
+    let mut config = loaded.config;
+    let mut ctx = loaded.ctx;
+    let config_dir = loaded.config_dir;
+    let cache_dir = loaded.cache_dir;
 
     // --doctor: environment diagnostics (terminal, color, config, collectors).
     if cli.doctor {
@@ -257,12 +201,12 @@ fn main() {
     let pipe_mode = if cli.demo { false } else { cli.pipe || !is_tty };
 
     // Module toggle groups and presets
-    let mut modules = resolve_modules(&cli, &config);
+    let mut modules = registry_resolve::resolve(&cli, &config);
 
     // Pipe mode overrides
     apply_cli_overrides(&cli, &mut config, pipe_mode);
 
-    let registry = ModuleRegistry::get();
+    let registry = registry_resolve::registry();
     let template_content = TeraEngine::default_template_content();
 
     // --wizard: interactive config wizard (owns the terminal until done)
@@ -288,7 +232,7 @@ fn main() {
         for (host, info) in &results {
             println!("\x1b[1;36m== {host} ==\x1b[0m");
             match info {
-                Ok(info) => render_output(info, &config, &cli, true),
+                Ok(info) => render_output::render(info, &config, &cli, true),
                 Err(e) => eprintln!("  error: {e}"),
             }
             println!();
@@ -353,7 +297,7 @@ fn main() {
 
     // Handle --export flag
     if let Some(ref format) = cli.export {
-        handle_export(&info, &config, format, cli.output.as_deref());
+        render_output::export(&info, &config, format, cli.output.as_deref());
         return;
     }
 
@@ -414,7 +358,7 @@ fn main() {
                     fresh.add("plugins", plugins);
                 }
             }
-            render_output(&fresh, &config, &cli, false);
+            render_output::render(&fresh, &config, &cli, false);
             std::io::Write::flush(&mut std::io::stdout()).ok();
             std::thread::sleep(Duration::from_secs(cli.watch_interval));
         }
@@ -422,12 +366,12 @@ fn main() {
         return;
     }
 
-    render_output(&info, &config, &cli, false);
+    render_output::render(&info, &config, &cli, false);
 }
 
 /// Resolve the module list from CLI flags/presets/config (shared by the main
 /// path and watch-mode config hot-reload).
-fn resolve_modules(cli: &Cli, config: &Config) -> Vec<String> {
+pub(crate) fn resolve_modules(cli: &Cli, config: &Config) -> Vec<String> {
     // Phase 8.8 --demo: every built-in module in a showcase order.
     if cli.demo {
         return vec![
@@ -779,7 +723,12 @@ fn benchmark(
     }
 }
 
-fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli, ssh: bool) {
+pub(crate) fn render_output(
+    info: &flexfetch_core::SystemInfo,
+    config: &Config,
+    cli: &Cli,
+    ssh: bool,
+) {
     match cli.format.as_str() {
         "json" => {
             println!(
@@ -839,7 +788,7 @@ fn render_output(info: &flexfetch_core::SystemInfo, config: &Config, cli: &Cli, 
     }
 }
 
-fn handle_export(
+pub(crate) fn handle_export(
     info: &flexfetch_core::SystemInfo,
     config: &Config,
     format: &str,
@@ -1018,7 +967,7 @@ fn load_preset(name: &str) -> Vec<String> {
     Config::default_modules()
 }
 
-fn list_presets() {
+pub(crate) fn list_presets() {
     let builtins = builtin_presets();
     println!("Built-in presets:");
     for (name, modules) in &builtins {
@@ -1055,7 +1004,7 @@ fn list_presets() {
     }
 }
 
-fn generate_config() {
+pub(crate) fn generate_config() {
     let config = Config::default_for_testing();
     let toml = toml::to_string_pretty(&config).unwrap_or_default();
     println!("{toml}");
@@ -1111,7 +1060,7 @@ fn write_imported_config(cli: &Cli, toml_str: &str) {
     println!("wrote imported config to {path:?}");
 }
 
-fn list_modules() {
+pub(crate) fn list_modules() {
     println!("Built-in modules:");
     for m in flexfetch_core::MODULE_CATALOG {
         if m.name != "title" {
