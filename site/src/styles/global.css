@@ -191,7 +191,9 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(5, 5, 16, 0.92);
+  background: rgba(5, 5, 16, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 24px;
@@ -199,6 +201,7 @@ img {
 
 .nav.scrolled {
   border-color: var(--border-strong);
+  background: rgba(5, 5, 16, 0.88);
 }
 
 .brand {
@@ -242,6 +245,11 @@ img {
   color: var(--accent);
 }
 
+.nav-links a:active {
+  transform: scale(0.97);
+  transition: transform 100ms var(--ease-out);
+}
+
 .nav-cta {
   display: flex;
   gap: 10px;
@@ -266,7 +274,6 @@ img {
 }
 
 .nav-mobile {
-  display: none;
   position: fixed;
   top: 0;
   right: 0;
@@ -278,10 +285,20 @@ img {
   flex-direction: column;
   gap: 16px;
   z-index: 60;
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform 300ms var(--ease-out),
+    opacity 200ms var(--ease-out),
+    visibility 300ms var(--ease-out);
 }
 
 .nav-mobile.open {
   display: flex;
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
 }
 
 .nav-mobile a {
@@ -289,6 +306,11 @@ img {
   color: var(--text);
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
+}
+
+.nav-mobile a:active {
+  transform: scale(0.97);
+  transition: transform 100ms var(--ease-out);
 }
 
 .nav-mobile .btn {
@@ -685,11 +707,14 @@ h1 .accent {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
-  transition: border-color var(--duration-fast) var(--ease-out);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .feature-item:hover {
   border-color: var(--border-strong);
+  transform: translateY(-1px);
 }
 
 .feature-check {
@@ -1053,6 +1078,11 @@ footer {
   border-color: var(--accent);
 }
 
+.btt:active {
+  transform: scale(0.92);
+  transition: transform 100ms var(--ease-out);
+}
+
 /* ==========================================================================
    Reveal Animations
    ========================================================================== */
@@ -1207,18 +1237,28 @@ footer {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: opacity 200ms ease;
+  }
+  .toast {
+    transition: opacity 200ms ease;
+    transform: translateX(-50%) translateY(0);
+  }
+  .btt {
+    transition: opacity 200ms ease;
+    transform: translateY(0);
+  }
+  .nav-mobile {
+    transition: opacity 200ms ease;
+    transform: none;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.1s !important;
-    transition-property:
-      opacity, color, background-color, border-color !important;
     scroll-behavior: auto !important;
-  }
-  .reveal {
-    opacity: 1;
-    transform: none;
   }
 }
