@@ -45,9 +45,10 @@ import Layout from '../layouts/Layout.astro';
             <span class="term-dot r" aria-hidden="true"></span>
             <span class="term-dot y" aria-hidden="true"></span>
             <span class="term-dot g" aria-hidden="true"></span>
+            <span class="term-title">flexfetch</span>
           </div>
           <div class="term-body" id="hero-terminal">
-            <div class="term-placeholder">Add terminal-shot.png to public/</div>
+            <div class="term-placeholder">Save your screenshot to public/terminal-shot.png</div>
           </div>
         </div>
       </div>
@@ -162,14 +163,12 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <script>
-    /* Load terminal screenshot if available */
     const heroTerm = document.getElementById("hero-terminal");
     if (heroTerm) {
-      // Check if terminal-shot.png exists
-      fetch("/terminal-shot.png", { method: "HEAD" })
+      fetch("/flexfetch/terminal-shot.png", { method: "HEAD" })
         .then(r => {
           if (r.ok) {
-            heroTerm.innerHTML = '<img src="/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;display:block;" />';
+            heroTerm.innerHTML = '<img src="/flexfetch/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;display:block;" />';
           }
         })
         .catch(() => {});
