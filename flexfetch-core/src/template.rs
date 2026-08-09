@@ -283,21 +283,176 @@ fn battery_glyph(percent: u8, charging: bool) -> String {
     g.into()
 }
 
+/// Compile a Tera template string into a Tera instance with the standard
+/// filters registered. This is the internal seam for template compilation —
+/// `TeraEngine` clones the result; tests can call it directly.
+#[cfg(feature = "tera")]
+fn compile_template(template_str: &str) -> Result<Tera, tera::Error> {
+    let mut tera = Tera::default();
+    tera.add_raw_template("default", template_str)?;
+    tera.register_filter("palette_display", palette_display_filter);
+    tera.register_filter("progress_bar", progress_bar_filter);
+    tera.register_filter("pad", pad_filter);
+    tera.register_filter("osc8", osc8_filter);
+    Ok(tera)
+}
+
 #[cfg(feature = "tera")]
 static CACHED_TERA: OnceLock<Tera> = OnceLock::new();
 
 #[cfg(feature = "tera")]
 fn get_tera() -> &'static Tera {
     CACHED_TERA.get_or_init(|| {
-        let mut tera = Tera::default();
-        tera.add_raw_template("default", include_str!("../../templates/default.tera"))
-            .expect("default template is valid");
-        tera.register_filter("palette_display", palette_display_filter);
-        tera.register_filter("progress_bar", progress_bar_filter);
-        tera.register_filter("pad", pad_filter);
-        tera.register_filter("osc8", osc8_filter);
-        tera
+        compile_template(include_str!("../../templates/default.tera"))
+            .expect("default template is valid")
     })
+}
+
+/// Group info entries by their MODULE_CATALOG section. Entries whose module
+/// has no section (or isn't in the catalog) are placed in a trailing
+/// `""`-keyed bucket. The order within each group follows the original
+/// entry order; the group order follows MODULE_CATALOG section order.
+#[allow(dead_code)]
+fn group_sections(
+    entries: &[(String, InfoValue)],
+    _config: &crate::Config,
+) -> Vec<(String, Vec<(String, InfoValue)>)> {
+    use std::collections::HashMap;
+
+    let mut section_order: Vec<&str> = Vec::new();
+    let mut buckets: HashMap<&str, Vec<(String, InfoValue)>> = HashMap::new();
+
+    for (name, value) in entries {
+        let section = crate::find_module(name)
+            .and_then(|m| m.section)
+            .unwrap_or("");
+        if !section_order.contains(&section) {
+            section_order.push(section);
+        }
+        buckets
+            .entry(section)
+            .or_default()
+            .push((name.clone(), value.clone()));
+    }
+
+    section_order
+        .into_iter()
+        .filter_map(|s| buckets.remove(s).map(|v| (s.to_string(), v)))
+        .collect()
+}
+
+/// Return entries ordered by MODULE_CATALOG position with canonical key names.
+/// This ensures consistent column alignment regardless of the order modules
+/// were collected. Entries not in the catalog are appended at the end.
+#[allow(dead_code)]
+fn align_keys(
+    entries: &[(String, InfoValue)],
+    _config: &crate::Config,
+) -> Vec<(String, InfoValue)> {
+    let mut result: Vec<(String, InfoValue)> = Vec::with_capacity(entries.len());
+    let mut remaining: Vec<&(String, InfoValue)> = entries.iter().collect();
+
+    // First pass: emit catalog entries in catalog order
+    for catalog_entry in crate::MODULE_CATALOG {
+        if let Some(pos) = remaining.iter().position(|(n, _)| n == catalog_entry.name) {
+            let entry = remaining.remove(pos);
+            result.push((entry.0.clone(), entry.1.clone()));
+        }
+    }
+
+    // Second pass: append any remaining (custom, unknown) entries
+    for entry in remaining {
+        result.push((entry.0.clone(), entry.1.clone()));
+    }
+
+    result
+}
+
+/// Render the ASCII logo for the given OS id and info height. Returns
+/// `None` when the terminal is too narrow (compact mode) or when the
+/// rendered logo is empty. The returned `Vec<String>` is already
+/// vertically centered against `info_lines_len` rows.
+#[cfg(feature = "tera")]
+fn render_logo(
+    os_id: &str,
+    info_lines_len: usize,
+    gradient_colors: &[[u8; 3]],
+) -> Option<Vec<String>> {
+    let narrow = std::io::stdout().is_terminal()
+        && std::env::var("COLUMNS")
+            .ok()
+            .and_then(|s| s.trim().parse::<u16>().ok())
+            .map(|w| w < 80)
+            .unwrap_or(false);
+
+    if narrow {
+        return None;
+    }
+
+    // Try image logo first (block characters work in any truecolor terminal)
+    let rendered = if let Some(img_path) = get_distro_logo_path(os_id) {
+        let resolved = crate::image_logo::ImageLogo::resolve_path(&img_path);
+        if std::path::Path::new(&resolved).exists() {
+            let logo = crate::image_logo::ImageLogo::new(&resolved).with_size(16, 8);
+            let ansi = logo.render(ImageProtocol::Block, LogoMode::Image);
+            if !ansi.is_empty() {
+                ansi.lines().map(String::from).collect::<Vec<_>>()
+            } else {
+                render_ascii_logo(os_id, info_lines_len, gradient_colors)
+            }
+        } else {
+            render_ascii_logo(os_id, info_lines_len, gradient_colors)
+        }
+    } else {
+        render_ascii_logo(os_id, info_lines_len, gradient_colors)
+    };
+
+    if rendered.is_empty() {
+        return None;
+    }
+
+    // Vertically center the logo against the info block
+    let trimmed: Vec<String> = rendered
+        .iter()
+        .skip_while(|l| l.is_empty())
+        .cloned()
+        .collect::<Vec<_>>();
+    let trimmed: Vec<String> = trimmed
+        .into_iter()
+        .rev()
+        .skip_while(|l| l.is_empty())
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
+
+    let centered = if trimmed.is_empty() || trimmed.len() >= info_lines_len {
+        rendered
+    } else {
+        let pad_top = (info_lines_len - trimmed.len()) / 2;
+        let mut center: Vec<String> = Vec::with_capacity(info_lines_len);
+        for _ in 0..pad_top {
+            center.push(String::new());
+        }
+        center.extend(trimmed);
+        while center.len() < info_lines_len {
+            center.push(String::new());
+        }
+        center
+    };
+
+    Some(centered)
+}
+
+/// Render the ASCII art logo with optional gradient coloring.
+#[cfg(feature = "tera")]
+fn render_ascii_logo(os_id: &str, height: usize, gradient_colors: &[[u8; 3]]) -> Vec<String> {
+    let ascii = crate::logo::detect(os_id);
+    if !gradient_colors.is_empty() {
+        crate::logo::render_gradient(ascii, height, gradient_colors)
+    } else {
+        crate::logo::render(ascii, height)
+    }
 }
 
 pub struct TeraEngine {
@@ -351,16 +506,7 @@ impl TeraEngine {
         } else {
             Vec::new()
         };
-        let render_ascii = |ascii: &crate::logo::Logo, height: usize| -> Vec<String> {
-            if logo_gradient && !grad_stops.is_empty() {
-                crate::logo::render_gradient(ascii, height, &grad_stops)
-            } else {
-                crate::logo::render(ascii, height)
-            }
-        };
-
         let info_lines: Vec<&str> = raw.lines().collect();
-        // Try image logo first (block characters work in any truecolor terminal)
         let os_id = info
             .entries
             .iter()
@@ -373,68 +519,15 @@ impl TeraEngine {
                 }
             })
             .unwrap_or_default();
-        // Adaptive width: in narrow interactive terminals (< 80 columns) skip
-        // the logo so the info block stays readable ("compact mode"). Gated on
-        // stdout being a TTY so exports (SVG/HTML/PNG/markdown) always keep the
-        // logo — those render into files/pipes, not a live terminal.
-        let narrow = std::io::stdout().is_terminal()
+
+        let rendered = render_logo(&os_id, info_lines.len(), &grad_stops).unwrap_or_default();
+        let narrow = rendered.is_empty()
+            && std::io::stdout().is_terminal()
             && std::env::var("COLUMNS")
                 .ok()
                 .and_then(|s| s.trim().parse::<u16>().ok())
                 .map(|w| w < 80)
                 .unwrap_or(false);
-
-        let rendered = if narrow {
-            Vec::new()
-        } else if let Some(img_path) = get_distro_logo_path(&os_id) {
-            let resolved = crate::image_logo::ImageLogo::resolve_path(&img_path);
-            if std::path::Path::new(&resolved).exists() {
-                let logo = crate::image_logo::ImageLogo::new(&resolved).with_size(16, 8);
-                let ansi = logo.render(ImageProtocol::Block, LogoMode::Image);
-                if !ansi.is_empty() {
-                    ansi.lines().map(String::from).collect::<Vec<_>>()
-                } else {
-                    render_ascii(crate::logo::detect(&os_id), info_lines.len())
-                }
-            } else {
-                render_ascii(crate::logo::detect(&os_id), info_lines.len())
-            }
-        } else {
-            render_ascii(crate::logo::detect(&os_id), info_lines.len())
-        };
-
-        // Vertically center the logo against the info block: trim only the
-        // leading/trailing blank rows (never blank lines inside the art), then
-        // distribute the remaining padding evenly above and below.
-        let rendered = {
-            let trimmed: Vec<String> = rendered
-                .iter()
-                .skip_while(|l| l.is_empty())
-                .cloned()
-                .collect::<Vec<_>>();
-            let trimmed: Vec<String> = trimmed
-                .into_iter()
-                .rev()
-                .skip_while(|l| l.is_empty())
-                .collect::<Vec<_>>()
-                .into_iter()
-                .rev()
-                .collect();
-            if trimmed.is_empty() || trimmed.len() >= info_lines.len() {
-                rendered
-            } else {
-                let pad_top = (info_lines.len() - trimmed.len()) / 2;
-                let mut centered: Vec<String> = Vec::with_capacity(info_lines.len());
-                for _ in 0..pad_top {
-                    centered.push(String::new());
-                }
-                centered.extend(trimmed);
-                while centered.len() < info_lines.len() {
-                    centered.push(String::new());
-                }
-                centered
-            }
-        };
         let logow = if narrow {
             0
         } else {
@@ -1278,5 +1371,157 @@ fn plain_value(name: &str, value: &InfoValue) -> Option<String> {
                 Some(texts.join(", "))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Config;
+
+    #[test]
+    fn compile_template_valid() {
+        let result = compile_template("Hello {{ name }}");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn compile_template_invalid() {
+        let result = compile_template("Hello {% invalid %}");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn compile_template_has_pad_filter() {
+        let tera = compile_template("{{ \"hi\" | pad(width=10) }}").unwrap();
+        let ctx = TeraContext::new();
+        let result = tera.render("default", &ctx).unwrap();
+        assert_eq!(result, "hi        ");
+    }
+
+    #[test]
+    fn compile_template_has_progress_bar_filter() {
+        let tera = compile_template("{{ 50 | progress_bar(width=10) }}").unwrap();
+        let ctx = TeraContext::new();
+        let result = tera.render("default", &ctx).unwrap();
+        assert!(result.contains("█"));
+        assert!(result.contains("░"));
+    }
+
+    #[test]
+    fn group_sections_empty() {
+        let config = Config::default_for_testing();
+        let result = group_sections(&[], &config);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn group_sections_groups_by_catalog_section() {
+        let config = Config::default_for_testing();
+        let entries = vec![
+            ("os".to_string(), InfoValue::scalar("Linux")),
+            ("cpu".to_string(), InfoValue::scalar("AMD")),
+            ("kernel".to_string(), InfoValue::scalar("6.1")),
+        ];
+        let result = group_sections(&entries, &config);
+        assert!(!result.is_empty());
+        for (_section, group) in &result {
+            assert!(!group.is_empty());
+        }
+    }
+
+    #[test]
+    fn group_sections_unknown_module_goes_to_empty_bucket() {
+        let config = Config::default_for_testing();
+        let entries = vec![
+            ("os".to_string(), InfoValue::scalar("Linux")),
+            ("custom_thing".to_string(), InfoValue::scalar("val")),
+        ];
+        let result = group_sections(&entries, &config);
+        let has_system = result.iter().any(|(s, _)| s == "System");
+        let has_empty = result.iter().any(|(s, _)| s.is_empty());
+        assert!(has_system);
+        assert!(has_empty);
+    }
+
+    #[test]
+    fn align_orders_by_catalog() {
+        let config = Config::default_for_testing();
+        let entries = vec![
+            ("cpu".to_string(), InfoValue::scalar("AMD")),
+            ("os".to_string(), InfoValue::scalar("Linux")),
+            ("kernel".to_string(), InfoValue::scalar("6.1")),
+        ];
+        let result = align_keys(&entries, &config);
+        assert_eq!(result.len(), 3);
+        let names: Vec<&str> = result.iter().map(|(n, _)| n.as_str()).collect();
+        let os_idx = names.iter().position(|&n| n == "os").unwrap();
+        let cpu_idx = names.iter().position(|&n| n == "cpu").unwrap();
+        assert!(
+            os_idx < cpu_idx,
+            "os should come before cpu in catalog order"
+        );
+    }
+
+    #[test]
+    fn align_preserves_unknown_entries_at_end() {
+        let config = Config::default_for_testing();
+        let entries = vec![
+            ("custom_foo".to_string(), InfoValue::scalar("bar")),
+            ("os".to_string(), InfoValue::scalar("Linux")),
+        ];
+        let result = align_keys(&entries, &config);
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].0, "os");
+        assert_eq!(result[1].0, "custom_foo");
+    }
+
+    #[test]
+    fn dedup_visible_no_duplicates() {
+        let mut info = SystemInfo::new();
+        info.add("de", InfoValue::scalar("GNOME"));
+        info.add(
+            "wm",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("name".to_string(), "Mutter".to_string());
+                m
+            }),
+        );
+        info.add("display", InfoValue::scalar("1920x1080 @ 60Hz"));
+        info.add("resolution", InfoValue::scalar("1920x1080"));
+        let (show_wm, show_resolution) = dedup_visible(&info);
+        assert!(show_wm, "WM != DE, should show");
+        assert!(
+            !show_resolution,
+            "Resolution embedded in Display, should hide"
+        );
+    }
+
+    #[test]
+    fn dedup_visible_same_de_wm() {
+        let mut info = SystemInfo::new();
+        info.add("de", InfoValue::scalar("GNOME"));
+        info.add(
+            "wm",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("name".to_string(), "GNOME".to_string());
+                m
+            }),
+        );
+        let (show_wm, _) = dedup_visible(&info);
+        assert!(!show_wm, "WM == DE, should hide");
+    }
+
+    #[test]
+    fn render_flash_basic() {
+        let mut info = SystemInfo::new();
+        info.add("title", InfoValue::scalar("test@host"));
+        info.add("os", InfoValue::scalar("Linux"));
+        let result = render_flash(&info);
+        assert!(result.contains("test@host"));
+        assert!(result.contains("OS"));
+        assert!(result.contains("Linux"));
     }
 }
