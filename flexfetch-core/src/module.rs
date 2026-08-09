@@ -68,6 +68,7 @@ pub struct ModuleEntry {
     pub section: Option<&'static str>,
     pub is_static: bool,
     pub label: &'static str,
+    pub builder: fn() -> Box<dyn Module>,
 }
 
 pub const MODULE_CATALOG: &[ModuleEntry] = &[
@@ -77,30 +78,35 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         section: Some("System"),
         is_static: true,
         label: "OS",
+        builder: || Box::new(crate::modules::os::OsModule),
     },
     ModuleEntry {
         name: "host",
         section: Some("System"),
         is_static: true,
         label: "Host",
+        builder: || Box::new(crate::modules::host::HostModule),
     },
     ModuleEntry {
         name: "kernel",
         section: Some("System"),
         is_static: true,
         label: "Kernel",
+        builder: || Box::new(crate::modules::kernel::KernelModule),
     },
     ModuleEntry {
         name: "uptime",
         section: Some("System"),
         is_static: false,
         label: "Uptime",
+        builder: || Box::new(crate::modules::uptime::UptimeModule),
     },
     ModuleEntry {
         name: "locale",
         section: Some("System"),
         is_static: true,
         label: "Locale",
+        builder: || Box::new(crate::modules::locale::LocaleModule),
     },
     // Software
     ModuleEntry {
@@ -108,78 +114,91 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         section: Some("Software"),
         is_static: true,
         label: "Packages",
+        builder: || Box::new(crate::modules::packages::PackagesModule),
     },
     ModuleEntry {
         name: "shell",
         section: Some("Software"),
         is_static: true,
         label: "Shell",
+        builder: || Box::new(crate::modules::shell::ShellModule),
     },
     ModuleEntry {
         name: "terminal",
         section: Some("Software"),
         is_static: true,
         label: "Terminal",
+        builder: || Box::new(crate::modules::terminal::TerminalModule),
     },
     ModuleEntry {
         name: "de",
         section: Some("Software"),
         is_static: true,
         label: "DE",
+        builder: || Box::new(crate::modules::de::DeModule),
     },
     ModuleEntry {
         name: "wm",
         section: Some("Software"),
         is_static: true,
         label: "WM",
+        builder: || Box::new(crate::modules::wm::WmModule),
     },
     ModuleEntry {
         name: "project",
         section: Some("Software"),
         is_static: true,
         label: "Project",
+        builder: || Box::new(crate::modules::project::ProjectModule),
     },
     ModuleEntry {
         name: "git",
         section: Some("Software"),
         is_static: true,
         label: "Git",
+        builder: || Box::new(crate::modules::git::GitModule),
     },
     ModuleEntry {
         name: "context",
         section: Some("Software"),
         is_static: true,
         label: "Context",
+        builder: || Box::new(crate::modules::context::ContextModule),
     },
     ModuleEntry {
         name: "health",
         section: Some("Software"),
         is_static: true,
         label: "Health",
+        builder: || Box::new(crate::modules::health::HealthModule),
     },
     ModuleEntry {
         name: "container",
         section: Some("Software"),
         is_static: true,
         label: "Container",
+        builder: || Box::new(crate::modules::container::ContainerModule),
     },
     ModuleEntry {
         name: "wallpaper",
         section: Some("Software"),
         is_static: true,
         label: "Wallpaper",
+        builder: || Box::new(crate::modules::wallpaper::WallpaperModule),
     },
     ModuleEntry {
         name: "weather",
         section: Some("Software"),
         is_static: true,
         label: "Weather",
+        builder: || Box::new(crate::modules::weather::WeatherModule),
     },
     ModuleEntry {
         name: "fsdeep",
         section: Some("Software"),
         is_static: true,
         label: "Fsdeep",
+        builder: || Box::new(crate::modules::fsdeep::FsDeepModule),
     },
     // Hardware
     ModuleEntry {
@@ -187,72 +206,84 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         section: Some("Hardware"),
         is_static: true,
         label: "CPU",
+        builder: || Box::new(crate::modules::cpu::CpuModule),
     },
     ModuleEntry {
         name: "cpucache",
         section: Some("Hardware"),
         is_static: true,
         label: "Cache",
+        builder: || Box::new(crate::modules::cpucache::CpuCacheModule),
     },
     ModuleEntry {
         name: "cpuusage",
         section: Some("Hardware"),
         is_static: false,
         label: "CPU Usage",
+        builder: || Box::new(crate::modules::cpuusage::CpuUsageModule),
     },
     ModuleEntry {
         name: "gpu",
         section: Some("Hardware"),
         is_static: true,
         label: "GPU",
+        builder: || Box::new(crate::modules::gpu::GpuModule),
     },
     ModuleEntry {
         name: "memory",
         section: Some("Hardware"),
         is_static: false,
         label: "Memory",
+        builder: || Box::new(crate::modules::memory::MemoryModule),
     },
     ModuleEntry {
         name: "swap",
         section: Some("Hardware"),
         is_static: false,
         label: "Swap",
+        builder: || Box::new(crate::modules::swap::SwapModule),
     },
     ModuleEntry {
         name: "disk",
         section: Some("Hardware"),
         is_static: false,
         label: "Disk",
+        builder: || Box::new(crate::modules::disk::DiskModule),
     },
     ModuleEntry {
         name: "battery",
         section: Some("Hardware"),
         is_static: false,
         label: "Battery",
+        builder: || Box::new(crate::modules::battery::BatteryModule),
     },
     ModuleEntry {
         name: "temperature",
         section: Some("Hardware"),
         is_static: true,
         label: "Temp",
+        builder: || Box::new(crate::modules::temperature::TemperatureModule),
     },
     ModuleEntry {
         name: "display",
         section: Some("Hardware"),
         is_static: true,
         label: "Display",
+        builder: || Box::new(crate::modules::display::DisplayModule),
     },
     ModuleEntry {
         name: "resolution",
         section: Some("Hardware"),
         is_static: true,
         label: "Resolution",
+        builder: || Box::new(crate::modules::resolution::ResolutionModule),
     },
     ModuleEntry {
         name: "colors",
         section: Some("Hardware"),
         is_static: true,
         label: "Colors",
+        builder: || Box::new(crate::modules::colors::ColorsModule),
     },
     // Network
     ModuleEntry {
@@ -260,36 +291,42 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         section: Some("Network"),
         is_static: false,
         label: "Network",
+        builder: || Box::new(crate::modules::network::NetworkModule),
     },
     ModuleEntry {
         name: "wifi",
         section: Some("Network"),
         is_static: true,
         label: "WiFi",
+        builder: || Box::new(crate::modules::wifi::WifiModule),
     },
     ModuleEntry {
         name: "publicip",
         section: Some("Network"),
         is_static: true,
         label: "Public IP",
+        builder: || Box::new(crate::modules::publicip::PublicIpModule),
     },
     ModuleEntry {
         name: "bluetooth",
         section: Some("Network"),
         is_static: true,
         label: "Bluetooth",
+        builder: || Box::new(crate::modules::bluetooth::BluetoothModule),
     },
     ModuleEntry {
         name: "media",
         section: Some("Network"),
         is_static: false,
         label: "Media",
+        builder: || Box::new(crate::modules::media::MediaModule),
     },
     ModuleEntry {
         name: "dns",
         section: Some("Network"),
         is_static: true,
         label: "DNS",
+        builder: || Box::new(crate::modules::dns::DnsModule),
     },
     // Processes
     ModuleEntry {
@@ -297,6 +334,7 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         section: Some("Processes"),
         is_static: false,
         label: "Processes",
+        builder: || Box::new(crate::modules::processes::ProcessesModule),
     },
     // Layout-only (no section, not collected as a module)
     ModuleEntry {
@@ -304,6 +342,7 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         section: None,
         is_static: true,
         label: "Title",
+        builder: || Box::new(crate::modules::title::TitleModule),
     },
     // Custom commands (always dynamic)
     ModuleEntry {
@@ -311,6 +350,7 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         section: Some("Software"),
         is_static: false,
         label: "Custom",
+        builder: || Box::new(crate::modules::custom::CustomCommandsModule),
     },
 ];
 
