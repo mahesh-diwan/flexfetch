@@ -18,11 +18,9 @@ The install script:
 - Generates shell completions for bash, zsh, and fish
 
 Prebuilt binaries include the live dashboard, image logos, and shell-completion
-generation, but **exclude Lua** (that keeps the pure-Rust binary lean).
+generation.
 
 ## From source
-
-Includes Lua plugin support:
 
 ```bash
 cargo install --git https://github.com/mahesh-diwan/flexfetch

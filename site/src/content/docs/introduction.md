@@ -12,8 +12,6 @@ and themeable output.
 
 |     | Feature              | What it means                                                                                              |
 | --- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
-| 🔌  | **Lua plugins**      | Write info modules in Lua. Drop a `.lua` file in `~/.config/flexfetch/plugins/` and it appears in output.  |
-| 🌐  | **WASM plugins**     | Sandboxed WebAssembly plugins with capability-gated host imports.                                          |
 | 📝  | **Tera templates**   | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info. |
 | 🎭  | **28 theme presets** | Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Rose Pine, and more. Switch with `--theme`.               |
 | ⚡  | **Rust + Rayon**     | Parallel detection. Static binary, zero runtime deps. As small as ~1.7 MB in the minimal build.            |
@@ -40,17 +38,16 @@ output layout. Typical cold-run times are under 5 ms on modern hardware.
 neofetch is a shell script that spawns dozens of subprocesses per run. It's
 configurable but slow (50–200 ms), unmaintained since 2023, and lacks modern
 features like structured output or live dashboards. flexfetch reads `/proc`
-directly with zero subprocesses, runs 10–40× faster, and adds Lua/WASM
-plugins, Tera templates, and 28 theme presets.
+directly with zero subprocesses, runs 10–40× faster, and adds Tera
+templates and 28 theme presets.
 
 ### vs. fastfetch
 
 fastfetch is the closest competitor — also a C binary reading `/proc`
-directly. flexfetch matches it on raw speed while adding Lua and WASM
-plugins, Tera templates (Jinja2-style with loops and conditionals), a
-real-time dashboard (`--live`), context-aware smart fetch, health scoring,
-and remote SSH fetch. The plugin systems let you extend output without
-recompiling.
+directly. flexfetch matches it on raw speed while adding Tera templates
+(Jinja2-style with loops and conditionals), a real-time dashboard
+(`--live`), context-aware smart fetch, health scoring, and remote SSH
+fetch.
 
 ## Requirements
 

@@ -3,12 +3,11 @@
 ## General
 
 **How is this different from neofetch/fastfetch?**
-Lua plugins, WASM plugins, Tera templates, and 28 theme presets — no other
-tool has all three. Plus live dashboard, smart fetch, health score, and
-remote SSH fetch.
+Tera templates and 28 theme presets — plus live dashboard, smart fetch,
+health score, and remote SSH fetch.
 
 **How do I add info that isn't built in?**
-Two ways: a `[custom]` config section (shell commands) or a Lua plugin.
+Use a `[custom]` config section with shell commands.
 
 **Does it work on macOS?**
 Yes. OS detection via `sw_vers`, macOS logo auto-detected, and the release
@@ -18,10 +17,6 @@ pipeline builds both arm64 and x86_64 binaries.
 MIT.
 
 ## Installation
-
-**Do prebuilt binaries include Lua plugins?**
-No — Releases/install.sh binaries are pure Rust (no Lua) to stay lean.
-Source builds include Lua by default.
 
 **How do I update?**
 If you installed via the install script: `flexfetch --update`.
@@ -57,7 +52,8 @@ Static modules are collected once per session and reused in watch/live mode.
 Dynamic modules are re-collected every tick.
 
 **Can I write my own module?**
-Yes — drop a `.lua` file in `~/.config/flexfetch/plugins/`. See [Plugins](plugins.md).
+Yes — define a `[custom]` section in `~/.config/flexfetch/config.toml` with
+a name and shell command. See [Configuration](configuration.md).
 
 ## Troubleshooting
 

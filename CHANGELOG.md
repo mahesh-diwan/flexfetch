@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.0] - 2026-08-10
+
+### Removed
+
+- Plugin system removed end to end: `flexfetch plugin` subcommand, `plugins_dir` config, Lua and WASM plugin crates (`flexfetch-lua`, `flexfetch-wasm`), signed plugin registry, and `registry_sign` publisher example.
+- `lua` / `wasm-plugins` feature flags dropped; `base64` moved under the `qr` feature.
+- Plugin docs removed from the book, site content, README, and PRODUCT.md; static landing page and module pages updated.
+
+### Changed
+
+- Workspace reduced to `flexfetch-core` + `flexfetch-cli`; default features now `["live", "image-logos", "tera", "parallel", "completions"]`.
+- Completions regenerated without plugin subcommands.
+
 ## [0.20.0] - 2026-08-07
 
 ### Changed

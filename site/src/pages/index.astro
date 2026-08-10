@@ -6,120 +6,138 @@ import Layout from '../layouts/Layout.astro';
   <!-- ============ HERO ============ -->
   <header class="hero" id="top">
     <div class="container">
-      <div class="hero-split">
-        <div class="hero-text reveal in d1">
-          <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
-          <p class="hero-sub">
-            flexfetch is a blazing-fast, themeable system info tool for Linux and macOS.
-            Zero subprocesses, pure Rust.
+      <div class="hero-grid">
+        <div class="in reveal">
+          <p class="eyebrow">Linux + macOS · Pure Rust <s></s></p>
+          <h1>Your whole system <em>fetched in milliseconds.</em></h1>
+          <p class="lede">
+            flexfetch is a blazing-fast, themeable system info tool.
+            <b>Zero subprocesses, pure Rust.</b> Modules read <code>/proc</code>, sysfs, and macOS APIs directly.
           </p>
-
-          <div class="hero-install">
-            <div class="cmd-wrap">
-              <code id="cmd-curl">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
-              <button class="copy-btn" data-copy="cmd-curl" aria-label="Copy command">Copy</button>
-            </div>
-            <div class="plat-hint" id="plat-hint"></div>
-            <p class="install-note">Linux & macOS · checksum + signature verified</p>
-          </div>
-
-          <div class="hero-stats">
-            <span class="hs"><strong>1.7 MB</strong> binary</span>
-            <span class="hs-dot">·</span>
-            <span class="hs"><strong>38</strong> modules</span>
-            <span class="hs-dot">·</span>
-            <span class="hs"><strong>527</strong> logos</span>
-            <span class="hs-dot">·</span>
-            <span class="hs rust-badge">Written in Rust</span>
-          </div>
-          <div class="social-proof">
-            <span>MIT licensed</span>
-            <span class="hs-dot">·</span>
-            <span>contributions welcome</span>
-            <span class="hs-dot">·</span>
-            <a href="https://github.com/mahesh-diwan/flexfetch">star on GitHub</a>
-          </div>
         </div>
-        <div class="hero-term reveal d2">
-          <div class="term-bar">
-            <span class="term-dot r" aria-hidden="true"></span>
-            <span class="term-dot y" aria-hidden="true"></span>
-            <span class="term-dot g" aria-hidden="true"></span>
-            <span class="term-title">flexfetch</span>
+        <figure class="hero-fig reveal">
+          <div class="fighd">flexfetch <i>--theme catppuccin-mocha</i><span class="r">cachyos · real output</span></div>
+          <div class="plate">
+            <img
+              src="/flexfetch/terminal-shot.webp"
+              alt="flexfetch terminal output on CachyOS with the Catppuccin Mocha theme"
+              width="900"
+              height="482"
+            />
           </div>
-          <div class="term-body" id="hero-terminal">
-            <div class="term-placeholder">Save your screenshot to public/terminal-shot.png</div>
+          <figcaption class="figcap">
+            <b>Real output, real machine.</b> flexfetch on CachyOS with the Catppuccin Mocha theme — every line read
+            directly from <b>/proc</b> and the platform APIs. No subprocesses, no text-scraping.
+          </figcaption>
+        </figure>
+      </div>
+      <div class="hero-cta reveal">
+        <div class="go">
+          <div class="hd-cmd">
+            <code><b>$</b> <span id="cmd-curl">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</span></code>
+            <button class="copy-btn" data-copy="cmd-curl" aria-label="Copy install command">Copy</button>
           </div>
+          <a class="btn btn-ghost" href="/flexfetch/docs/quick-start">Quick start</a>
         </div>
+        <div class="plat-hint" id="plat-hint"></div>
+        <p class="meta">
+          MIT licensed · <a href="https://github.com/mahesh-diwan/flexfetch">github.com/mahesh-diwan/flexfetch</a> ·
+          <a href="/flexfetch/modules">38 modules</a>
+        </p>
       </div>
     </div>
   </header>
 
-  <!-- ============ STATS ============ -->
-  <section class="section stats" id="stats">
-    <div class="container">
-      <div class="stats-row">
-        <span class="stat-badge">38 modules</span>
-        <span class="stat-badge">527 logos</span>
-        <span class="stat-badge">0 subprocesses</span>
-        <span class="stat-badge">1.7 MB</span>
-        <span class="stat-badge rust">Rust</span>
-      </div>
-    </div>
+  <!-- ============ NUMBERS STRIP ============ -->
+  <section class="strip" aria-label="flexfetch at a glance">
+    <a class="stat" href="/flexfetch/#install">
+      <b>1.7 MB</b><span>binary</span>
+    </a>
+    <a class="stat" href="/flexfetch/modules">
+      <b>38</b><span>modules</span>
+    </a>
+    <a class="stat" href="/flexfetch/modules">
+      <b>527</b><span>logos</span>
+    </a>
+    <a class="stat" href="/flexfetch/#features">
+      <b>0</b><span>subprocesses</span>
+    </a>
   </section>
 
-  <!-- ============ FEATURES ============ -->
-  <section class="section" id="features">
-    <div class="container">
-      <div class="section-head reveal">
-        <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
-        <p>Every module reads the system directly: <code>/proc</code>, sysfs, or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
+  <!-- ============ CAPS ROWS ============ -->
+  <section class="caps" id="features" aria-label="Features">
+    <a class="cap" href="/flexfetch/docs/features">
+      <div class="n"><span>01</span></div>
+      <div class="cap-text">
+        <h3>Zero subprocesses</h3>
+        <p>Every module reads kernel data directly — <code>/proc</code>, sysfs, or macOS APIs. No forking, no parsing overhead, no startup cost.</p>
       </div>
-      <div class="bento-grid">
-        <div class="feature-item reveal">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Zero subprocesses</h3>
-            <p>Every collector reads kernel data directly. No forking, no parsing overhead. Warm runs complete in milliseconds.</p>
-          </div>
-        </div>
-        <div class="feature-item reveal d1">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Themes & gradients</h3>
-            <p>Built-in presets (Catppuccin, Dracula, Nord, Solarized, Tokyo Night), truecolor everywhere, per-module key/value colors, gradient accents.</p>
-          </div>
-        </div>
-        <div class="feature-item reveal d2">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>ASCII & image logos</h3>
-            <p>527 distro logos imported from fastfetch, plus PNG/BMP logos rendered as block characters with automatic palette extraction.</p>
-          </div>
-        </div>
-        <div class="feature-item reveal">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Live TUI dashboard</h3>
-            <p><code>flexfetch --live</code> opens a TUI with CPU/memory/disk gauges, per-process bars, network sparklines.</p>
-          </div>
-        </div>
-        <div class="feature-item reveal d1">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Lua & WASM plugins</h3>
-            <p>Write a custom module in Lua in five minutes, or ship memory-safe WebAssembly plugins that run with resource limits inside a sandbox.</p>
-          </div>
-        </div>
-        <div class="feature-item reveal d2">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Supply-chain hardened</h3>
-            <p>Plugins install via a signed registry with checksum verification. Every entry is cryptographically verified before execution.</p>
-          </div>
-        </div>
+      <div class="ev">
+        <div class="ev-row"><span>/proc/meminfo</span><b class="good">direct</b></div>
+        <div class="ev-row"><span>/proc/cpuinfo</span><b class="good">direct</b></div>
+        <div class="ev-row"><span>subprocesses</span><b class="acc">0</b></div>
       </div>
-    </div>
+    </a>
+    <a class="cap" href="/flexfetch/docs/themes">
+      <div class="n"><span>02</span></div>
+      <div class="cap-text">
+        <h3>Themes &amp; gradients</h3>
+        <p>Catppuccin, Dracula, Nord, Solarized, Tokyo Night — truecolor everywhere, per-module key/value colors, gradient accents.</p>
+      </div>
+      <div class="ev">
+        <div class="ev-row"><span>catppuccin</span><i class="swatch" style="background:#b4befe"></i><i class="swatch" style="background:#fab387"></i><i class="swatch" style="background:#a6e3a1"></i></div>
+        <div class="ev-row"><span>dracula</span><i class="swatch" style="background:#bd93f9"></i><i class="swatch" style="background:#50fa7b"></i><i class="swatch" style="background:#8be9fd"></i></div>
+        <div class="ev-row"><span>tokyo night</span><i class="swatch" style="background:#7aa2f7"></i><i class="swatch" style="background:#bb9af7"></i><i class="swatch" style="background:#73daca"></i></div>
+      </div>
+    </a>
+    <a class="cap" href="/flexfetch/docs/features">
+      <div class="n"><span>03</span></div>
+      <div class="cap-text">
+        <h3>ASCII &amp; image logos</h3>
+        <p>527 distro logos imported from fastfetch plus hand-tuned first-party art, and PNG/BMP images rendered as block characters with automatic palette extraction.</p>
+      </div>
+      <div class="ev">
+        <div class="ev-row"><span>fastfetch imports</span><b class="good">527</b></div>
+        <div class="ev-row"><span>custom logos</span><b class="good">first-party</b></div>
+        <div class="ev-row"><span>image → block art</span><b>png/bmp</b></div>
+      </div>
+    </a>
+    <a class="cap" href="/flexfetch/docs/features">
+      <div class="n"><span>04</span></div>
+      <div class="cap-text">
+        <h3>Live TUI dashboard</h3>
+        <p><code>flexfetch --live</code> opens a TUI with CPU, memory, and disk gauges, per-process bars, and network sparklines.</p>
+      </div>
+      <div class="ev">
+        <div class="ev-row"><span>cpu</span><span class="ev-bar"><i style="width:62%"></i></span></div>
+        <div class="ev-row"><span>memory</span><span class="ev-bar"><i style="width:48%"></i></span></div>
+        <div class="ev-row"><span>network</span><span class="ev-bar"><i style="width:74%"></i></span></div>
+      </div>
+    </a>
+    <a class="cap" href="/flexfetch/docs/templates">
+      <div class="n"><span>05</span></div>
+      <div class="cap-text">
+        <h3>Templates &amp; exports</h3>
+        <p>Tera templates with loops and conditionals for full layout control, plus exports to SVG, PNG, HTML, Markdown, CSV, and Prometheus.</p>
+      </div>
+      <div class="ev">
+        <div class="ev-row"><span>tera templates</span><b class="good">supported</b></div>
+        <div class="ev-row"><span>svg / png / html</span><b>export</b></div>
+        <div class="ev-row"><span>csv / prometheus</span><b>export</b></div>
+      </div>
+    </a>
+    <a class="cap" href="/flexfetch/docs/features">
+      <div class="n"><span>06</span></div>
+      <div class="cap-text">
+        <h3>Custom modules &amp; context</h3>
+        <p>Define your own info sources in config, and smart fetch layers git, project type, container and SSH context from your working directory.</p>
+      </div>
+      <div class="ev">
+        <div class="ev-row"><span>[custom] modules</span><b class="good">config</b></div>
+        <div class="ev-row"><span>smart context</span><b class="good">git/project</b></div>
+        <div class="ev-row"><span>health score</span><b class="acc">0-100</b></div>
+      </div>
+    </a>
   </section>
 
   <!-- ============ INSTALL ============ -->
@@ -127,7 +145,7 @@ import Layout from '../layouts/Layout.astro';
     <div class="container">
       <div class="section-head reveal">
         <h2>On your machine in one command.</h2>
-        <p>Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries. Every artifact includes checksums and signatures for verification.</p>
+        <p>Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries. Every artifact ships checksums and signatures for verification.</p>
       </div>
       <div class="inst-grid">
         <div class="inst reveal">
@@ -142,152 +160,29 @@ import Layout from '../layouts/Layout.astro';
             </div>
             <div class="code-body">
               <code id="cmd-curl2">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
-              <button class="copy-btn" data-copy="cmd-curl2" aria-label="Copy command">Copy</button>
+              <button class="copy-btn" data-copy="cmd-curl2" aria-label="Copy install command">Copy</button>
             </div>
           </div>
           <div class="plat-hint" id="plat-hint2"></div>
-          <div class="note">Linux & macOS · checksum + signature verified</div>
+          <div class="note">Linux &amp; macOS · checksum + signature verified</div>
         </div>
       </div>
       <div class="secure-strip reveal">
-        <span class="ok">✓ SHA-256 checksums</span>
-        <span class="ok">✓ cosign signatures</span>
-        <span class="ok">✓ supply-chain provenance</span>
-        <span class="ok">✓ signed plugin registry</span>
+        <span class="ok">SHA-256 checksums</span>
+        <span class="ok">cosign signatures</span>
+        <span class="ok">supply-chain provenance</span>
       </div>
     </div>
   </section>
 
-  <script>
-    const heroTerm = document.getElementById("hero-terminal");
-    if (heroTerm) {
-      fetch("/flexfetch/terminal-shot.png", { method: "HEAD" })
-        .then(r => {
-          if (r.ok) {
-            heroTerm.innerHTML = '<img src="/flexfetch/terminal-shot.png" alt="flexfetch terminal output" style="width:100%;height:auto;max-height:100%;display:block;border-radius:0 0 7px 7px;opacity:0;transition:opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);" />';
-            const termImg = heroTerm.querySelector('img');
-            if (termImg) {
-              termImg.onload = () => { termImg.style.opacity = '1'; };
-              if (termImg.complete) termImg.style.opacity = '1';
-            }
-          }
-        })
-        .catch(() => {});
-    }
-  </script>
-  <style>
-    .stats-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .stat-badge {
-      font: 500 13px var(--font-mono);
-      color: var(--muted);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 16px;
-      transition: border-color var(--duration-fast) var(--ease-out);
-    }
-
-    .stat-badge:hover {
-      border-color: var(--border-strong);
-    }
-
-    .stat-badge.rust {
-      color: var(--accent);
-      border-color: rgba(232, 145, 58, 0.3);
-      background: rgba(232, 145, 58, 0.06);
-    }
-
-    .code-block {
-      background: #08090d;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .code-tabs {
-      display: flex;
-      gap: 0;
-      border-bottom: 1px solid var(--border);
-      padding: 0 12px;
-    }
-
-    .code-tab {
-      font: 500 11px var(--font-mono);
-      color: var(--muted);
-      padding: 10px 16px;
-      border-bottom: 2px solid transparent;
-      cursor: default;
-    }
-
-    .code-tab.active {
-      color: var(--text-strong);
-      border-bottom-color: var(--accent);
-    }
-
-    .code-body {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 16px;
-    }
-
-    .code-body code {
-      font: 13px var(--font-mono);
-      color: var(--accent);
-      flex: 1;
-      word-break: break-all;
-    }
-
-    .inst-head {
-      padding: 0 0 16px 0;
-    }
-
-    .inst-head h3 {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 400;
-      color: var(--text-strong);
-      margin-bottom: 6px;
-    }
-
-    .inst-head p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .hero-term {
-      min-height: 380px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .hero-term .term-body {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-
-    .hero-term .term-body img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    @media (max-width: 1024px) {
-      .hero-term {
-        min-height: 280px;
-        max-width: 540px;
-        margin: 0 auto;
-      }
-    }
-  </style>
+  <!-- ============ CLOSING ============ -->
+  <section class="closing">
+    <div class="container">
+      <h2 class="reveal">Ship a faster <em>neofetch.</em></h2>
+      <div class="go reveal">
+        <a class="btn btn-primary" href="/flexfetch/#install">Install flexfetch</a>
+        <a class="btn btn-ghost" href="https://github.com/mahesh-diwan/flexfetch">Star on GitHub</a>
+      </div>
+    </div>
+  </section>
 </Layout>

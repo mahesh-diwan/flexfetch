@@ -2,18 +2,16 @@
 
 ## Feature flags
 
-| Feature        | Default | Adds                                                         |
-| -------------- | ------- | ------------------------------------------------------------ |
-| `lua`          | ✅      | Lua plugin support (mlua, vendored 5.4 — needs a C compiler) |
-| `live`         | ✅      | `--live` dashboard + `--wizard` (ratatui/crossterm)          |
-| `image-logos`  | ✅      | Sixel/block image logos + `--export png` (image crate)       |
-| `tera`         | ✅      | Tera template engine (plain fallback renderer without it)    |
-| `parallel`     | ✅      | Rayon parallel module collection (sequential without it)     |
-| `completions`  | ✅      | `completions <shell>` subcommand (clap_complete)             |
-| `music`        | —       | MPRIS via pure-Rust zbus (else `dbus-send` shell-out)        |
-| `qr`           | —       | QR code config export/import (rqrr)                          |
-| `auto-theme`   | —       | Derive theme from wallpaper colors                           |
-| `wasm-plugins` | —       | WASM plugin runtime (wasmtime, sandboxed)                    |
+| Feature       | Default | Adds                                                      |
+| ------------- | ------- | --------------------------------------------------------- |
+| `live`        | ✅      | `--live` dashboard + `--wizard` (ratatui/crossterm)       |
+| `image-logos` | ✅      | Sixel/block image logos + `--export png` (image crate)    |
+| `tera`        | ✅      | Tera template engine (plain fallback renderer without it) |
+| `parallel`    | ✅      | Rayon parallel module collection (sequential without it)  |
+| `completions` | ✅      | `completions <shell>` subcommand (clap_complete)          |
+| `music`       | —       | MPRIS via pure-Rust zbus (else `dbus-send` shell-out)     |
+| `qr`          | —       | QR code config export/import (rqrr)                       |
+| `auto-theme`  | —       | Derive theme from wallpaper colors                        |
 
 ## Common builds
 

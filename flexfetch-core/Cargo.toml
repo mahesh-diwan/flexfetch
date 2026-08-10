@@ -40,10 +40,6 @@ proptest = "1"
 default = ["tera", "parallel"]
 tera = ["dep:tera"]
 parallel = ["dep:rayon"]
-# TODO(agentA): flexfetch-cli/Cargo.toml still has `lua = [..., "flexfetch-core/lua"]`.
-# flexfetch-core's `lua` feature (and its mlua dep) were removed — flexfetch-lua
-# owns its own mlua. Drop the `flexfetch-core/lua` reference from the CLI or the
-# workspace feature graph won't resolve.
 image-logos = ["dep:image"]
 music = ["dep:zbus"]
 # Phase 5.4: wallpaper auto-theming (`--auto-theme`). Reuses the same optional

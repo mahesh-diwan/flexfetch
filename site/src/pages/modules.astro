@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="Modules: flexfetch">
   <!-- ============ MODULES ============ -->
-  <header class="section" id="modules" style="padding-top: 120px; border-bottom: 1px solid var(--border);">
+  <header class="section" id="modules" style="padding-top: 120px; border-bottom: 1px solid var(--line2);">
     <div class="container">
       <div class="section-head reveal">
         <h2>38 collectors. Zero external commands.</h2>
@@ -60,7 +60,7 @@ import Layout from '../layouts/Layout.astro';
   </header>
 
   <!-- ============ LIVE ============ -->
-  <section class="section" id="live" style="background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <section class="section" id="live" style="background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
     <div class="container">
       <div class="section-head reveal">
         <h2>Your system, watching you back.</h2>
@@ -136,19 +136,19 @@ import Layout from '../layouts/Layout.astro';
       font-family: var(--font-display);
       font-size: 16px;
       font-weight: 400;
-      color: var(--text-strong);
+      color: var(--ink);
       margin-bottom: 4px;
     }
 
     .live-feat p {
       font-size: 13px;
-      color: var(--muted);
+      color: var(--faint);
       line-height: 1.5;
     }
 
     .live-term {
       background: var(--bg);
-      border: 1px solid var(--border);
+      border: 1px solid var(--line2);
       border-radius: 8px;
       overflow: hidden;
       font: 13px/1.6 var(--font-mono);
@@ -167,13 +167,13 @@ import Layout from '../layouts/Layout.astro';
 
     .live-row .lbl {
       width: 60px;
-      color: var(--muted);
+      color: var(--faint);
       font-size: 12px;
     }
 
     .live-row .val {
       width: 50px;
-      color: var(--text-strong);
+      color: var(--ink);
       font-size: 12px;
       text-align: right;
     }
@@ -181,7 +181,7 @@ import Layout from '../layouts/Layout.astro';
     .live-bar {
       flex: 1;
       height: 6px;
-      background: var(--surface);
+      background: var(--panel);
       border-radius: 3px;
       overflow: hidden;
     }
@@ -190,7 +190,7 @@ import Layout from '../layouts/Layout.astro';
       display: block;
       height: 100%;
       width: var(--w, 0%);
-      background: var(--accent);
+      background: var(--spot);
       border-radius: 3px;
     }
 
@@ -201,12 +201,12 @@ import Layout from '../layouts/Layout.astro';
       height: 32px;
       margin-top: 12px;
       padding-top: 8px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--line);
     }
 
     .spark i {
       flex: 1;
-      background: var(--accent-2);
+      background: var(--spot);
       opacity: 0.5;
       border-radius: 1px;
       min-height: 2px;
@@ -249,7 +249,7 @@ import Layout from '../layouts/Layout.astro';
       display: flex;
       justify-content: space-between;
       padding: 10px 16px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--line);
       font-size: 11px;
       color: var(--faint);
     }

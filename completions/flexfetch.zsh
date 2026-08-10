@@ -81,86 +81,6 @@ _arguments "${_arguments_options[@]}" : \
 ':shell:(bash elvish fish powershell zsh)' \
 && ret=0
 ;;
-(plugin)
-_arguments "${_arguments_options[@]}" : \
-'-h[Print help]' \
-'--help[Print help]' \
-":: :_flexfetch__subcmd__plugin_commands" \
-"*::: :->plugin" \
-&& ret=0
-
-    case $state in
-    (plugin)
-        words=($line[1] "${words[@]}")
-        (( CURRENT += 1 ))
-        curcontext="${curcontext%:*:*}:flexfetch-plugin-command-$line[1]:"
-        case $line[1] in
-            (search)
-_arguments "${_arguments_options[@]}" : \
-'-h[Print help]' \
-'--help[Print help]' \
-':query:_default' \
-&& ret=0
-;;
-(install)
-_arguments "${_arguments_options[@]}" : \
-'-h[Print help]' \
-'--help[Print help]' \
-':name:_default' \
-&& ret=0
-;;
-(list)
-_arguments "${_arguments_options[@]}" : \
-'-h[Print help]' \
-'--help[Print help]' \
-&& ret=0
-;;
-(update)
-_arguments "${_arguments_options[@]}" : \
-'-h[Print help]' \
-'--help[Print help]' \
-&& ret=0
-;;
-(help)
-_arguments "${_arguments_options[@]}" : \
-":: :_flexfetch__subcmd__plugin__subcmd__help_commands" \
-"*::: :->help" \
-&& ret=0
-
-    case $state in
-    (help)
-        words=($line[1] "${words[@]}")
-        (( CURRENT += 1 ))
-        curcontext="${curcontext%:*:*}:flexfetch-plugin-help-command-$line[1]:"
-        case $line[1] in
-            (search)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-(install)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-(list)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-(update)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-(help)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-        esac
-    ;;
-esac
-;;
-        esac
-    ;;
-esac
-;;
 (help)
 _arguments "${_arguments_options[@]}" : \
 ":: :_flexfetch__subcmd__help_commands" \
@@ -176,38 +96,6 @@ _arguments "${_arguments_options[@]}" : \
             (completions)
 _arguments "${_arguments_options[@]}" : \
 && ret=0
-;;
-(plugin)
-_arguments "${_arguments_options[@]}" : \
-":: :_flexfetch__subcmd__help__subcmd__plugin_commands" \
-"*::: :->plugin" \
-&& ret=0
-
-    case $state in
-    (plugin)
-        words=($line[1] "${words[@]}")
-        (( CURRENT += 1 ))
-        curcontext="${curcontext%:*:*}:flexfetch-help-plugin-command-$line[1]:"
-        case $line[1] in
-            (search)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-(install)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-(list)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-(update)
-_arguments "${_arguments_options[@]}" : \
-&& ret=0
-;;
-        esac
-    ;;
-esac
 ;;
 (help)
 _arguments "${_arguments_options[@]}" : \
@@ -226,7 +114,6 @@ esac
 _flexfetch_commands() {
     local commands; commands=(
 'completions:Generate shell completions for the given shell' \
-'plugin:Plugin registry (Phase 5.7)\: search/install/list/update Lua plugins against the hosted registry.toml (checksum + min-version verified)' \
 'help:Print this message or the help of the given subcommand(s)' \
     )
     _describe -t commands 'flexfetch commands' commands "$@"
@@ -240,7 +127,6 @@ _flexfetch__subcmd__completions_commands() {
 _flexfetch__subcmd__help_commands() {
     local commands; commands=(
 'completions:Generate shell completions for the given shell' \
-'plugin:Plugin registry (Phase 5.7)\: search/install/list/update Lua plugins against the hosted registry.toml (checksum + min-version verified)' \
 'help:Print this message or the help of the given subcommand(s)' \
     )
     _describe -t commands 'flexfetch help commands' commands "$@"
@@ -254,103 +140,6 @@ _flexfetch__subcmd__help__subcmd__completions_commands() {
 _flexfetch__subcmd__help__subcmd__help_commands() {
     local commands; commands=()
     _describe -t commands 'flexfetch help help commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__help__subcmd__plugin_commands] )) ||
-_flexfetch__subcmd__help__subcmd__plugin_commands() {
-    local commands; commands=(
-'search:Search the hosted registry by name/description' \
-'install:Install a plugin (SHA-256 verified, min-version gated)' \
-'list:List installed plugins + registry status' \
-'update:Re-install every installed plugin still in the registry' \
-    )
-    _describe -t commands 'flexfetch help plugin commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__help__subcmd__plugin__subcmd__install_commands] )) ||
-_flexfetch__subcmd__help__subcmd__plugin__subcmd__install_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch help plugin install commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__help__subcmd__plugin__subcmd__list_commands] )) ||
-_flexfetch__subcmd__help__subcmd__plugin__subcmd__list_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch help plugin list commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__help__subcmd__plugin__subcmd__search_commands] )) ||
-_flexfetch__subcmd__help__subcmd__plugin__subcmd__search_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch help plugin search commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__help__subcmd__plugin__subcmd__update_commands] )) ||
-_flexfetch__subcmd__help__subcmd__plugin__subcmd__update_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch help plugin update commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin_commands] )) ||
-_flexfetch__subcmd__plugin_commands() {
-    local commands; commands=(
-'search:Search the hosted registry by name/description' \
-'install:Install a plugin (SHA-256 verified, min-version gated)' \
-'list:List installed plugins + registry status' \
-'update:Re-install every installed plugin still in the registry' \
-'help:Print this message or the help of the given subcommand(s)' \
-    )
-    _describe -t commands 'flexfetch plugin commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__help_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__help_commands() {
-    local commands; commands=(
-'search:Search the hosted registry by name/description' \
-'install:Install a plugin (SHA-256 verified, min-version gated)' \
-'list:List installed plugins + registry status' \
-'update:Re-install every installed plugin still in the registry' \
-'help:Print this message or the help of the given subcommand(s)' \
-    )
-    _describe -t commands 'flexfetch plugin help commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__help__subcmd__help_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__help__subcmd__help_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin help help commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__help__subcmd__install_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__help__subcmd__install_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin help install commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__help__subcmd__list_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__help__subcmd__list_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin help list commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__help__subcmd__search_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__help__subcmd__search_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin help search commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__help__subcmd__update_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__help__subcmd__update_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin help update commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__install_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__install_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin install commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__list_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__list_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin list commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__search_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__search_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin search commands' commands "$@"
-}
-(( $+functions[_flexfetch__subcmd__plugin__subcmd__update_commands] )) ||
-_flexfetch__subcmd__plugin__subcmd__update_commands() {
-    local commands; commands=()
-    _describe -t commands 'flexfetch plugin update commands' commands "$@"
 }
 
 if [ "$funcstack[1]" = "_flexfetch" ]; then

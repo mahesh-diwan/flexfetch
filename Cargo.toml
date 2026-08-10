@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["flexfetch-core", "flexfetch-cli", "flexfetch-lua"]
+members = ["flexfetch-core", "flexfetch-cli"]
 
 [workspace.package]
-version = "0.28.0"
+version = "0.30.0"
 edition = "2021"
 license = "MIT"
 

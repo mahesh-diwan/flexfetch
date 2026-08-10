@@ -45,24 +45,8 @@ qrcode = { version = "0.14", optional = true }
 # the tree keeps just our single image 0.25 instead of a duplicate pair.
 rqrr = { version = "0.3", default-features = false, optional = true }
 zstd = { version = "0.13", optional = true }
-# base64 is a plain (non-optional) dep now: registry.rs signature verification
-# always needs it (the hand-rolled decoder is gone). Already in Cargo.lock.
-base64 = "0.22"
+base64 = { version = "0.22", optional = true }
 image = { version = "0.25", optional = true, default-features = false, features = ["png"] }
-# Phase 8.12: Ed25519 signature verification for the plugin registry (client
-# side). Small, self-contained, pure Rust — no C deps — and it feeds the
-# release diet fine (only a few KB in the minimal binary; the registry module
-# is always compiled).
-ed25519-compact = "2"
-# Phase 4.12: sandboxed WASM plugin runtime (wasmtime + cranelift — one of the
-# heaviest trees in the ecosystem). Not a workspace member (same pattern as
-# fuzz/); only built when the `wasm-plugins` feature is on, so default and
-# minimal builds never touch it.
-flexfetch-wasm = { path = "../flexfetch-wasm", optional = true }
-# Phase 4.12: Lua plugin runtime (mlua, vendored Lua 5.4). Purely optional —
-# the `lua` feature (default on) pulls it in so `.lua` plugins in the plugins
-# dir auto-load; `--no-default-features` drops it entirely.
-flexfetch-lua = { path = "../flexfetch-lua", optional = true }
 
 [dev-dependencies]
 # Phase 8.6: micro-benchmarks (`cargo bench`). Dev-only — does not affect the
@@ -73,20 +57,9 @@ clap_mangen = "0.2"
 
 # Phase 8.5: property-based tests for the pure helpers (dev-only).
 proptest = "1"
-# Phase 4.12: WAT->wasm compiler for plugin-loading tests (pure Rust, no
-# wasm32 target needed).
-wat = "1"
 
 [features]
-default = ["lua", "live", "image-logos", "tera", "parallel", "completions"]
-# TODO(agentB): flexfetch-core dropped its `lua` feature (core/Cargo.toml no
-# longer exposes it); the forward below was removed. flexfetch-lua is still a
-# workspace member and built via dep:flexfetch-lua.
-lua = ["dep:flexfetch-lua"]
-# Phase 4.12: sandboxed WASM plugin runtime. Off by default (wasmtime is a
-# heavy dependency tree); plugins in ~/.config/flexfetch/plugins/*.wasm are
-# executed with fuel + memory limits and capability-gated host imports.
-wasm-plugins = ["dep:flexfetch-wasm"]
+default = ["live", "image-logos", "tera", "parallel", "completions"]
 live = ["dep:ratatui", "dep:crossterm", "dep:crossbeam-channel"]
 # Image logos (sixel/block) + PNG export need the `image` crate; the minimal
 # `--no-default-features` build drops it entirely (see ROADMAP 0.2 remaining diet work).
@@ -102,7 +75,7 @@ completions = ["dep:clap_complete"]
 # QR config sharing (Phase 4.11): `--qr` / `--import-qr`. Opt-in — zstd-sys is a
 # C dep, so it stays out of the pure-Rust musl release pipeline and the minimal
 # binary (see the dep comment above; `music` is likewise opt-in).
-qr = ["dep:qrcode", "dep:rqrr", "dep:zstd", "dep:image"]
+qr = ["dep:qrcode", "dep:rqrr", "dep:zstd", "dep:image", "dep:base64"]
 # Phase 5.4 wallpaper auto-theming (`--auto-theme`): dominant colors from the
 # wallpaper become the theme. Opt-in (adds the image jpeg decoder).
 auto-theme = ["flexfetch-core/auto-theme"]

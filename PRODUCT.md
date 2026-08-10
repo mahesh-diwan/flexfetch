@@ -27,19 +27,19 @@ flexfetch is a blazing-fast, themeable system information tool for Linux and mac
 Two claims flexfetch can truthfully lead with that neighbors (neofetch, fastfetch, pfetch) cannot copy outright:
 
 1. **Zero subprocesses** — every collector reads kernel data directly; no forking, no parsing overhead, warm runs in milliseconds.
-2. **Everything in one binary** — themes, 527+ logos, exports, live TUI, QR sharing, SSH remote fetch, plugin runtime — ~1.7 MB, static, no runtime dependencies.
+2. **Everything in one binary** — themes, 527+ logos, exports, live TUI, QR sharing, SSH remote fetch — ~1.7 MB, static, no runtime dependencies.
 
 ## Operating Context
 
 - Installed via a one-line `curl … | sh` installer (checksum + cosign signature verified) or `cargo install`.
 - Configured through `~/.config/flexfetch/config.toml` or an interactive TUI wizard.
 - Runs inside a terminal; the fetch is displayed, shared as an image/QR, or exported (text, JSON, Markdown, SVG, HTML, PNG, GitHub Actions).
-- Plugins: Lua 5.4 dropped into `~/.config/flexfetch/plugins/`, or sandboxed WASM, installed from a signed registry.
+- Custom modules: inline shell commands in `[custom]` config sections appear as regular modules in output.
 - Releases are CI-built across 5 targets from git tags; never created manually.
 
 ## Capabilities and Constraints
 
-Confirmed features: 38 built-in modules, 27 theme presets, 527+ distro logos, Lua + WASM plugins, Tera templates, live TUI dashboard, diff mode, QR sharing, SSH remote fetch, flash mode, custom modules (inline shell), 8 export formats, shell completions, health score, watch mode, config wizard, signed plugin registry.
+Confirmed features: 38 built-in modules, 27 theme presets, 527+ distro logos, Tera templates, live TUI dashboard, diff mode, QR sharing, SSH remote fetch, flash mode, custom modules (inline shell), 8 export formats, shell completions, health score, watch mode, config wizard.
 
 Technical constraints: zero subprocesses (architecture, not just a flag); single static binary; Linux + macOS (Windows not a target); MIT licensed.
 

@@ -17,9 +17,6 @@ pub struct Config {
     #[serde(default = "Config::default_modules")]
     pub modules: Vec<String>,
 
-    #[serde(default)]
-    pub plugins_dir: Option<PathBuf>,
-
     #[serde(default = "Config::default_template")]
     pub template: String,
 
@@ -408,7 +405,6 @@ impl Config {
         Config {
             version: CURRENT_SCHEMA,
             modules: Config::default_modules(),
-            plugins_dir: None,
             template: Config::default_template(),
             display: DisplayConfig::default(),
             custom: HashMap::new(),
@@ -474,7 +470,6 @@ fn merge_config(base: Config, override_config: Config) -> Config {
         } else {
             base.template
         },
-        plugins_dir: override_config.plugins_dir.or(base.plugins_dir),
         display: DisplayConfig::merge(base.display, override_config.display),
         custom: if !override_config.custom.is_empty() {
             override_config.custom

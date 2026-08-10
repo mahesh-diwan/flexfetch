@@ -8,25 +8,6 @@ pub enum Commands {
         #[arg(value_enum)]
         shell: clap_complete::Shell,
     },
-    /// Plugin registry (Phase 5.7): search/install/list/update Lua plugins
-    /// against the hosted registry.toml (checksum + min-version verified).
-    Plugin {
-        #[command(subcommand)]
-        action: PluginAction,
-    },
-}
-
-/// Subcommands under `flexfetch plugin`.
-#[derive(clap::Subcommand)]
-pub enum PluginAction {
-    /// Search the hosted registry by name/description
-    Search { query: String },
-    /// Install a plugin (SHA-256 verified, min-version gated)
-    Install { name: String },
-    /// List installed plugins + registry status
-    List,
-    /// Re-install every installed plugin still in the registry
-    Update,
 }
 
 #[derive(Parser)]

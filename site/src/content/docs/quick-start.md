@@ -90,7 +90,6 @@ JSON output is useful for piping into `jq` or feeding into other tools.
 1. **Customize** — run `flexfetch --wizard` for an interactive config builder
 2. **Pick a theme** — `flexfetch --list-themes` shows all 28 presets
 3. **Select modules** — `flexfetch --list-modules` shows all 38 built-in modules
-4. **Write a plugin** — drop a `.lua` file in `~/.config/flexfetch/plugins/`
-5. **Try the dashboard** — `flexfetch --live` for real-time monitoring
+4. **Try the dashboard** — `flexfetch --live` for real-time monitoring
 
 For the full flag list see the [CLI reference](/docs/output) or `flexfetch --help`.

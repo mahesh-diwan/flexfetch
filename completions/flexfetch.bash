@@ -22,59 +22,11 @@ _flexfetch() {
             flexfetch,help)
                 cmd="flexfetch__subcmd__help"
                 ;;
-            flexfetch,plugin)
-                cmd="flexfetch__subcmd__plugin"
-                ;;
             flexfetch__subcmd__help,completions)
                 cmd="flexfetch__subcmd__help__subcmd__completions"
                 ;;
             flexfetch__subcmd__help,help)
                 cmd="flexfetch__subcmd__help__subcmd__help"
-                ;;
-            flexfetch__subcmd__help,plugin)
-                cmd="flexfetch__subcmd__help__subcmd__plugin"
-                ;;
-            flexfetch__subcmd__help__subcmd__plugin,install)
-                cmd="flexfetch__subcmd__help__subcmd__plugin__subcmd__install"
-                ;;
-            flexfetch__subcmd__help__subcmd__plugin,list)
-                cmd="flexfetch__subcmd__help__subcmd__plugin__subcmd__list"
-                ;;
-            flexfetch__subcmd__help__subcmd__plugin,search)
-                cmd="flexfetch__subcmd__help__subcmd__plugin__subcmd__search"
-                ;;
-            flexfetch__subcmd__help__subcmd__plugin,update)
-                cmd="flexfetch__subcmd__help__subcmd__plugin__subcmd__update"
-                ;;
-            flexfetch__subcmd__plugin,help)
-                cmd="flexfetch__subcmd__plugin__subcmd__help"
-                ;;
-            flexfetch__subcmd__plugin,install)
-                cmd="flexfetch__subcmd__plugin__subcmd__install"
-                ;;
-            flexfetch__subcmd__plugin,list)
-                cmd="flexfetch__subcmd__plugin__subcmd__list"
-                ;;
-            flexfetch__subcmd__plugin,search)
-                cmd="flexfetch__subcmd__plugin__subcmd__search"
-                ;;
-            flexfetch__subcmd__plugin,update)
-                cmd="flexfetch__subcmd__plugin__subcmd__update"
-                ;;
-            flexfetch__subcmd__plugin__subcmd__help,help)
-                cmd="flexfetch__subcmd__plugin__subcmd__help__subcmd__help"
-                ;;
-            flexfetch__subcmd__plugin__subcmd__help,install)
-                cmd="flexfetch__subcmd__plugin__subcmd__help__subcmd__install"
-                ;;
-            flexfetch__subcmd__plugin__subcmd__help,list)
-                cmd="flexfetch__subcmd__plugin__subcmd__help__subcmd__list"
-                ;;
-            flexfetch__subcmd__plugin__subcmd__help,search)
-                cmd="flexfetch__subcmd__plugin__subcmd__help__subcmd__search"
-                ;;
-            flexfetch__subcmd__plugin__subcmd__help,update)
-                cmd="flexfetch__subcmd__plugin__subcmd__help__subcmd__update"
                 ;;
             *)
                 ;;
@@ -83,7 +35,7 @@ _flexfetch() {
 
     case "${cmd}" in
         flexfetch)
-            opts="-c -m -t -f -o -h --config --modules --template --format --theme --debug --gen-config --list-modules --list-presets --list-themes --benchmark --pipe --minimal --flash --full --dev --preset --export --output --no-gradient --no-progress --box-style --palette-style --frame --watch --watch-interval --live --smart --health --prompt --motd --ssh --diff --wizard --qr --import-qr --update --doctor --hook --update-db --auto-theme --demo --bug-report --help completions plugin help"
+            opts="-c -m -t -f -o -h --config --modules --template --format --theme --debug --gen-config --list-modules --list-presets --list-themes --benchmark --pipe --minimal --flash --full --dev --preset --export --output --no-gradient --no-progress --box-style --palette-style --frame --watch --watch-interval --live --smart --health --prompt --motd --ssh --diff --wizard --qr --import-qr --update --doctor --hook --update-db --auto-theme --demo --bug-report --help completions help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -199,7 +151,7 @@ _flexfetch() {
             return 0
             ;;
         flexfetch__subcmd__help)
-            opts="completions plugin help"
+            opts="completions help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -228,230 +180,6 @@ _flexfetch() {
             ;;
         flexfetch__subcmd__help__subcmd__help)
             opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__help__subcmd__plugin)
-            opts="search install list update"
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__help__subcmd__plugin__subcmd__install)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__help__subcmd__plugin__subcmd__list)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__help__subcmd__plugin__subcmd__search)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__help__subcmd__plugin__subcmd__update)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin)
-            opts="-h --help search install list update help"
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__help)
-            opts="search install list update help"
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__help__subcmd__help)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__help__subcmd__install)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__help__subcmd__list)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__help__subcmd__search)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__help__subcmd__update)
-            opts=""
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 4 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__install)
-            opts="-h --help"
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__list)
-            opts="-h --help"
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__search)
-            opts="-h --help"
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        flexfetch__subcmd__plugin__subcmd__update)
-            opts="-h --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0

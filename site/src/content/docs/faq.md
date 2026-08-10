@@ -7,12 +7,11 @@ order: 13
 ## General
 
 **How is this different from neofetch/fastfetch?**
-Lua plugins, WASM plugins, Tera templates, and 28 theme presets — no other
-tool has all three. Plus live dashboard, smart fetch, health score, and
-remote SSH fetch.
+Tera templates and 28 theme presets — plus live dashboard, smart fetch,
+health score, and remote SSH fetch.
 
 **How do I add info that isn't built in?**
-Two ways: a `[custom]` config section (shell commands) or a Lua plugin.
+Use a `[custom]` config section with shell commands.
 
 **Does it work on macOS?**
 Yes. OS detection via `sw_vers`, macOS logo auto-detected, and the release
@@ -22,10 +21,6 @@ pipeline builds both arm64 and x86_64 binaries.
 MIT.
 
 ## Installation
-
-**Do prebuilt binaries include Lua plugins?**
-No — Releases/install.sh binaries are pure Rust (no Lua) to stay lean.
-Source builds include Lua by default.
 
 **How do I update?**
 If you installed via the install script: `flexfetch --update`.
@@ -61,7 +56,8 @@ Static modules are collected once per session and reused in watch/live mode.
 Dynamic modules are re-collected every tick.
 
 **Can I write my own module?**
-Yes — drop a `.lua` file in `~/.config/flexfetch/plugins/`. See [Plugins](/docs/plugins).
+Yes — define a `[custom]` section in `~/.config/flexfetch/config.toml` with
+a name and shell command. See [Configuration](/docs/configuration).
 
 ## Troubleshooting
 
@@ -91,17 +87,17 @@ config file (`~/.config/flexfetch/config.toml`). You can also use
 complete custom theme in the `[theme]` section.
 
 **What's the difference from fastfetch?**
-Both read `/proc` directly with zero subprocesses. flexfetch adds Lua and
-WASM plugins, Tera templates with Jinja2-style logic, a real-time
-dashboard (`--live`), context-aware smart fetch, health scoring, and remote
-SSH fetch. fastfetch has more logo coverage (527+ distros via its logo DB);
-flexfetch imports those logos and adds its own theming layer on top.
+Both read `/proc` directly with zero subprocesses. flexfetch adds Tera
+templates with Jinja2-style logic, a real-time dashboard (`--live`),
+context-aware smart fetch, health scoring, and remote SSH fetch. fastfetch
+has more logo coverage (527+ distros via its logo DB); flexfetch imports
+those logos and adds its own theming layer on top.
 
 **Can I add my own modules?**
-Yes. Drop a `.lua` file in `~/.config/flexfetch/plugins/` — it will appear
-in output automatically. Lua plugins have access to a host API for reading
-files, running commands, and formatting output. See [Plugins](/docs/plugins)
-for the full API.
+Yes. Define a `[custom]` section in your config — each entry is a module
+name plus the shell command that produces its value, and it appears in
+output automatically. See [Configuration](/docs/configuration) for the
+full syntax.
 
 **Does flexfetch work in containers?**
 Yes — flexfetch detects containers via `/proc/1/cgroup` and `/proc/self/cgroup`

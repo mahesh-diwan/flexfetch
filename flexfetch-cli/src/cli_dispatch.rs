@@ -1,17 +1,10 @@
-use flexfetch_cli::Commands;
-
 /// Handle subcommands that run before config load.
 pub fn handle_subcommands(cli: &flexfetch_cli::Cli) -> bool {
-    if let Some(command) = &cli.command {
-        match command {
-            #[cfg(feature = "completions")]
-            Commands::Completions { shell } => {
-                use clap::CommandFactory;
-                let mut cmd = flexfetch_cli::Cli::command();
-                clap_complete::generate(*shell, &mut cmd, "flexfetch", &mut std::io::stdout());
-            }
-            Commands::Plugin { action } => crate::registry::run(action),
-        }
+    #[cfg(feature = "completions")]
+    if let Some(flexfetch_cli::Commands::Completions { shell }) = &cli.command {
+        use clap::CommandFactory;
+        let mut cmd = flexfetch_cli::Cli::command();
+        clap_complete::generate(*shell, &mut cmd, "flexfetch", &mut std::io::stdout());
         return true;
     }
     false

@@ -8,8 +8,6 @@ and themeable output.
 
 |     | Feature              | What it means                                                                                              |
 | --- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
-| 🔌  | **Lua plugins**      | Write info modules in Lua. Drop a `.lua` file in `~/.config/flexfetch/plugins/` and it appears in output.  |
-| 🌐  | **WASM plugins**     | Sandboxed WebAssembly plugins with capability-gated host imports.                                          |
 | 📝  | **Tera templates**   | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info. |
 | 🎭  | **28 theme presets** | Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Rose Pine, and more. Switch with `--theme`.               |
 | ⚡  | **Rust + Rayon**     | Parallel detection. Static binary, zero runtime deps. As small as ~1.7 MB in the minimal build.            |

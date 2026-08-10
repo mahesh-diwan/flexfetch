@@ -144,34 +144,34 @@
     <div class="container">
       <div class="section-head reveal">
         <h2>Not a binary. A platform.</h2>
-        <p>Extend flexfetch without forking it. Three tiers of extensibility, all auto-loaded from your plugins directory.</p>
+        <p>Extend flexfetch without forking it. Three tiers of extensibility, configured in your own files.</p>
       </div>
       <div class="eco-grid">
         <div class="eco reveal">
-          <h3>Lua plugins</h3>
-          <p>Drop a <code>.lua</code> file into <code>~/.config/flexfetch/plugins/</code> and it becomes a module on the next run. Full access to the render context.</p>
+          <h3>Custom modules</h3>
+          <p>Define a <code>[custom]</code> section in <code>~/.config/flexfetch/config.toml</code> — each entry is a module name plus the shell command that produces its value.</p>
           <ul>
-            <li>one file = one module</li>
-            <li>read files, run commands, emit values</li>
-            <li>zero recompiles</li>
+            <li>one entry = one module</li>
+            <li>appears in output automatically</li>
+            <li>no recompiles</li>
           </ul>
         </div>
         <div class="eco reveal d1">
-          <h3>WASM sandbox</h3>
-          <p>Compile a plugin to WebAssembly and flexfetch runs it with resource limits inside an isolated sandbox. Memory-safe by construction.</p>
+          <h3>Tera templates</h3>
+          <p>Write your own template with loops and conditionals for full control over the layout, per-module colors, and icon set.</p>
           <ul>
-            <li>execution time and memory limits</li>
-            <li>no host imports unless granted</li>
-            <li>structured data exchange between plugin and host</li>
+            <li>Jinja2-style syntax</li>
+            <li>per-module color/icon variables</li>
+            <li>drop-in <code>.tera</code> files</li>
           </ul>
         </div>
         <div class="eco reveal d2">
-          <h3>Signed registry</h3>
-          <p><code>flexfetch plugin search|install|list|update</code> against a TOML registry. Every entry is cryptographically signed before the checksum is verified.</p>
+          <h3>Export anywhere</h3>
+          <p><code>flexfetch --export</code> renders the same fetch to SVG, PNG, HTML, Markdown, CSV, or Prometheus — for badges, CI, dashboards, and docs.</p>
           <ul>
-            <li>version compatibility check</li>
-            <li>publisher CLI: <code>registry_sign</code></li>
-            <li>refuses to install anything that fails verification</li>
+            <li>machine formats included</li>
+            <li>GitHub Actions annotations</li>
+            <li>one command, many outputs</li>
           </ul>
         </div>
       </div>
@@ -198,13 +198,13 @@
             <a href="docs/">mdBook docs</a>
             <a href="docs/installation.html">Installation</a>
             <a href="docs/modules.html">Modules</a>
-            <a href="docs/plugins.html">Plugins</a>
+            <a href="docs/themes.html">Themes</a>
           </div>
           <div class="foot-col">
             <h5>Extend</h5>
-            <a href="docs/plugins.html">Lua plugins</a>
-            <a href="docs/plugins.html">WASM plugins</a>
-            <a href="docs/plugins.html">Plugin registry</a>
+            <a href="docs/templates.html">Templates</a>
+            <a href="docs/shell-integration.html">Shell integration</a>
+            <a href="docs/features.html">Features</a>
           </div>
         </div>
       </div>

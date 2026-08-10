@@ -40,7 +40,6 @@ Usage: flexfetch [OPTIONS] [COMMAND]
 
 Commands:
   completions  Generate shell completions for the given shell
-  plugin       Plugin registry: search/install/list/update Lua plugins
   help         Print this message or the help of the given subcommand(s)
 
 Options:

@@ -10,11 +10,10 @@ flexfetch --gen-config
 
 ### Top-level options
 
-| Option        | Type       | Default                        | Description                                               |
-| ------------- | ---------- | ------------------------------ | --------------------------------------------------------- |
-| `modules`     | `[]string` | `["title","separator",...]`    | Module list to display                                    |
-| `template`    | `string`   | `"default"`                    | Template name (looks in `~/.config/flexfetch/templates/`) |
-| `plugins_dir` | `string`   | `~/.config/flexfetch/plugins/` | Directory for Lua/WASM plugins                            |
+| Option     | Type       | Default                     | Description                                               |
+| ---------- | ---------- | --------------------------- | --------------------------------------------------------- |
+| `modules`  | `[]string` | `["title","separator",...]` | Module list to display                                    |
+| `template` | `string`   | `"default"`                 | Template name (looks in `~/.config/flexfetch/templates/`) |
 
 ### `[display]` section
 
