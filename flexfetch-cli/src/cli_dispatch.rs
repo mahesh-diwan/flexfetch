@@ -1,5 +1,7 @@
 /// Handle subcommands that run before config load.
 pub fn handle_subcommands(cli: &flexfetch_cli::Cli) -> bool {
+    #[cfg(not(feature = "completions"))]
+    let _ = cli;
     #[cfg(feature = "completions")]
     if let Some(flexfetch_cli::Commands::Completions { shell }) = &cli.command {
         use clap::CommandFactory;

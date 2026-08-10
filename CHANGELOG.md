@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.1] - 2026-08-10
+
+### Fixed
+
+- `render_logo` / `render_ascii_logo` were `#[cfg(feature = "tera")]`-gated but called unconditionally from `render()`, breaking the release build (`--no-default-features --features live,image-logos,completions,parallel`). Gates removed; logos now render without the `tera` feature.
+
 ## [0.30.0] - 2026-08-10
 
 ### Removed

@@ -372,7 +372,6 @@ fn align_keys(
 /// `None` when the terminal is too narrow (compact mode) or when the
 /// rendered logo is empty. The returned `Vec<String>` is already
 /// vertically centered against `info_lines_len` rows.
-#[cfg(feature = "tera")]
 fn render_logo(
     os_id: &str,
     info_lines_len: usize,
@@ -445,7 +444,6 @@ fn render_logo(
 }
 
 /// Render the ASCII art logo with optional gradient coloring.
-#[cfg(feature = "tera")]
 fn render_ascii_logo(os_id: &str, height: usize, gradient_colors: &[[u8; 3]]) -> Vec<String> {
     let ascii = crate::logo::detect(os_id);
     if !gradient_colors.is_empty() {
