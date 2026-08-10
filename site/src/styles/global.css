@@ -926,11 +926,19 @@ h1 .accent {
   padding: 12px 14px;
   font: 12px var(--font-mono);
   color: var(--text);
-  transition: background var(--duration-fast) var(--ease-out);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .mod:hover {
   background: var(--surface);
+  transform: translateY(-1px);
+}
+
+.mod:active {
+  transform: scale(0.98);
+  transition: transform 100ms var(--ease-out);
 }
 
 .mod .glyph {
