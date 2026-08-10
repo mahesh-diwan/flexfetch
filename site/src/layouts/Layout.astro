@@ -105,9 +105,13 @@ const { title, description = "flexfetch is a blazing-fast, themeable system info
     let toastTimer = null;
     function toast(msg) {
       toastEl.textContent = msg;
+      toastEl.classList.remove("hiding");
       toastEl.classList.add("show");
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+      toastTimer = setTimeout(() => {
+        toastEl.classList.add("hiding");
+        setTimeout(() => toastEl.classList.remove("hiding"), 300);
+      }, 2200);
     }
 
     /* ---------- copy buttons ---------- */

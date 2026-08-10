@@ -1044,6 +1044,14 @@ footer {
   opacity: 1;
 }
 
+.toast.hiding {
+  transform: translateX(-50%) translateY(100px);
+  opacity: 0;
+  transition:
+    transform 300ms var(--ease-out),
+    opacity 200ms var(--ease-out);
+}
+
 .btt {
   position: fixed;
   bottom: 24px;
