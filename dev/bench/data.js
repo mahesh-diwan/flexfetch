@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786184651892,
+  "lastUpdate": 1786384163177,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -791,6 +791,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 11429679,
             "range": "± 281917",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "b60c6cb8027ecac73abc2ecce83b5f6e8f50c289",
+          "message": "fix: render logo without tera feature (unblock release build)\n\nrender_logo and render_ascii_logo were cfg(feature = 'tera') gated but\ncalled unconditionally from TeraEngine::render, breaking the release\nfeature set (live,image-logos,completions,parallel — no tera). Drop the\ngates so logos render in all builds; also silence the unused 'cli' param\nwarning in cli_dispatch when completions is off. Bump v0.30.1.",
+          "timestamp": "2026-08-10T23:16:34+05:30",
+          "tree_id": "d4675fbde65ba17878ee69d298ce733bb2ceaa25",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/b60c6cb8027ecac73abc2ecce83b5f6e8f50c289"
+        },
+        "date": 1786384161845,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 12050098,
+            "range": "± 102676",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 12115370,
+            "range": "± 367860",
             "unit": "ns/iter"
           }
         ]
