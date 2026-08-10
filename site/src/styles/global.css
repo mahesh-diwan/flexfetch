@@ -219,6 +219,13 @@ img {
   animation: blink 1s infinite;
 }
 
+.brand:hover .caret {
+  animation: none;
+  opacity: 1;
+  transform: scale(1.15);
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
 @keyframes blink {
   0%,
   50% {
@@ -903,6 +910,11 @@ h1 .accent {
 
 .mod-search input:focus {
   border-color: var(--accent);
+}
+
+.mod-search input:active {
+  transform: scale(0.99);
+  transition: transform 100ms var(--ease-out);
 }
 
 .mod-search-count {
