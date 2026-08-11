@@ -41,8 +41,8 @@
   --radius: var(--radius-xs);
   --gut: 34px;
 
-  /* ── motion: theme has no 600ms step, alias to nearest ── */
-  --duration-normal: var(--duration-slower);
+  /* ── motion: standard UI duration (Corporate personality) ── */
+  --duration-normal: var(--duration-slow);
 }
 
 /* ── code highlight tokens (Shiki css-variables theme) → semantic layer ── */
@@ -164,18 +164,18 @@ img {
 
 .skip-link {
   position: absolute;
-  top: -40px;
+  transform: translateY(-40px);
   left: 0;
   background: var(--spot);
   color: var(--spot-ink);
   font: 500 12px var(--font-mono);
   padding: 8px 16px;
   z-index: 100;
-  transition: top 0.2s;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .skip-link:focus {
-  top: 0;
+  transform: translateY(0);
 }
 
 .bg-grid {
@@ -269,7 +269,7 @@ img {
   animation: none;
   opacity: 1;
   transform: scale(1.15);
-  transition: transform var(--duration-fast) var(--ease-spring);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 @keyframes blink {
@@ -319,12 +319,17 @@ img {
   padding: 4px;
 }
 
+.hamburger:active {
+  transform: scale(0.94);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
 .hamburger span {
   width: 22px;
   height: 2px;
   background: var(--ink);
   border-radius: 2px;
-  transition: all 0.2s ease;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .nav-mobile {
@@ -343,9 +348,9 @@ img {
   opacity: 0;
   visibility: hidden;
   transition:
-    transform 300ms var(--ease-out),
-    opacity 200ms var(--ease-out),
-    visibility 300ms var(--ease-out);
+    transform var(--duration-base) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out),
+    visibility var(--duration-base) var(--ease-out);
 }
 
 .nav-mobile.open {
@@ -353,6 +358,10 @@ img {
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
+  transition:
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out),
+    visibility var(--duration-slow) var(--ease-out);
 }
 
 .nav-mobile a {
@@ -417,7 +426,7 @@ img {
 
 .btn:active {
   transform: scale(0.97);
-  transition: transform 160ms var(--ease-out);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .btn-sm {
@@ -792,12 +801,12 @@ h1 em {
   color: var(--faint2);
   transition:
     color var(--duration-fast) var(--ease-out),
-    margin-left var(--duration-fast) var(--ease-out);
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .caps > .cap:hover .arw {
   color: var(--spot);
-  margin-left: 10px;
+  transform: translateX(4px);
 }
 
 /* the evidence frame — a real pane, mono, hairline border */
@@ -1008,7 +1017,8 @@ h1 em {
   white-space: nowrap;
   transition:
     color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .code-body .copy-btn:hover {
@@ -1479,8 +1489,8 @@ footer {
   z-index: 100;
   opacity: 0;
   transition:
-    transform var(--duration-normal) var(--ease-spring),
-    opacity var(--duration-normal) var(--ease-out);
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-slow) var(--ease-out);
 }
 
 .toast.show {
@@ -1492,8 +1502,8 @@ footer {
   transform: translateX(-50%) translateY(100px);
   opacity: 0;
   transition:
-    transform 300ms var(--ease-out),
-    opacity 200ms var(--ease-out);
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
 }
 
 .btt {

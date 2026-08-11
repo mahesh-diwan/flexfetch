@@ -338,6 +338,15 @@ The inner `--color-bg` ring creates separation from the element's own background
 
 ## 7. Motion
 
+### 7.0 Motion personality — Corporate
+
+One archetype: **Corporate** (clean, professional, terminal-dashboard feel).
+
+- Signature easing: `--ease-out` `cubic-bezier(0.2, 0, 0, 1)` for ~80% of motion. 0% overshoot.
+- Duration palette: quick `--duration-fast` (150ms) · standard `--duration-base` (200ms) · slow `--duration-slow` (300ms).
+- Entrance pattern: fade + small rise (translateY), ease-out, applied via `.reveal` + stagger.
+- No spring/bounce. `--ease-spring` exists only for decorative accents; components must not use it.
+
 ### 7.1 Duration & easing
 
 ```tokens duration

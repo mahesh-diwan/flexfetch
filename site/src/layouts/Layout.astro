@@ -120,6 +120,8 @@ const { title, description = "flexfetch is a blazing-fast, themeable system info
   <button class="btt" id="btt" aria-label="Back to top">↑</button>
 
   <script>
+    document.documentElement.classList.add("js");
+
     /* ---------- toast ---------- */
     const toastEl = document.getElementById("toast");
     let toastTimer = null;
