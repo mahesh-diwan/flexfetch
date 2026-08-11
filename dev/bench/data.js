@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786453545373,
+  "lastUpdate": 1786455676180,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1007,6 +1007,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2636744,
             "range": "± 65065",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "f415bad4ec0d5d24b777eefd08ab5be2f169d26a",
+          "message": "site: warm amber/amber terminal theme + warm neutrals\n\n- Brand blue → golden amber (hue 80), 10-step ramp\n- Neutral pure-gray → warm charcoal (#fff8de→#6e2f00) with tint\n- Semantic: dark accent brand-500 with near-black fg-on-accent\n  (classic phosphor: dark text on bright amber), light\n  accent brand-700 (AA), hover brand-800\n- Warning hue 86→100 so it no longer collides with amber\n- Layout theme-color #0a0a0a→#0e0906 (warm)\n- DESIGN.md narrative + theme.css both updated",
+          "timestamp": "2026-08-11T19:08:07+05:30",
+          "tree_id": "a09e51c891444d4ddbb19f18b85caf736e095fb4",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/f415bad4ec0d5d24b777eefd08ab5be2f169d26a"
+        },
+        "date": 1786455674571,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2559560,
+            "range": "± 43513",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2563418,
+            "range": "± 31745",
             "unit": "ns/iter"
           }
         ]
