@@ -3,120 +3,156 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>flexfetch: your whole system, fetched in milliseconds</title>
-  <meta name="description" content="flexfetch is a blazing-fast, themeable system info tool for Linux and macOS. 38 modules, 527 logos, zero subprocesses, pure Rust." />
-  <meta property="og:title" content="flexfetch: your whole system, fetched in milliseconds" />
-  <meta property="og:description" content="A blazing-fast, themeable system info tool. 38 modules, 527 logos, pure Rust." />
+  <title>flexfetch — your whole system, fetched in milliseconds</title>
+  <meta name="description" content="flexfetch is a blazing-fast, themeable system info tool for Linux and macOS. 39 modules, 527 logos, zero subprocesses, pure Rust." />
+  <meta property="og:title" content="flexfetch — your whole system, fetched in milliseconds" />
+  <meta property="og:description" content="A blazing-fast, themeable system info tool. 39 modules, 527 logos, pure Rust." />
   <meta property="og:url" content="https://mahesh-diwan.github.io/flexfetch/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://mahesh-diwan.github.io/flexfetch/assets/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta name="theme-color" content="#0a0a0f" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23e8913a'/%3E%3Cstop offset='1' stop-color='%23f0a050'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M13 9l7 7-7 7' stroke='%230a0a0f' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#0b0b0d" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23e8913a'/%3E%3Cstop offset='1' stop-color='%23f2a45c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M13 9l7 7-7 7' stroke='%230b0b0d' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
   <a href="#features" class="skip-link">Skip to content</a>
-  <div class="bg-grid"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="rule-top" aria-hidden="true"></div>
 
   <!-- ============ NAV ============ -->
-  <nav class="nav" id="nav">
+  <nav class="nav" id="nav" aria-label="Primary">
     <a class="brand" href="index.html">flexfetch<span class="caret">_</span></a>
     <div class="nav-links">
       <a href="#features">Features</a>
-      <a href="modules.html">Modules</a>
+      <a href="#modules">Modules</a>
       <a href="#install">Install</a>
     </div>
     <div class="nav-cta">
       <a class="btn btn-ghost btn-sm" href="docs/">Docs</a>
-      <a class="btn btn-primary btn-sm" href="#install">Install</a>
+      <a class="btn btn-primary btn-sm magnetic" href="#install">Install</a>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="nav-mobile">
       <span></span><span></span><span></span>
     </button>
   </nav>
   <div class="nav-mobile" id="nav-mobile">
-    <a href="#features">Features</a>
-    <a href="modules.html">Modules</a>
-    <a href="#install">Install</a>
-    <a class="btn btn-ghost" href="docs/">Docs</a>
-    <a class="btn btn-primary" href="#install">Install</a>
+    <a href="#features" style="--i:0">Features</a>
+    <a href="#modules" style="--i:1">Modules</a>
+    <a href="#install" style="--i:2">Install</a>
+    <a class="btn btn-ghost" href="docs/" style="--i:3">Docs</a>
+    <a class="btn btn-primary" href="#install" style="--i:4">Install</a>
   </div>
 
   <!-- ============ HERO ============ -->
   <header class="hero" id="top">
     <div class="container">
-      <div class="hero-split">
-        <div class="hero-text reveal in d1">
+      <div class="hero-grid">
+        <div class="hero-text reveal in" style="--i:0">
+          <span class="kicker">
+            <span class="dot" aria-hidden="true"></span>
+            Rust &middot; Linux &amp; macOS &middot; <em>zero subprocesses</em>
+          </span>
           <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
-            flexfetch is a blazing-fast, themeable system info tool for Linux and macOS.
-            Zero subprocesses, pure Rust.
+            flexfetch reads <strong>/proc</strong>, sysfs, and macOS APIs directly &mdash; no
+            forking, no parsing, no startup cost. 39 modules, 527 logos, pure Rust.
           </p>
 
           <div class="hero-install">
-            <div class="cmd-wrap">
-              <code id="cmd-curl">curl -fsSL https://opencode.ai/install | bash</code>
-              <button class="copy-btn" data-copy="cmd-curl" aria-label="Copy command">Copy</button>
+            <div class="cmd">
+              <span class="prompt" aria-hidden="true">$</span>
+              <code id="cmd-hero">curl -fsSL https://github.com/mahesh-diwan/flexfetch/releases/latest/download/install.sh | sh</code>
+              <button class="copy magnetic" data-copy="cmd-hero" aria-label="Copy install command">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>copy
+              </button>
             </div>
-            <div class="plat-hint" id="plat-hint"></div>
-            <p class="install-note">Linux & macOS · checksum + signature verified</p>
+            <p class="plat-hint" id="plat-hint"></p>
           </div>
 
           <div class="hero-stats">
-            <span class="hs"><strong>1.7 MB</strong> binary</span>
-            <span class="hs-dot">·</span>
-            <span class="hs"><strong>38</strong> modules</span>
-            <span class="hs-dot">·</span>
-            <span class="hs"><strong>527</strong> logos</span>
-            <span class="hs-dot">·</span>
-            <span class="hs rust-badge">Written in Rust</span>
+            <span class="hs"><b>1.7 MB</b> binary</span>
+            <span class="hs"><b>39</b> modules</span>
+            <span class="hs"><b>527</b> logos</span>
+            <span class="hs"><b>0</b> subprocesses</span>
           </div>
+
           <div class="social-proof">
             <span>MIT licensed</span>
-            <span class="hs-dot">·</span>
-            <span>contributions welcome</span>
-            <span class="hs-dot">·</span>
-            <a href="https://github.com/mahesh-diwan/flexfetch">star on GitHub</a>
+            <span aria-hidden="true">&middot;</span>
+            <span>checksum + signature verified</span>
+            <span aria-hidden="true">&middot;</span>
+            <a href="https://github.com/mahesh-diwan/flexfetch">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+              star on GitHub
+            </a>
           </div>
         </div>
-        <div class="hero-term reveal d2">
-          <div class="term-bar">
-            <span class="term-dot r" aria-hidden="true"></span>
-            <span class="term-dot y" aria-hidden="true"></span>
-            <span class="term-dot g" aria-hidden="true"></span>
-          </div>
-          <div class="term-body" id="hero-terminal">
-            <div class="term-placeholder">Add terminal-shot.png to assets/</div>
+
+        <div class="term-wrap reveal in" style="--i:1">
+          <div class="term-frame" aria-hidden="true"></div>
+          <div class="term" aria-label="flexfetch output preview">
+            <div class="term-bar">
+              <span class="term-dot r" aria-hidden="true"></span>
+              <span class="term-dot y" aria-hidden="true"></span>
+              <span class="term-dot g" aria-hidden="true"></span>
+              <span class="term-title">flexfetch &mdash; real output</span>
+            </div>
+            <div class="term-body" id="hero-terminal">
+              <div class="skel" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="term-err" role="alert">
+                <span>could not load the render</span>
+                <button class="btn btn-ghost btn-sm retry" type="button">retry</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </header>
 
+  <!-- ============ MARQUEE ============ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <div class="marquee-item">
+        <span>os</span><em>//</em><span>kernel</span><em>//</em><span>host</span><em>//</em><span>uptime</span><em>//</em><span>locale</span><em>//</em><span>cpu</span><em>//</em><span>cpucache</span><em>//</em><span>cpuusage</span><em>//</em><span>memory</span><em>//</em><span>disk</span><em>//</em><span>swap</span><em>//</em><span>gpu</span><em>//</em><span>network</span><em>//</em><span>publicip</span><em>//</em><span>dns</span><em>//</em><span>wifi</span><em>//</em><span>processes</span><em>//</em><span>shell</span><em>//</em><span>terminal</span><em>//</em><span>de</span><em>//</em><span>wm</span><em>//</em><span>packages</span><em>//</em><span>colors</span><em>//</em><span>weather</span><em>//</em><span>git</span><em>//</em>
+      </div>
+      <div class="marquee-item">
+        <span>os</span><em>//</em><span>kernel</span><em>//</em><span>host</span><em>//</em><span>uptime</span><em>//</em><span>locale</span><em>//</em><span>cpu</span><em>//</em><span>cpucache</span><em>//</em><span>cpuusage</span><em>//</em><span>memory</span><em>//</em><span>disk</span><em>//</em><span>swap</span><em>//</em><span>gpu</span><em>//</em><span>network</span><em>//</em><span>publicip</span><em>//</em><span>dns</span><em>//</em><span>wifi</span><em>//</em><span>processes</span><em>//</em><span>shell</span><em>//</em><span>terminal</span><em>//</em><span>de</span><em>//</em><span>wm</span><em>//</em><span>packages</span><em>//</em><span>colors</span><em>//</em><span>weather</span><em>//</em><span>git</span><em>//</em>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ STATS ============ -->
-  <section class="section stats" id="stats">
+  <section class="section stats" id="stats" aria-label="Key numbers">
     <div class="container">
       <div class="stats-grid">
-        <div class="stat reveal">
-          <div class="stat-value">38</div>
-          <div class="stat-label">Modules</div>
+        <div class="stat reveal" style="--i:0">
+          <span class="stat-num">39</span>
+          <span class="stat-label">Modules</span>
+          <span class="stat-note">from os to weather</span>
         </div>
-        <div class="stat reveal d1">
-          <div class="stat-value">527</div>
-          <div class="stat-label">Logos</div>
+        <div class="stat reveal" style="--i:1">
+          <span class="stat-num">527</span>
+          <span class="stat-label">Logos</span>
+          <span class="stat-note">fastfetch-imported</span>
         </div>
-        <div class="stat reveal d2">
-          <div class="stat-value">0</div>
-          <div class="stat-label">Subprocesses</div>
+        <div class="stat reveal" style="--i:2">
+          <span class="stat-num">0</span>
+          <span class="stat-label">Subprocesses</span>
+          <span class="stat-note">no forks, no parsing</span>
         </div>
-        <div class="stat reveal d3">
-          <div class="stat-value">1.7 MB</div>
-          <div class="stat-label">Binary Size</div>
+        <div class="stat reveal" style="--i:3">
+          <span class="stat-num">1.7 MB</span>
+          <span class="stat-label">Binary</span>
+          <span class="stat-note">minimal build, LTO</span>
         </div>
       </div>
     </div>
@@ -125,53 +161,213 @@
   <!-- ============ FEATURES ============ -->
   <section class="section" id="features">
     <div class="container">
-      <div class="section-head reveal">
-        <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
-        <p>Every module reads the system directly: <code>/proc</code>, sysfs, or macOS APIs. No subprocesses, no parsing, no startup cost.</p>
+      <div class="section-head reveal" style="--i:0">
+        <div>
+          <span class="eyebrow">What it does</span>
+          <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
+        </div>
+        <p class="head-note">Every module reads the system directly &mdash; <code>/proc</code>, sysfs, or macOS APIs. No shelling out, no startup cost, no surprises.</p>
       </div>
-      <div class="feature-list">
-        <div class="feature-item reveal">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Zero subprocesses</h3>
-            <p>Every collector reads kernel data directly. No forking, no parsing overhead. Warm runs complete in milliseconds.</p>
+
+      <div class="bento">
+        <!-- A · wide · zero subprocesses -->
+        <article class="card wide spot reveal" style="--i:0">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline></svg>
+          </span>
+          <h3>Zero subprocesses</h3>
+          <p>Every collector reads kernel data directly. No forking, no parsing overhead. Warm runs finish in single-digit milliseconds.</p>
+          <div class="latency" aria-hidden="true">
+            <div class="lat-row">
+              <span class="lat-label">flexfetch</span>
+              <span class="lat-track"><i style="--w:.92;--d:0s"></i></span>
+              <span class="lat-ms">4.8 ms</span>
+            </div>
+            <div class="lat-row">
+              <span class="lat-label">shell pipeline</span>
+              <span class="lat-track"><i style="--w:.07;--d:.6s"></i></span>
+              <span class="lat-ms">172 ms</span>
+            </div>
           </div>
-        </div>
-        <div class="feature-item reveal d1">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Themes & gradients</h3>
-            <p>Built-in presets (Catppuccin, Dracula, Nord, Solarized, Tokyo Night), truecolor everywhere, per-module key/value colors, gradient accents.</p>
+        </article>
+
+        <!-- B · themes -->
+        <article class="card spot reveal" style="--i:1">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
+          </span>
+          <h3>Themes &amp; gradients</h3>
+          <p>Catppuccin, Dracula, Nord, Solarized, Tokyo Night &mdash; truecolor everywhere, per-module key/value colors, gradient accents.</p>
+          <div class="swatches" aria-hidden="true">
+            <span class="swatch"><span class="chip" style="--i:0;background:#f5e0dc"></span>catppuccin</span>
+            <span class="swatch"><span class="chip" style="--i:1;background:#bd93f9"></span>dracula</span>
+            <span class="swatch"><span class="chip" style="--i:2;background:#8fbcbb"></span>nord</span>
+            <span class="swatch"><span class="chip" style="--i:3;background:#839496"></span>solarized</span>
+            <span class="swatch"><span class="chip" style="--i:4;background:#7aa2f7"></span>tokyo night</span>
           </div>
-        </div>
-        <div class="feature-item reveal d2">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>ASCII & image logos</h3>
-            <p>527 distro logos imported from fastfetch, plus PNG/BMP logos rendered as block characters with automatic palette extraction.</p>
+        </article>
+
+        <!-- C · logos -->
+        <article class="card spot reveal" style="--i:2">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg>
+          </span>
+          <h3>ASCII &amp; image logos</h3>
+          <p>527 distro logos imported from fastfetch, plus PNG/BMP renders as block characters with palette extraction.</p>
+          <pre class="mini-logo" aria-hidden="true">.-------------------------:
+.+=========================.
+:++===++==================-
+:*++====+++++=============-
++++==========*+*==========+
+=*+++++=====+++====+++++*++</pre>
+        </article>
+
+        <!-- D · live TUI -->
+        <article class="card spot reveal" style="--i:3">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 18a8.5 8.5 0 1 1 17 0"></path><path d="M12 18l4.5-4.5"></path></svg>
+          </span>
+          <h3>Live TUI dashboard</h3>
+          <p><code>flexfetch --live</code> opens a TUI with CPU, memory and disk gauges, per-process bars, and network sparklines.</p>
+          <div class="gauge-row" aria-hidden="true">
+            <div class="gauge" style="--p:37"><span>37%</span></div>
+            <div class="spark">
+              <i style="--h:.18;--i:0"></i><i style="--h:.42;--i:1"></i><i style="--h:.3;--i:2"></i><i style="--h:.58;--i:3"></i><i style="--h:.46;--i:4"></i><i style="--h:.71;--i:5"></i><i style="--h:.52;--i:6"></i><i style="--h:.82;--i:7"></i><i style="--h:.64;--i:8"></i><i style="--h:.9;--i:9"></i><i style="--h:.6;--i:10"></i><i style="--h:.44;--i:11"></i>
+            </div>
           </div>
-        </div>
-        <div class="feature-item reveal">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Live TUI dashboard</h3>
-            <p><code>flexfetch --live</code> opens a TUI with CPU/memory/disk gauges, per-process bars, network sparklines.</p>
+        </article>
+
+        <!-- E · templates -->
+        <article class="card spot reveal" style="--i:4">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+          </span>
+          <h3>Templates &amp; exports</h3>
+          <p>Tera templates with loops and conditionals, plus exports to SVG, PNG, HTML, Markdown, CSV and Prometheus.</p>
+          <div class="chips-track" aria-hidden="true">
+            <div class="chips">
+              <span class="chip hot">svg</span><span class="chip">png</span><span class="chip">html</span><span class="chip">markdown</span><span class="chip">csv</span><span class="chip">prometheus</span><span class="chip hot">tera</span><span class="chip">json</span>
+              <span class="chip hot">svg</span><span class="chip">png</span><span class="chip">html</span><span class="chip">markdown</span><span class="chip">csv</span><span class="chip">prometheus</span><span class="chip hot">tera</span><span class="chip">json</span>
+            </div>
           </div>
-        </div>
-        <div class="feature-item reveal d1">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Templates & exports</h3>
-            <p>Tera templates with loops and conditionals for full layout control, plus exports to SVG, PNG, HTML, Markdown, CSV, and Prometheus.</p>
+        </article>
+
+        <!-- F · wide · custom + context -->
+        <article class="card wide spot reveal" style="--i:5">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M9 9h6v6H9z"></path></svg>
+          </span>
+          <h3>Custom modules &amp; context</h3>
+          <p>Define your own info sources in config, and the smart fetch layer layers git, project, container and SSH context from your working directory.</p>
+          <div class="typewrap" aria-hidden="true">
+            <span class="prompt">$</span>
+            <span class="type"></span>
+            <span class="caret"></span>
           </div>
-        </div>
-        <div class="feature-item reveal d2">
-          <span class="feature-check" aria-hidden="true">✓</span>
-          <div>
-            <h3>Custom modules & context</h3>
-            <p>Define your own info sources in config, and smart fetch layers git, project type, container and SSH context from your working directory.</p>
+        </article>
+
+        <!-- G · plugins -->
+        <article class="card spot reveal" style="--i:6">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6"></path><path d="M15 2v6"></path><path d="M7 8h10v2.5a5 5 0 0 1-10 0V8z"></path><path d="M12 15.5V22"></path></svg>
+          </span>
+          <h3>Plugins</h3>
+          <p>Lua and WASM plugins auto-load from <code>~/.config/flexfetch/plugins</code>. WASM runs in a fuel-metered, capability-gated sandbox.</p>
+          <div class="plugin-row" aria-hidden="true">
+            <span class="plugin" style="--i:0"><span class="lock"></span>lua</span>
+            <span class="plugin" style="--i:1"><span class="lock"></span>wasm</span>
           </div>
+        </article>
+
+        <!-- H · full · supply chain -->
+        <article class="card full spot reveal" style="--i:7">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+          </span>
+          <h3>Supply-chain hardened</h3>
+          <p>Every release artifact is checksummed, signed, and attested &mdash; and the installer refuses to unpack anything that doesn't verify.</p>
+          <div class="secure-grid" aria-hidden="true">
+            <div class="secure-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <div><b>SHA-256 checksums</b><span>published sha256sums.txt per release</span></div>
+            </div>
+            <div class="secure-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <div><b>cosign signatures</b><span>binaries verifiable via the release key</span></div>
+            </div>
+            <div class="secure-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <div><b>SLSA provenance</b><span>attestations built into the pipeline</span></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODULES ============ -->
+  <section class="section" id="modules">
+    <div class="container">
+      <div class="mods-head reveal" style="--i:0">
+        <div>
+          <span class="eyebrow">The surface area</span>
+          <h2 style="margin-bottom:0">39 modules, one binary.</h2>
         </div>
+        <div class="field">
+          <label for="mod-search">Filter modules</label>
+          <div class="input-wrap">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input id="mod-search" type="search" placeholder="try gpu, net, or fs" autocomplete="off" />
+          </div>
+          <div class="mod-count" id="mod-count" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="mods-grid reveal" id="mods-grid" style="--i:1">
+        <div class="mod" data-name="os" data-tag="system"><span class="mname">os</span><span class="mtag">system</span></div>
+        <div class="mod" data-name="host" data-tag="system"><span class="mname">host</span><span class="mtag">system</span></div>
+        <div class="mod" data-name="kernel" data-tag="system"><span class="mname">kernel</span><span class="mtag">system</span></div>
+        <div class="mod" data-name="uptime" data-tag="system"><span class="mname">uptime</span><span class="mtag">system</span></div>
+        <div class="mod" data-name="locale" data-tag="system"><span class="mname">locale</span><span class="mtag">system</span></div>
+        <div class="mod" data-name="cpu" data-tag="hardware"><span class="mname">cpu</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="cpucache" data-tag="hardware"><span class="mname">cpucache</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="cpuusage" data-tag="hardware"><span class="mname">cpuusage</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="memory" data-tag="hardware"><span class="mname">memory</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="disk" data-tag="hardware"><span class="mname">disk</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="swap" data-tag="hardware"><span class="mname">swap</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="gpu" data-tag="hardware"><span class="mname">gpu</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="battery" data-tag="hardware"><span class="mname">battery</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="temperature" data-tag="hardware"><span class="mname">temperature</span><span class="mtag">hardware</span></div>
+        <div class="mod" data-name="network" data-tag="network"><span class="mname">network</span><span class="mtag">network</span></div>
+        <div class="mod" data-name="publicip" data-tag="network"><span class="mname">publicip</span><span class="mtag">network</span></div>
+        <div class="mod" data-name="dns" data-tag="network"><span class="mname">dns</span><span class="mtag">network</span></div>
+        <div class="mod" data-name="wifi" data-tag="network"><span class="mname">wifi</span><span class="mtag">network</span></div>
+        <div class="mod" data-name="bluetooth" data-tag="network"><span class="mname">bluetooth</span><span class="mtag">network</span></div>
+        <div class="mod" data-name="processes" data-tag="runtime"><span class="mname">processes</span><span class="mtag">runtime</span></div>
+        <div class="mod" data-name="shell" data-tag="runtime"><span class="mname">shell</span><span class="mtag">runtime</span></div>
+        <div class="mod" data-name="terminal" data-tag="runtime"><span class="mname">terminal</span><span class="mtag">runtime</span></div>
+        <div class="mod" data-name="de" data-tag="runtime"><span class="mname">de</span><span class="mtag">runtime</span></div>
+        <div class="mod" data-name="wm" data-tag="runtime"><span class="mname">wm</span><span class="mtag">runtime</span></div>
+        <div class="mod" data-name="media" data-tag="runtime"><span class="mname">media</span><span class="mtag">runtime</span></div>
+        <div class="mod" data-name="resolution" data-tag="display"><span class="mname">resolution</span><span class="mtag">display</span></div>
+        <div class="mod" data-name="display" data-tag="display"><span class="mname">display</span><span class="mtag">display</span></div>
+        <div class="mod" data-name="wallpaper" data-tag="display"><span class="mname">wallpaper</span><span class="mtag">display</span></div>
+        <div class="mod" data-name="colors" data-tag="display"><span class="mname">colors</span><span class="mtag">display</span></div>
+        <div class="mod" data-name="packages" data-tag="software"><span class="mname">packages</span><span class="mtag">software</span></div>
+        <div class="mod" data-name="title" data-tag="software"><span class="mname">title</span><span class="mtag">software</span></div>
+        <div class="mod" data-name="weather" data-tag="software"><span class="mname">weather</span><span class="mtag">software</span></div>
+        <div class="mod" data-name="health" data-tag="software"><span class="mname">health</span><span class="mtag">software</span></div>
+        <div class="mod" data-name="git" data-tag="project"><span class="mname">git</span><span class="mtag">project</span></div>
+        <div class="mod" data-name="project" data-tag="project"><span class="mname">project</span><span class="mtag">project</span></div>
+        <div class="mod" data-name="fsdeep" data-tag="project"><span class="mname">fsdeep</span><span class="mtag">project</span></div>
+        <div class="mod" data-name="container" data-tag="project"><span class="mname">container</span><span class="mtag">project</span></div>
+        <div class="mod" data-name="context" data-tag="project"><span class="mname">context</span><span class="mtag">project</span></div>
+        <div class="mod" data-name="custom" data-tag="config"><span class="mname">custom</span><span class="mtag">config</span></div>
+      </div>
+
+      <div class="mods-empty" id="mods-empty" role="status">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path></svg>
+        <p>No module matches that query. Try <b>gpu</b>, <b>net</b>, or <b>fs</b>.</p>
       </div>
     </div>
   </section>
@@ -179,27 +375,88 @@
   <!-- ============ INSTALL ============ -->
   <section class="section" id="install">
     <div class="container">
-      <div class="section-head reveal">
-        <h2>On your machine in one command.</h2>
-        <p>Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries. Every artifact includes checksums and signatures for verification.</p>
-      </div>
       <div class="inst-grid">
-        <div class="inst reveal">
-          <span class="badge">official</span>
-          <h3>curl installer</h3>
-          <p>Detects your platform, verifies the checksum before unpacking, and refuses to install anything if the file doesn't match.</p>
-          <div class="cmd-wrap">
-            <code id="cmd-curl2">curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh</code>
-            <button class="copy-btn" data-copy="cmd-curl2" aria-label="Copy command">Copy</button>
+        <div class="inst-copy reveal" style="--i:0">
+          <span class="eyebrow">Get it</span>
+          <h2>On your machine in one command.</h2>
+          <p>
+            Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries.
+            Every artifact ships with checksums and signatures &mdash; the installer verifies
+            before it unpacks, and refuses to install anything that doesn't match.
+          </p>
+          <ul class="secure-list">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <div><b>Checksum fail-closed</b><span>a published SHA-256 mismatch aborts the install</span></div>
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <div><b>Signed artifacts</b><span>cosign signatures verifiable against the release key</span></div>
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <div><b>Build provenance</b><span>SLSA attestations generated by the release pipeline</span></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="inst-stack reveal" style="--i:1">
+          <div class="inst-card">
+            <div class="inst-top">
+              <b>curl installer</b>
+              <span class="badge">official</span>
+            </div>
+            <div class="cmd">
+              <span class="prompt" aria-hidden="true">$</span>
+              <code id="cmd-curl">curl -fsSL https://github.com/mahesh-diwan/flexfetch/releases/latest/download/install.sh | sh</code>
+              <button class="copy magnetic" data-copy="cmd-curl" aria-label="Copy install command">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>copy
+              </button>
+            </div>
+            <p class="note">Detects your platform, verifies the checksum, and refuses anything that doesn't match.</p>
           </div>
-          <div class="plat-hint" id="plat-hint2"></div>
-          <div class="note">Linux & macOS · checksum + signature verified</div>
+
+          <div class="inst-card">
+            <div class="inst-top">
+              <b>From source</b>
+              <span class="badge">cargo</span>
+            </div>
+            <div class="cmd">
+              <span class="prompt" aria-hidden="true">$</span>
+              <code id="cmd-cargo">cargo install --git https://github.com/mahesh-diwan/flexfetch</code>
+              <button class="copy magnetic" data-copy="cmd-cargo" aria-label="Copy cargo install command">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>copy
+              </button>
+            </div>
+            <a class="inst-alt" href="https://github.com/mahesh-diwan/flexfetch/releases">
+              <code>browse release assets</code>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg>
+            </a>
+          </div>
         </div>
       </div>
-      <div class="secure-strip reveal">
-        <span class="ok">✓ SHA-256 checksums</span>
-        <span class="ok">✓ cosign signatures</span>
-        <span class="ok">✓ supply-chain provenance</span>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="cta">
+    <div class="container">
+      <div class="reveal in" style="--i:0">
+        <h2>Fetched in milliseconds.<br /><span class="accent">Yours in one.</span></h2>
+        <div class="cmd">
+          <span class="prompt" aria-hidden="true">$</span>
+          <code id="cmd-cta">curl -fsSL https://github.com/mahesh-diwan/flexfetch/releases/latest/download/install.sh | sh</code>
+          <button class="copy magnetic" data-copy="cmd-cta" aria-label="Copy install command">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>copy
+          </button>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-primary magnetic" href="https://github.com/mahesh-diwan/flexfetch">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+            Star on GitHub
+          </a>
+          <a class="btn btn-ghost magnetic" href="docs/">Read the docs</a>
+        </div>
       </div>
     </div>
   </section>
@@ -235,14 +492,17 @@
         </div>
       </div>
       <div class="foot-bottom">
-        <span>© <span id="year"></span> flexfetch · MIT licensed</span>
-        <span><a href="https://github.com/mahesh-diwan/flexfetch">GitHub</a></span>
+        <span>&copy; <span id="year"></span> flexfetch &middot; MIT licensed</span>
+        <a href="https://github.com/mahesh-diwan/flexfetch">github.com/mahesh-diwan/flexfetch</a>
       </div>
     </div>
   </footer>
 
-  <div class="toast" id="toast"></div>
-  <button class="btt" id="btt" aria-label="Back to top">↑</button>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <button class="btt" id="btt" aria-label="Back to top">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="m5 12 7-7 7 7"></path></svg>
+  </button>
+
   <script src="assets/main.js"></script>
 </body>
 </html>
