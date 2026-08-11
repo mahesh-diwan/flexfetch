@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786450190803,
+  "lastUpdate": 1786452998462,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -935,6 +935,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1923821,
             "range": "± 69048",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "8fda1ca340d6fc9794539464cea79d7db94666e4",
+          "message": "site: corporate motion pass (motion-design skill)\n\nOne archetype: Corporate. Signature --ease-out everywhere, 0% overshoot.\n\n- --duration-normal alias 500ms -> 300ms (was aliasing to 'slower',\n  making reveal/toast/btt sluggish; 500ms is outside the palette's use)\n- reveal: now actually fires — 'js' class was never added to <html>, so\n  html.js .reveal was dead; reveal-on-scroll was a no-op\n- drawer nav: exit 30% faster than enter (base vs .open transitions)\n- hamburger/caret/toast/copy-btn: spring and raw durations/easings ->\n  token easings; margin-left/top animation -> transform (DESIGN.md 7.3)\n- skip-link + caps arrow + btn active: raw values -> tokens\n- design-system .dur demo: transform transition had no duration (bug)\n- DESIGN.md 7.0: document motion personality + palette",
+          "timestamp": "2026-08-11T18:23:53+05:30",
+          "tree_id": "052be0c043cc245796d8f1d606fa99a563c9b5a9",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/8fda1ca340d6fc9794539464cea79d7db94666e4"
+        },
+        "date": 1786452997283,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2584803,
+            "range": "± 33199",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2591610,
+            "range": "± 31340",
             "unit": "ns/iter"
           }
         ]
