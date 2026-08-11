@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786384163177,
+  "lastUpdate": 1786444363923,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -827,6 +827,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 12115370,
             "range": "± 367860",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "a90473394cb9b9c79a07ea8068201cc23fd689bc",
+          "message": "chore: sync Cargo.lock to v0.31.0",
+          "timestamp": "2026-08-11T15:59:59+05:30",
+          "tree_id": "c1e09dcfa4f77ba39b7bab9830c586082a52a026",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/a90473394cb9b9c79a07ea8068201cc23fd689bc"
+        },
+        "date": 1786444363019,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2664378,
+            "range": "± 34205",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2662934,
+            "range": "± 124487",
             "unit": "ns/iter"
           }
         ]
