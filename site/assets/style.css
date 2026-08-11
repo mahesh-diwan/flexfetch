@@ -934,6 +934,11 @@ h1 .accent {
   color: var(--text);
   text-align: right;
 }
+.lat-note {
+  margin-top: 14px;
+  font: 10.5px var(--font-mono);
+  color: var(--faint);
+}
 
 /* theme swatches (card B) */
 .swatches {

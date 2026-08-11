@@ -1,12 +1,8 @@
-<p align="center">
-  <img src="assets/default.svg" width="720" alt="flexfetch terminal output">
-</p>
-
 <h1 align="center">flexfetch</h1>
 
 <p align="center">
   <em>A fast, beautiful system information tool.</em><br>
-  Tera templates · 27 themes · 527+ logos · Rust
+  Tera templates · 27 themes · 527 logos · Rust
 </p>
 
 <p align="center">
@@ -27,12 +23,6 @@
 curl -fsSL https://github.com/mahesh-diwan/flexfetch/releases/latest/download/install.sh | sh
 ```
 
-From source:
-
-```bash
-cargo install --git https://github.com/mahesh-diwan/flexfetch
-```
-
 ---
 
 ## Quick Start
@@ -50,14 +40,14 @@ flexfetch --theme catppuccin  # switch theme
 
 - **Tera templates** — Jinja2-style templates for full layout control
 - **27 theme presets** — Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, and more
-- **527+ ASCII logos** — auto-detected per distro
+- **527 ASCII logos** — auto-detected per distro
 - **Live dashboard** — real-time CPU, memory, network, top processes
 - **Diff mode** — compare system state between two points in time
 - **QR sharing** — generate a QR code of your fetch for easy sharing
 - **SSH remote fetch** — fetch info from remote hosts in parallel
 - **Flash mode** — fastest one-shot fetch with no config file
 - **Custom modules** — define info sources inline in config (shell commands)
-- **Export formats** — text, JSON, Markdown, SVG, HTML, PNG, GitHub Actions
+- **Export formats** — text, JSON, Markdown, CSV, Prometheus, Ansible, Terraform, GitHub Actions
 - **Shell completions** — bash, zsh, fish
 - **Health score** — 0–100 system health from disk, swap, load, battery
 - **Smart fetch** — context-aware info (git branch, project type, container, SSH)

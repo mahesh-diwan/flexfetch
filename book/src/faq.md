@@ -3,7 +3,7 @@
 ## General
 
 **How is this different from neofetch/fastfetch?**
-Tera templates and 28 theme presets — plus live dashboard, smart fetch,
+Tera templates and 27 theme presets — plus live dashboard, smart fetch,
 health score, and remote SSH fetch.
 
 **How do I add info that isn't built in?**
@@ -19,8 +19,9 @@ MIT.
 ## Installation
 
 **How do I update?**
-If you installed via the install script: `flexfetch --update`.
-Otherwise, re-run the install script or `cargo install --git`.
+Re-run the install script — the official installer is the only supported
+install path. If you installed via the install script, `flexfetch --update`
+re-runs it for you.
 
 **Why is my minimal build missing templates / image logos / the live dashboard?**
 Those are feature-gated for the binary diet. Build with `--features

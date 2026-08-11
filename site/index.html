@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>flexfetch — your whole system, fetched in milliseconds</title>
-  <meta name="description" content="flexfetch is a blazing-fast, themeable system info tool for Linux and macOS. 39 modules, 527 logos, zero subprocesses, pure Rust." />
+  <meta name="description" content="flexfetch is a fast, themeable system info tool for Linux and macOS. 39 modules, 527 logos, pure Rust." />
   <meta property="og:title" content="flexfetch — your whole system, fetched in milliseconds" />
   <meta property="og:description" content="A blazing-fast, themeable system info tool. 39 modules, 527 logos, pure Rust." />
   <meta property="og:url" content="https://mahesh-diwan.github.io/flexfetch/" />
@@ -56,12 +56,12 @@
         <div class="hero-text reveal in" style="--i:0">
           <span class="kicker">
             <span class="dot" aria-hidden="true"></span>
-            Rust &middot; Linux &amp; macOS &middot; <em>zero subprocesses</em>
+            Rust &middot; Linux &amp; macOS &middot; <em>reads /proc directly</em>
           </span>
           <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
-            flexfetch reads <strong>/proc</strong>, sysfs, and macOS APIs directly &mdash; no
-            forking, no parsing, no startup cost. 39 modules, 527 logos, pure Rust.
+            flexfetch reads <strong>/proc</strong>, sysfs, and macOS APIs directly for most
+            modules. 39 modules, 527 logos, pure Rust.
           </p>
 
           <div class="hero-install">
@@ -76,16 +76,16 @@
           </div>
 
           <div class="hero-stats">
-            <span class="hs"><b>1.7 MB</b> binary</span>
+            <span class="hs"><b>1.75 MB</b> minimal binary</span>
             <span class="hs"><b>39</b> modules</span>
             <span class="hs"><b>527</b> logos</span>
-            <span class="hs"><b>0</b> subprocesses</span>
+            <span class="hs"><b>0.7 ms</b> cpu module</span>
           </div>
 
           <div class="social-proof">
             <span>MIT licensed</span>
             <span aria-hidden="true">&middot;</span>
-            <span>checksum + signature verified</span>
+            <span>SHA-256 + cosign verified</span>
             <span aria-hidden="true">&middot;</span>
             <a href="https://github.com/mahesh-diwan/flexfetch">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
@@ -145,14 +145,14 @@
           <span class="stat-note">fastfetch-imported</span>
         </div>
         <div class="stat reveal" style="--i:2">
-          <span class="stat-num">0</span>
-          <span class="stat-label">Subprocesses</span>
-          <span class="stat-note">no forks, no parsing</span>
+          <span class="stat-num">0.7 ms</span>
+          <span class="stat-label">Fastest module</span>
+          <span class="stat-note">cpu, read via /proc</span>
         </div>
         <div class="stat reveal" style="--i:3">
-          <span class="stat-num">1.7 MB</span>
-          <span class="stat-label">Binary</span>
-          <span class="stat-note">minimal build, LTO</span>
+          <span class="stat-num">1.75 MB</span>
+          <span class="stat-label">Minimal binary</span>
+          <span class="stat-note">LTO, no default features</span>
         </div>
       </div>
     </div>
@@ -170,25 +170,31 @@
       </div>
 
       <div class="bento">
-        <!-- A · wide · zero subprocesses -->
+        <!-- A · wide · reads the system directly -->
         <article class="card wide spot reveal" style="--i:0">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline></svg>
           </span>
-          <h3>Zero subprocesses</h3>
-          <p>Every collector reads kernel data directly. No forking, no parsing overhead. Warm runs finish in single-digit milliseconds.</p>
+          <h3>Reads the system directly</h3>
+          <p>Most collectors read <code>/proc</code>, sysfs, or macOS APIs directly &mdash; the cpu module finishes in under a millisecond. A few optional modules (wifi, bluetooth, media, wallpaper, git) shell out to the platform tool only when needed.</p>
           <div class="latency" aria-hidden="true">
             <div class="lat-row">
-              <span class="lat-label">flexfetch</span>
-              <span class="lat-track"><i style="--w:.92;--d:0s"></i></span>
-              <span class="lat-ms">4.8 ms</span>
+              <span class="lat-label">all modules</span>
+              <span class="lat-track"><i style="--w:1;--d:0s"></i></span>
+              <span class="lat-ms">25.8 ms</span>
             </div>
             <div class="lat-row">
-              <span class="lat-label">shell pipeline</span>
-              <span class="lat-track"><i style="--w:.07;--d:.6s"></i></span>
-              <span class="lat-ms">172 ms</span>
+              <span class="lat-label">cpu module</span>
+              <span class="lat-track"><i style="--w:.1;--d:.45s"></i></span>
+              <span class="lat-ms">0.73 ms</span>
+            </div>
+            <div class="lat-row">
+              <span class="lat-label">template render</span>
+              <span class="lat-track"><i style="--w:.04;--d:.9s"></i></span>
+              <span class="lat-ms">0.22 ms</span>
             </div>
           </div>
+          <p class="lat-note" aria-hidden="true">cold-run measurements from <code>flexfetch --benchmark</code> (author&rsquo;s machine)</p>
         </article>
 
         <!-- B · themes -->
@@ -213,7 +219,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg>
           </span>
           <h3>ASCII &amp; image logos</h3>
-          <p>527 distro logos imported from fastfetch, plus PNG/BMP renders as block characters with palette extraction.</p>
+          <p>527 distro logos imported from fastfetch, plus your own PNG logos rendered as block characters with palette extraction.</p>
           <pre class="mini-logo" aria-hidden="true">.-------------------------:
 .+=========================.
 :++===++==================-
@@ -243,11 +249,11 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
           </span>
           <h3>Templates &amp; exports</h3>
-          <p>Tera templates with loops and conditionals, plus exports to SVG, PNG, HTML, Markdown, CSV and Prometheus.</p>
+          <p>Tera templates with loops and conditionals for layout control, and output as text, JSON, Markdown, CSV, Prometheus, Ansible, Terraform, or GitHub Actions.</p>
           <div class="chips-track" aria-hidden="true">
             <div class="chips">
-              <span class="chip hot">svg</span><span class="chip">png</span><span class="chip">html</span><span class="chip">markdown</span><span class="chip">csv</span><span class="chip">prometheus</span><span class="chip hot">tera</span><span class="chip">json</span>
-              <span class="chip hot">svg</span><span class="chip">png</span><span class="chip">html</span><span class="chip">markdown</span><span class="chip">csv</span><span class="chip">prometheus</span><span class="chip hot">tera</span><span class="chip">json</span>
+              <span class="chip hot">json</span><span class="chip">markdown</span><span class="chip">csv</span><span class="chip">prometheus</span><span class="chip hot">ansible</span><span class="chip">terraform</span><span class="chip">github</span><span class="chip">text</span>
+              <span class="chip hot">json</span><span class="chip">markdown</span><span class="chip">csv</span><span class="chip">prometheus</span><span class="chip hot">ansible</span><span class="chip">terraform</span><span class="chip">github</span><span class="chip">text</span>
             </div>
           </div>
         </article>
@@ -285,11 +291,11 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
           </span>
           <h3>Supply-chain hardened</h3>
-          <p>Every release artifact is checksummed, signed, and attested &mdash; and the installer refuses to unpack anything that doesn't verify.</p>
+          <p>Every release artifact ships checksums, cosign signatures, and SLSA provenance &mdash; and the installer aborts on a checksum mismatch.</p>
           <div class="secure-grid" aria-hidden="true">
             <div class="secure-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <div><b>SHA-256 checksums</b><span>published sha256sums.txt per release</span></div>
+              <div><b>SHA-256 checksums</b><span>per-release checksums; the installer aborts on mismatch</span></div>
             </div>
             <div class="secure-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -381,17 +387,17 @@
           <h2>On your machine in one command.</h2>
           <p>
             Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries.
-            Every artifact ships with checksums and signatures &mdash; the installer verifies
-            before it unpacks, and refuses to install anything that doesn't match.
+            Every release ships SHA-256 checksums and cosign signatures &mdash; the installer
+            verifies the checksum before unpacking and aborts on a mismatch.
           </p>
           <ul class="secure-list">
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <div><b>Checksum fail-closed</b><span>a published SHA-256 mismatch aborts the install</span></div>
+              <div><b>SHA-256 verified</b><span>the installer aborts on a checksum mismatch</span></div>
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <div><b>Signed artifacts</b><span>cosign signatures verifiable against the release key</span></div>
+              <div><b>cosign-signed</b><span>binaries verifiable with the release key</span></div>
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -418,16 +424,10 @@
 
           <div class="inst-card">
             <div class="inst-top">
-              <b>From source</b>
-              <span class="badge">cargo</span>
+              <b>Prebuilt binaries</b>
+              <span class="badge">releases</span>
             </div>
-            <div class="cmd">
-              <span class="prompt" aria-hidden="true">$</span>
-              <code id="cmd-cargo">cargo install --git https://github.com/mahesh-diwan/flexfetch</code>
-              <button class="copy magnetic" data-copy="cmd-cargo" aria-label="Copy cargo install command">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>copy
-              </button>
-            </div>
+            <p class="note" style="margin-bottom:12px">The installer pulls the right archive from the latest GitHub Release. You can also download one manually.</p>
             <a class="inst-alt" href="https://github.com/mahesh-diwan/flexfetch/releases">
               <code>browse release assets</code>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg>

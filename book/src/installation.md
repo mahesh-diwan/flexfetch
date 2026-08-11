@@ -1,32 +1,33 @@
 # Installation
 
-## One-line install
+## One-line install (official)
+
+The only supported way to install flexfetch is the official installer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/install.sh | sh
+curl -fsSL https://github.com/mahesh-diwan/flexfetch/releases/latest/download/install.sh | sh
 ```
 
-Installs the latest binary (~2 MB, statically linked on Linux) from
-[GitHub Releases](https://github.com/mahesh-diwan/flexfetch/releases). Requires
-`curl` + `sudo`. Works on Linux and macOS.
+It installs the latest release binary (the full default feature build,
+statically linked on Linux) from
+[GitHub Releases](https://github.com/mahesh-diwan/flexfetch/releases).
+Requires `curl` + `sudo`. Works on Linux and macOS.
 
-The install script:
+The installer:
 
-- Detects your architecture (x86_64, aarch64)
+- Detects your architecture (x86_64, aarch64, armv7 on Linux; arm64 and x86_64 on macOS)
 - Downloads the prebuilt binary from the latest release
+- Verifies the SHA-256 checksum of the archive and **aborts on mismatch**
+  (verification needs a `sha256sum`/`shasum` tool; it is skipped with a
+  warning if no checksum tool is available)
 - Installs to `/usr/local/bin/flexfetch`
-- Generates shell completions for bash, zsh, and fish
 
-Prebuilt binaries include the live dashboard, image logos, and shell-completion
-generation.
+Prebuilt binaries include the live dashboard, image logos, and the
+`flexfetch completions` subcommand.
 
-## From source
-
-```bash
-cargo install --git https://github.com/mahesh-diwan/flexfetch
-```
-
-Default builds compile vendored Lua 5.4, so a C compiler is required.
+> **Note:** `cargo install` is not an install path — the repo is a Rust
+> workspace, and the officially supported way to get flexfetch is the
+> installer above.
 
 ## Verify
 
@@ -38,7 +39,8 @@ flexfetch -f json | head -5
 
 ## Shell completions
 
-After installing, generate completions:
+flexfetch ships completion definitions for bash, zsh, and fish. After
+installing, generate them with the built-in subcommand:
 
 ```bash
 flexfetch completions bash > ~/.bash_completion.d/flexfetch
