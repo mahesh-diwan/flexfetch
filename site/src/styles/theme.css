@@ -8,31 +8,31 @@
   color-scheme: light;
 
   /* ---------- 2.1 Primitive palette ---------- */
-  --color-neutral-50: oklch(98.5% 0 0);
-  --color-neutral-100: oklch(96.8% 0 0);
-  --color-neutral-200: oklch(92.2% 0 0);
-  --color-neutral-300: oklch(86.8% 0 0);
-  --color-neutral-400: oklch(70.4% 0 0);
-  --color-neutral-500: oklch(55.6% 0 0);
-  --color-neutral-600: oklch(43.9% 0 0);
-  --color-neutral-700: oklch(37.1% 0 0);
-  --color-neutral-800: oklch(26.9% 0 0);
-  --color-neutral-900: oklch(20.5% 0 0);
-  --color-neutral-950: oklch(14.5% 0 0);
+  --color-neutral-50: oklch(98.5% 0.004 90);
+  --color-neutral-100: oklch(96.8% 0.006 90);
+  --color-neutral-200: oklch(92.2% 0.009 88);
+  --color-neutral-300: oklch(86.8% 0.014 86);
+  --color-neutral-400: oklch(70.4% 0.022 80);
+  --color-neutral-500: oklch(55.6% 0.026 75);
+  --color-neutral-600: oklch(43.9% 0.028 70);
+  --color-neutral-700: oklch(37.1% 0.026 62);
+  --color-neutral-800: oklch(26.9% 0.02 55);
+  --color-neutral-900: oklch(20.5% 0.016 50);
+  --color-neutral-950: oklch(14.5% 0.012 46);
 
-  --color-brand-50: oklch(97% 0.014 256);
-  --color-brand-100: oklch(93.2% 0.032 256);
-  --color-brand-200: oklch(87% 0.061 256);
-  --color-brand-300: oklch(79.2% 0.099 256);
-  --color-brand-400: oklch(70.7% 0.146 256);
-  --color-brand-500: oklch(62.3% 0.188 260);
-  --color-brand-600: oklch(54.6% 0.215 263);
-  --color-brand-700: oklch(48.8% 0.215 264);
-  --color-brand-800: oklch(42.4% 0.199 265);
-  --color-brand-900: oklch(37.9% 0.146 266);
+  --color-brand-50: oklch(98% 0.035 90);
+  --color-brand-100: oklch(95% 0.07 85);
+  --color-brand-200: oklch(91% 0.115 82);
+  --color-brand-300: oklch(86% 0.155 80);
+  --color-brand-400: oklch(79% 0.185 78);
+  --color-brand-500: oklch(73.5% 0.19 80);
+  --color-brand-600: oklch(65.5% 0.175 75);
+  --color-brand-700: oklch(56% 0.155 68);
+  --color-brand-800: oklch(47.5% 0.135 62);
+  --color-brand-900: oklch(38.5% 0.11 55);
 
   --color-status-success-500: oklch(72.3% 0.219 149);
-  --color-status-warning-500: oklch(79.5% 0.184 86);
+  --color-status-warning-500: oklch(79.5% 0.184 100);
   --color-status-danger-500: oklch(63.7% 0.237 25);
   --color-status-info-500: oklch(70.4% 0.168 244);
 
@@ -49,10 +49,10 @@
   --color-border: var(--color-neutral-300);
   --color-border-subtle: var(--color-neutral-100);
   --color-border-strong: var(--color-neutral-500);
-  --color-accent: var(--color-brand-600);
-  --color-accent-hover: var(--color-brand-700);
+  --color-accent: var(--color-brand-700);
+  --color-accent-hover: var(--color-brand-800);
   --color-accent-subtle: var(--color-brand-50);
-  --color-focus-ring: var(--color-brand-500);
+  --color-focus-ring: var(--color-brand-700);
   --color-success: var(--color-status-success-500);
   --color-warning: var(--color-status-warning-500);
   --color-danger: var(--color-status-danger-500);
@@ -184,16 +184,16 @@
   --color-bg-subtle: var(--color-neutral-900);
   --color-surface: var(--color-neutral-900);
   --color-surface-raised: var(--color-neutral-800);
-  --color-surface-overlay: rgba(10, 10, 10, 0.9);
+  --color-surface-overlay: rgba(14, 9, 6, 0.9);
   --color-fg: var(--color-neutral-50);
   --color-fg-muted: var(--color-neutral-400);
   --color-fg-subtle: var(--color-neutral-500);
-  --color-fg-on-accent: #ffffff;
+  --color-fg-on-accent: var(--color-neutral-950);
   --color-border: var(--color-neutral-700);
   --color-border-subtle: var(--color-neutral-800);
   --color-border-strong: var(--color-neutral-400);
-  --color-accent: var(--color-brand-600);
-  --color-accent-hover: var(--color-brand-500);
+  --color-accent: var(--color-brand-500);
+  --color-accent-hover: var(--color-brand-400);
   --color-accent-subtle: var(--color-brand-900);
   --color-focus-ring: var(--color-brand-400);
 }
@@ -206,16 +206,16 @@
     --color-bg-subtle: var(--color-neutral-900);
     --color-surface: var(--color-neutral-900);
     --color-surface-raised: var(--color-neutral-800);
-    --color-surface-overlay: rgba(10, 10, 10, 0.9);
+    --color-surface-overlay: rgba(14, 9, 6, 0.9);
     --color-fg: var(--color-neutral-50);
     --color-fg-muted: var(--color-neutral-400);
     --color-fg-subtle: var(--color-neutral-500);
-    --color-fg-on-accent: #ffffff;
+    --color-fg-on-accent: var(--color-neutral-950);
     --color-border: var(--color-neutral-700);
     --color-border-subtle: var(--color-neutral-800);
     --color-border-strong: var(--color-neutral-400);
-    --color-accent: var(--color-brand-600);
-    --color-accent-hover: var(--color-brand-500);
+    --color-accent: var(--color-brand-500);
+    --color-accent-hover: var(--color-brand-400);
     --color-accent-subtle: var(--color-brand-900);
     --color-focus-ring: var(--color-brand-400);
   }

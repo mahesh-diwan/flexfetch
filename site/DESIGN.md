@@ -56,35 +56,35 @@ Colors live in **three layers**: primitive (raw values), semantic (role aliases)
 ### 2.1 Primitive palette (raw values — OKLCH for wide gamut, with sRGB hex fallback)
 
 ```tokens color.neutral
-- 50  (color): oklch(98.5% 0 0)   # fallback: #fafafa
-- 100 (color): oklch(96.8% 0 0)   # fallback: #f5f5f5
-- 200 (color): oklch(92.2% 0 0)   # fallback: #e5e5e5
-- 300 (color): oklch(86.8% 0 0)   # fallback: #d4d4d4
-- 400 (color): oklch(70.4% 0 0)   # fallback: #a3a3a3
-- 500 (color): oklch(55.6% 0 0)   # fallback: #737373
-- 600 (color): oklch(43.9% 0 0)   # fallback: #525252
-- 700 (color): oklch(37.1% 0 0)   # fallback: #404040
-- 800 (color): oklch(26.9% 0 0)   # fallback: #262626
-- 900 (color): oklch(20.5% 0 0)   # fallback: #171717
-- 950 (color): oklch(14.5% 0 0)   # fallback: #0a0a0a
+- 50  (color): oklch(98.5% 0.004 90)  # fallback: #fbfaf7 — warm off-white
+- 100 (color): oklch(96.8% 0.006 90)  # fallback: #f6f4f0 — warm tinted
+- 200 (color): oklch(92.2% 0.009 88)  # fallback: #e8e5df — warm line
+- 300 (color): oklch(86.8% 0.014 86)  # fallback: #d8d3c9 — warm light border
+- 400 (color): oklch(70.4% 0.022 80)  # fallback: #a79e91 — warm mid
+- 500 (color): oklch(55.6% 0.026 75)  # fallback: #7c7163 — warm gray
+- 600 (color): oklch(43.9% 0.028 70)  # fallback: #5d5042 — warm dark gray
+- 700 (color): oklch(37.1% 0.026 62)  # fallback: #4a3d32 — warm charcoal
+- 800 (color): oklch(26.9% 0.020 55)  # fallback: #2e241d — warm near-black
+- 900 (color): oklch(20.5% 0.016 50)  # fallback: #1d1511 — warm black
+- 950 (color): oklch(14.5% 0.012 46)  # fallback: #0e0906 — warm deepest
 ```
 
 ```tokens color.brand
-- 50  (color): oklch(97.0% 0.014 256)
-- 100 (color): oklch(93.2% 0.032 256)
-- 200 (color): oklch(87.0% 0.061 256)
-- 300 (color): oklch(79.2% 0.099 256)
-- 400 (color): oklch(70.7% 0.146 256)
-- 500 (color): oklch(62.3% 0.188 260)
-- 600 (color): oklch(54.6% 0.215 263)
-- 700 (color): oklch(48.8% 0.215 264)
-- 800 (color): oklch(42.4% 0.199 265)
-- 900 (color): oklch(37.9% 0.146 266)
+- 50  (color): oklch(98% 0.035 90)  # fallback: #fff8de — pale cream
+- 100 (color): oklch(95% 0.070 85)  # fallback: #ffecb9 — cream gold
+- 200 (color): oklch(91% 0.115 82)  # fallback: #ffda85 — light gold
+- 300 (color): oklch(86% 0.155 80)  # fallback: #ffc446 — gold
+- 400 (color): oklch(79% 0.185 78)  # fallback: #faa800 — amber
+- 500 (color): oklch(73.5% 0.190 80)  # fallback: #e69700 — terminal amber
+- 600 (color): oklch(65.5% 0.175 75)  # fallback: #cd7c00 — deep amber
+- 700 (color): oklch(56% 0.155 68)  # fallback: #ae5e00 — burnt amber
+- 800 (color): oklch(47.5% 0.135 62)  # fallback: #8f4500 — brown amber
+- 900 (color): oklch(38.5% 0.110 55)  # fallback: #6e2f00 — dark bronze
 ```
 
 ```tokens color.status
 - success-500 (color): oklch(72.3% 0.219 149)
-- warning-500 (color): oklch(79.5% 0.184 86)
+- warning-500 (color): oklch(79.5% 0.184 100)  # fallback: #d8bd00 — yellow, distinct from amber brand
 - danger-500  (color): oklch(63.7% 0.237 25)
 - info-500    (color): oklch(70.4% 0.168 244)
 ```
@@ -97,18 +97,18 @@ Colors live in **three layers**: primitive (raw values), semantic (role aliases)
 | `--color-bg-subtle`       | `{color.neutral.100}`        | `{color.neutral.900}`        | Muted section bg                                  | —                     |
 | `--color-surface`         | `#ffffff`                    | `{color.neutral.900}`        | Card / panel                                      | —                     |
 | `--color-surface-raised`  | `{color.neutral.50}`         | `{color.neutral.800}`        | Elevated surface                                  | —                     |
-| `--color-surface-overlay` | `rgba(255,255,255,0.9)`      | `rgba(10,10,10,0.9)`         | Modal/popover bg                                  | —                     |
+| `--color-surface-overlay` | `rgba(255,255,255,0.9)`      | `rgba(14,9,6,0.9)`           | Modal/popover bg (warm)                           | —                     |
 | `--color-fg`              | `{color.neutral.900}`        | `{color.neutral.50}`         | Primary text                                      | 7:1 vs bg (AAA)       |
 | `--color-fg-muted`        | `{color.neutral.600}`        | `{color.neutral.400}`        | Secondary text                                    | 4.5:1 vs bg (AA)      |
 | `--color-fg-subtle`       | `{color.neutral.500}`        | `{color.neutral.500}`        | Placeholder, meta                                 | 3:1 vs bg (AA-large)  |
-| `--color-fg-on-accent`    | `#ffffff`                    | `#ffffff`                    | Text on accent                                    | 4.5:1 vs accent       |
+| `--color-fg-on-accent`    | `#ffffff`                    | `{color.neutral.950}`        | Text on accent (dark text on bright amber)        | 4.5:1 vs accent       |
 | `--color-border`          | `{color.neutral.300}`        | `{color.neutral.700}`        | Default border (decorative — pair with elevation) | advisory 1.5:1        |
 | `--color-border-subtle`   | `{color.neutral.100}`        | `{color.neutral.800}`        | Ultra-subtle divider (decorative only)            | —                     |
 | `--color-border-strong`   | `{color.neutral.500}`        | `{color.neutral.400}`        | Emphasized border (sole boundary — meets 3:1)     | 3:1 vs adjacent       |
-| `--color-accent`          | `{color.brand.600}`          | `{color.brand.600}`          | Primary CTA / interactive                         | 4.5:1 vs fg-on-accent |
-| `--color-accent-hover`    | `{color.brand.700}`          | `{color.brand.500}`          | Hover on accent                                   | —                     |
+| `--color-accent`          | `{color.brand.700}`          | `{color.brand.500}`          | Primary CTA / interactive (amber)                 | 4.5:1 vs fg-on-accent |
+| `--color-accent-hover`    | `{color.brand.800}`          | `{color.brand.400}`          | Hover on accent                                   | —                     |
 | `--color-accent-subtle`   | `{color.brand.50}`           | `{color.brand.900}`          | Accent-tinted surface                             | —                     |
-| `--color-focus-ring`      | `{color.brand.500}`          | `{color.brand.400}`          | Focus indicator                                   | 3:1 vs adjacent       |
+| `--color-focus-ring`      | `{color.brand.700}`          | `{color.brand.400}`          | Focus indicator                                   | 3:1 vs adjacent       |
 | `--color-success`         | `{color.status.success-500}` | `{color.status.success-500}` | Success state                                     | 4.5:1 vs white        |
 | `--color-warning`         | `{color.status.warning-500}` | `{color.status.warning-500}` | Warning state                                     | 4.5:1 vs black        |
 | `--color-danger`          | `{color.status.danger-500}`  | `{color.status.danger-500}`  | Error / destructive                               | 4.5:1 vs white        |
