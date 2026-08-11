@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786466280793,
+  "lastUpdate": 1786467005886,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1115,6 +1115,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2623307,
             "range": "± 23310",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "1f4a7e07afc5959a0219f38971bb69f8bc492a8a",
+          "message": "feat(docs): terminal-sheet theme for mdBook docs\n\nRestyle the deployed /docs/ to match the landing page's v2 language: zinc-950 base with amber accent, Geist + Geist Mono typography, hairline borders, amber active chapter links. CSS uses #mdbook-content-prefixed selectors to beat mdBook's default stylesheet (tested against mdbook 0.5.4's runtime DOM). Also correct the intro table: 27 themes, 1.75 MB minimal binary, honest dependency claim.",
+          "timestamp": "2026-08-11T22:17:20+05:30",
+          "tree_id": "7989e258c75c07b060c66eee21a18c462985d338",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/1f4a7e07afc5959a0219f38971bb69f8bc492a8a"
+        },
+        "date": 1786467005352,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2709129,
+            "range": "± 32332",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2735980,
+            "range": "± 308570",
             "unit": "ns/iter"
           }
         ]
