@@ -13,6 +13,33 @@ site/docs
 .opencode/
 .playwright/
 .playwright-cli/
+.playwright-mcp/
 .superpowers/
 .memory/
 .ruff_cache/
+
+# AI planning / design artifacts (removed from the repo)
+.impeccable/
+animation-plans/
+docs/superpowers/
+flexfetch.md
+
+# Astro prototype site (removed — the repo ships a single static site)
+site/DESIGN.md
+site/animation-plans/
+site/astro.config.mjs
+site/modules.html
+site/node_modules/
+site/dist/
+site/.astro/
+site/src/
+site/public/
+site/package.json
+site/package-lock.json
+site/tsconfig.json
+
+# Local screenshots / scratch files
+/*.png
+site/*.png
+*.cjs
+book/src/*#*
