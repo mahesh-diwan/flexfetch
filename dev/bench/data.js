@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786452998462,
+  "lastUpdate": 1786453545373,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -971,6 +971,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2591610,
             "range": "± 31340",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "570e666c2ae3a2e05b55514256f9b7ab6db01db1",
+          "message": "site: strip emoji module glyphs (design-taste skill)\n\n38 emoji glyphs overflowed the 10px .glyph box (12px font, overflow\nvisible) — a real visual defect. Module grid now uses the clean\nterminal-dot motif (.glyph spot square), matching the site's mono\naesthetic and the skill's anti-emoji policy.",
+          "timestamp": "2026-08-11T18:32:51+05:30",
+          "tree_id": "8edc8f81ff9eac5de7ad29f8a3fbc917d6cc8519",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/570e666c2ae3a2e05b55514256f9b7ab6db01db1"
+        },
+        "date": 1786453544034,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2645842,
+            "range": "± 51504",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2636744,
+            "range": "± 65065",
             "unit": "ns/iter"
           }
         ]
