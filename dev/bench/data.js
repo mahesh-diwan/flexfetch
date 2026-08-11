@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786467005886,
+  "lastUpdate": 1786470590604,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1151,6 +1151,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2735980,
             "range": "± 308570",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "6c25717a8e871bda7ffe6fcf7a246849dc95e3fb",
+          "message": "fix(docs+site): purge blank anchor junk, correct every fabricated claim\n\nDocs and site are now fully grounded in the real binary and source.\n\nBlank entries: mdbook 0.5.4 materializes a stub file for every #fragment link in SUMMARY.md (34 junk files, deployed into /docs/). Removed all #fragment links from SUMMARY; 0 stubs in build output.\n\nThemes: was '28 curated' with a fake 'none' preset and fabricated key/value colors. Real: 27 presets, colors regenerated from theme.rs ANSI codes (e.g. catppuccin bright-blue/bright-cyan, not blue/teal).\n\nCounts: FAQ said 39 modules (real 38 + 2 layout directives), quick-start said 28 themes (real 27), building.md said 77 tests/13 suites (real 103/7).\n\nBuilding: real measured sizes (default 6.8 MB, release pipeline 2.4 MB, minimal 1.75 MB), real --benchmark numbers (32 ms collection / 0.35 ms render / 74 ms total) replacing fabricated flash-mode numbers, correct pipeline feature set (live,image-logos,completions,parallel).\n\nExports: the earlier site 'fix' was itself wrong - SVG/HTML/PNG/Markdown exports DO exist via --export (verified: wrote real .svg/.html/.png), while ansible/terraform/csv/prometheus/github are -f formats. output.md formats table now lists all 8 -f values; README mentions both paths.\n\nConfiguration: removed fabricated [cache] config section (cache is internal-only, 60s TTL hardcoded in context.rs), fixed broken awk example, corrected modules_config TOML shape.\n\nSite: 39->38 modules (title/separator tagged 'layout', JS count excludes them), replaced fabricated Lua+WASM plugins card with truthful QR/diff/ssh 'Share & compare' card, replaced non-existent SLSA claims with real CycloneDX SBOM, honest checksum wording (installer skips verification when no sha256 tool).\n\nSite verified: 21-check Playwright suite green (38-module count, filters, no WASM/SLSA, SBOM present, 0px overflow, 0 console errors). Docs verified: clean build, no anchor junk, theme check green.",
+          "timestamp": "2026-08-11T23:17:35+05:30",
+          "tree_id": "fa4bb6891f1b7c1bff1e35464961ce4683169c0c",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/6c25717a8e871bda7ffe6fcf7a246849dc95e3fb"
+        },
+        "date": 1786470589895,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2161952,
+            "range": "± 24403",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2173057,
+            "range": "± 18474",
             "unit": "ns/iter"
           }
         ]
