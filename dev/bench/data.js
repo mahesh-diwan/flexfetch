@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786464988384,
+  "lastUpdate": 1786466280793,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1079,6 +1079,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2569637,
             "range": "± 35956",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "e5354d1c03ad816eba7d1f6a7a4a26e771a0e545",
+          "message": "chore: remove AI planning artifacts, screenshots, and the Astro prototype from the repo\n\nDeletes .impeccable/, animation-plans/, docs/superpowers/ planning docs, all agent screenshots and scratch cjs scripts, the orphaned assets/default.svg, book/src anchor-file junk, and the entire Astro prototype tree that was committed under site/ (src, dist, node_modules 13k files, .astro cache, DESIGN.md, package.json) — site/ now contains only the static landing page (index.html + assets/) plus generated docs. All removed categories are .gitignored so they cannot be re-committed.",
+          "timestamp": "2026-08-11T22:05:22+05:30",
+          "tree_id": "ddbb174a7936f61ad533ecd39d0f24263f2c3f9c",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/e5354d1c03ad816eba7d1f6a7a4a26e771a0e545"
+        },
+        "date": 1786466280217,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2582439,
+            "range": "± 30092",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2623307,
+            "range": "± 23310",
             "unit": "ns/iter"
           }
         ]
