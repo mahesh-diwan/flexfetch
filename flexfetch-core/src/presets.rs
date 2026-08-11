@@ -15,7 +15,11 @@ pub fn module_group(name: &str) -> Vec<String> {
             "kernel".into(),
             "uptime".into(),
         ],
-        "full" => Config::default_modules(),
+        "full" => {
+            let mut v = Config::default_modules();
+            v.push("publicip".into());
+            v
+        }
         "dev" => vec![
             "title".into(),
             "separator".into(),

@@ -200,41 +200,36 @@ fn pad_filter(
     )))
 }
 
-#[cfg(feature = "tera")]
-fn progress_bar_filter(
-    value: &serde_json::Value,
-    args: &std::collections::HashMap<String, serde_json::Value>,
-) -> tera::Result<serde_json::Value> {
-    // Accept a number, a bare "79", or a string that contains a percent like
-    // "79%" / "12.3%" / "/: 476.6G / 390.0G 82%" (extract the last NN%).
-    let percent: u8 = match value {
-        serde_json::Value::Number(n) => n.as_u64().unwrap_or(0) as u8,
-        serde_json::Value::String(s) => {
-            let mut best = 0u8;
-            let bytes = s.as_bytes();
-            let mut i = 0;
-            while i + 1 < bytes.len() {
-                if bytes[i].is_ascii_digit() && bytes[i + 1] == b'%' {
-                    // walk back over digits AND one decimal point, so
-                    // "37.1%" yields 37 (not 1 — the old integer-only walk
-                    // stopped at the '.', breaking the CPU Usage bar).
-                    let mut j = i;
-                    while j > 0 && (bytes[j - 1].is_ascii_digit() || bytes[j - 1] == b'.') {
-                        j -= 1;
-                    }
-                    if let Ok(v) = s[j..=i].parse::<f64>() {
-                        best = v.round().clamp(0.0, 100.0) as u8;
-                    }
-                    i += 1;
-                } else {
-                    i += 1;
-                }
+/// Extract the last `NN%` from a string ("79%", "12.3%", "/: 476.6G / 390.0G
+/// 82%") or 0 when absent. Shared by the tera `progress_bar` filter and the
+/// plain renderer so both emit byte-identical bars.
+fn percent_in_str(s: &str) -> u8 {
+    let mut best = 0u8;
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i + 1 < bytes.len() {
+        if bytes[i].is_ascii_digit() && bytes[i + 1] == b'%' {
+            // walk back over digits AND one decimal point, so
+            // "37.1%" yields 37 (not 1 — the old integer-only walk
+            // stopped at the '.', breaking the CPU Usage bar).
+            let mut j = i;
+            while j > 0 && (bytes[j - 1].is_ascii_digit() || bytes[j - 1] == b'.') {
+                j -= 1;
             }
-            best
+            if let Ok(v) = s[j..=i].parse::<f64>() {
+                best = v.round().clamp(0.0, 100.0) as u8;
+            }
+            i += 1;
+        } else {
+            i += 1;
         }
-        _ => 0,
-    };
-    let width = args.get("width").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+    }
+    best
+}
+
+/// `[████░░░░]`-style bar, same colors/thresholds as the tera `progress_bar`
+/// filter. Shared so render_plain matches the default template byte-for-byte.
+fn progress_bar_str(percent: u8, width: usize) -> String {
     let filled = (percent.min(100) as usize * width) / 100;
     let empty = width.saturating_sub(filled);
     let color = if percent < 60 {
@@ -244,17 +239,32 @@ fn progress_bar_filter(
     } else {
         "\x1b[31m"
     };
-    Ok(serde_json::Value::String(format!(
+    format!(
         "{color}[{}{}]\x1b[0m",
         "█".repeat(filled),
-        "░".repeat(empty),
-    )))
+        "░".repeat(empty)
+    )
 }
 
-/// Phase 7.5: which named section a module belongs to. Only the plain
-/// renderer (minimal build) uses it — the Tera path computes its own
-/// `show_section_*` flags in render_tera — so gate it for the tera build.
-#[cfg(not(feature = "tera"))]
+#[cfg(feature = "tera")]
+fn progress_bar_filter(
+    value: &serde_json::Value,
+    args: &std::collections::HashMap<String, serde_json::Value>,
+) -> tera::Result<serde_json::Value> {
+    // Accept a number, a bare "79", or a string that contains a percent like
+    // "79%" / "12.3%" / "/: 476.6G / 390.0G 82%" (extract the last NN%).
+    let percent: u8 = match value {
+        serde_json::Value::Number(n) => n.as_u64().unwrap_or(0) as u8,
+        serde_json::Value::String(s) => percent_in_str(s),
+        _ => 0,
+    };
+    let width = args.get("width").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+    Ok(serde_json::Value::String(progress_bar_str(percent, width)))
+}
+
+/// Phase 7.5: which named section a module belongs to. Shared by the plain
+/// renderer and flash; the Tera path computes its own `show_section_*` flags
+/// in render_tera.
 fn section_for(module: &str) -> Option<&'static str> {
     crate::find_module(module).and_then(|m| m.section)
 }
@@ -345,24 +355,27 @@ fn group_sections(
 /// This ensures consistent column alignment regardless of the order modules
 /// were collected. Entries not in the catalog are appended at the end.
 #[allow(dead_code)]
-fn align_keys(
-    entries: &[(String, InfoValue)],
+fn align_keys<S: AsRef<str>>(
+    entries: &[(S, InfoValue)],
     _config: &crate::Config,
 ) -> Vec<(String, InfoValue)> {
     let mut result: Vec<(String, InfoValue)> = Vec::with_capacity(entries.len());
-    let mut remaining: Vec<&(String, InfoValue)> = entries.iter().collect();
+    let mut remaining: Vec<&(S, InfoValue)> = entries.iter().collect();
 
     // First pass: emit catalog entries in catalog order
     for catalog_entry in crate::MODULE_CATALOG {
-        if let Some(pos) = remaining.iter().position(|(n, _)| n == catalog_entry.name) {
+        if let Some(pos) = remaining
+            .iter()
+            .position(|(n, _)| n.as_ref() == catalog_entry.name)
+        {
             let entry = remaining.remove(pos);
-            result.push((entry.0.clone(), entry.1.clone()));
+            result.push((entry.0.as_ref().to_string(), entry.1.clone()));
         }
     }
 
     // Second pass: append any remaining (custom, unknown) entries
     for entry in remaining {
-        result.push((entry.0.clone(), entry.1.clone()));
+        result.push((entry.0.as_ref().to_string(), entry.1.clone()));
     }
 
     result
@@ -455,8 +468,6 @@ fn render_ascii_logo(os_id: &str, height: usize, gradient_colors: &[[u8; 3]]) ->
 
 pub struct TeraEngine {
     #[cfg(feature = "tera")]
-    tera: Tera,
-    #[cfg(feature = "tera")]
     template_name: String,
 }
 
@@ -465,7 +476,6 @@ impl TeraEngine {
         #[cfg(feature = "tera")]
         {
             TeraEngine {
-                tera: get_tera().clone(),
                 template_name: "default".to_string(),
             }
         }
@@ -491,7 +501,11 @@ impl TeraEngine {
 
     pub fn render(&self, info: &SystemInfo, config: &crate::Config) -> crate::Result<String> {
         #[cfg(feature = "tera")]
-        let raw = self.render_tera(info, config)?;
+        let raw = if config.template == "default" {
+            render_plain(info, config)
+        } else {
+            self.render_tera(info, config)?
+        };
         #[cfg(not(feature = "tera"))]
         let raw = render_plain(info, config);
 
@@ -934,8 +948,7 @@ impl TeraEngine {
             }
         }
 
-        let raw = self
-            .tera
+        let raw = get_tera()
             .render(&self.template_name, &ctx)
             .map_err(|e| crate::Error::Template(format!("{:?}", e)))?;
         Ok(raw)
@@ -943,13 +956,13 @@ impl TeraEngine {
 }
 
 // ---------------------------------------------------------------------------
-// Plain fallback renderer (used when the `tera` feature is off — the minimal
-// build). Mirrors the default template's Phase 6 visual style: padded keys
-// aligned on display_key_width, theme colors on keys/separator/values, dedup
-// of DE==WM and Display+Resolution, and an inline palette swatch for colors.
+// Plain renderer — the default template's fast path (and the only renderer
+// when the `tera` feature is off — the minimal build). Mirrors default.tera:
+// padded keys aligned on display_key_width, theme colors on
+// keys/separator/values, dedup of DE==WM and Display+Resolution, section
+// headers, a memory progress bar, and an inline palette swatch for colors.
 // ---------------------------------------------------------------------------
 
-#[cfg(not(feature = "tera"))]
 fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
     let theme = crate::theme::resolve(config);
     let mut out = String::new();
@@ -974,10 +987,13 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
     let (show_wm, show_resolution) = dedup_visible(info);
 
     // Build label/text rows with the same labels the default template uses.
-    // (label, text, section) — section drives the Phase 7.5 headers below.
+    // (icon, label, text, section) — section drives the Phase 7.5 headers.
     let key_width = config.display.key_width;
-    let mut rows: Vec<(String, String, Option<&'static str>)> = Vec::new();
-    for (name, value) in &info.entries {
+    let mut rows: Vec<(String, String, String, Option<&'static str>)> = Vec::new();
+    // Template row order (default.tera), not collection order, so the fast
+    // path emits the same sequence as the Tera engine (e.g. GPU before Memory).
+    let ordered = align_keys(&info.entries, config);
+    for (name, value) in &ordered {
         if *name == "title" || *name == "separator" {
             continue;
         }
@@ -1006,7 +1022,12 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
                     })
                     .collect();
                 if !blocks.is_empty() {
-                    rows.push(("Colors".into(), blocks.join(" "), section_for(name)));
+                    rows.push((
+                        String::new(),
+                        "Colors".into(),
+                        blocks.join(" "),
+                        section_for(name),
+                    ));
                 }
             }
             continue;
@@ -1017,14 +1038,31 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
         if text.is_empty() {
             continue;
         }
-        rows.push((label_for(name), text, section_for(name)));
+        // Match default.tera's memory row: append the progress bar (same
+        // shape/colors as the tera path) when enabled and percent is present.
+        let mut text = text;
+        if *name == "memory" && config.display.progress_bars {
+            if let InfoValue::Map(m) = value {
+                if let Some(pct) = m.get("percent") {
+                    if !pct.is_empty() {
+                        text.push(' ');
+                        text.push_str(&progress_bar_str(percent_in_str(pct), 8));
+                    }
+                }
+            }
+        }
+        rows.push((
+            icon_for(name, config),
+            label_for(name),
+            text,
+            section_for(name),
+        ));
     }
 
     // Phase 7.5: emit a section header (── System ── style, theme-colored)
     // whenever the module's section changes, mirroring default.tera.
     let mut last_section: Option<&'static str> = None;
-    let last = rows.len().saturating_sub(1);
-    for (i, (label, text, section)) in rows.into_iter().enumerate() {
+    for (icon, label, text, section) in rows {
         if config.display.sections {
             if section.is_some() && section != last_section {
                 if let Some(sec) = section {
@@ -1044,8 +1082,9 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
             " ".repeat(key_width.saturating_sub(visible_len(&label)))
         );
         out.push_str(&format!(
-            "{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}",
             theme.keys,
+            icon,
             padded,
             theme.sep,
             config.display.separator,
@@ -1053,9 +1092,8 @@ fn render_plain(info: &SystemInfo, config: &crate::Config) -> String {
             text,
             theme.reset,
         ));
-        if i < last {
-            out.push('\n');
-        }
+        // default.tera ends every row with a newline — mirror it byte-for-byte.
+        out.push('\n');
     }
     out
 }
@@ -1165,6 +1203,54 @@ fn label_for(name: &str) -> String {
     crate::find_module(name)
         .map(|m| m.label.to_string())
         .unwrap_or_else(|| name.to_string())
+}
+
+/// Icon for a module row, matching default.tera byte-for-byte. Icons are
+/// unconditional in the Tera path (its nerd-font blanking is overwritten by
+/// the later icon inserts), so the plain path emits them unconditionally too.
+fn icon_for(name: &str, config: &crate::Config) -> String {
+    let d = &config.display;
+    match name {
+        // Config-driven icons
+        "os" => d.icon_os.clone(),
+        "kernel" => d.icon_kernel.clone(),
+        "host" => d.icon_host.clone(),
+        "uptime" => d.icon_uptime.clone(),
+        "locale" => d.icon_locale.clone(),
+        "cpu" => d.icon_cpu.clone(),
+        "gpu" => d.icon_gpu.clone(),
+        "memory" => d.icon_memory.clone(),
+        "swap" => d.icon_swap.clone(),
+        "disk" => d.icon_disk.clone(),
+        "network" => d.icon_network.clone(),
+        "interface" => d.icon_interface.clone(),
+        "resolution" => d.icon_resolution.clone(),
+        "battery" => d.icon_battery.clone(),
+        "processes" => d.icon_processes.clone(),
+        "end" => d.icon_end.clone(),
+        "temp" => d.icon_temp.clone(),
+        // Rows that reuse another module's config icon in default.tera
+        "cpucache" | "cpuusage" => d.icon_cpu.clone(),
+        "wifi" | "publicip" => d.icon_network.clone(),
+        "fsdeep" => d.icon_disk.clone(),
+        "display" => d.icon_resolution.clone(),
+        // Template-literal icons — always shown
+        "packages" => "󰏗 ".into(),
+        "shell" | "terminal" => "󰆍 ".into(),
+        "de" => "󰍹 ".into(),
+        "wm" => "󰘦 ".into(),
+        "project" => "󰚩 ".into(),
+        "git" => "󰊢 ".into(),
+        "health" => "󰐗 ".into(),
+        "container" => "󰡨 ".into(),
+        "venv" => "󰌠 ".into(),
+        "ssh" => "󰇧 ".into(),
+        "wallpaper" => "󰋲 ".into(),
+        "weather" => "󰖕 ".into(),
+        "bluetooth" => "󰂯 ".into(),
+        "media" => "󰎆 ".into(),
+        _ => String::new(),
+    }
 }
 
 fn plain_value(name: &str, value: &InfoValue) -> Option<String> {
@@ -1544,5 +1630,60 @@ mod tests {
             (leading as isize - trailing as isize).abs() <= 1,
             "centering should be roughly symmetric: {leading} leading, {trailing} trailing"
         );
+    }
+
+    /// Byte-parity gate: the default template must render identically through
+    /// the fast plain path and the Tera engine. If this fails, the two
+    /// renderers have drifted and the fast path is no longer a drop-in
+    /// replacement for the default template.
+    #[cfg(feature = "tera")]
+    #[test]
+    fn plain_matches_tera_for_default_template() -> crate::Result<()> {
+        let mut info = SystemInfo::new();
+        info.add("title", InfoValue::Scalar("probe@host".into()));
+        info.add(
+            "separator",
+            InfoValue::Scalar("────────────────────────────".into()),
+        );
+        info.add(
+            "os",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("pretty_name".to_string(), "TestOS 1.0".to_string());
+                m
+            }),
+        );
+        info.add("de", InfoValue::Scalar("GNOME".into()));
+        // wm == de → dedup must hide it in both renderers.
+        info.add(
+            "wm",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("name".to_string(), "GNOME".to_string());
+                m
+            }),
+        );
+        // percent carries a '%' so the progress bar is exercised in both paths.
+        info.add(
+            "memory",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("used".to_string(), "4.2G".to_string());
+                m.insert("total".to_string(), "16G".to_string());
+                m.insert("percent".to_string(), "50%".to_string());
+                m
+            }),
+        );
+        info.add("gpu", InfoValue::List(vec!["AMD Radeon RX 6700 XT".into()]));
+
+        let config = Config::default_for_testing();
+        let engine = TeraEngine::new_default();
+        let tera_out = engine.render_tera(&info, &config)?;
+        let plain_out = render_plain(&info, &config);
+        assert_eq!(
+            plain_out, tera_out,
+            "\n--- plain ---\n{plain_out:?}\n--- tera ---\n{tera_out:?}"
+        );
+        Ok(())
     }
 }

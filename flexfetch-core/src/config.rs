@@ -341,7 +341,6 @@ impl Config {
             "disk".into(),
             "network".into(),
             "wifi".into(),
-            "publicip".into(),
             "display".into(),
             "battery".into(),
             "locale".into(),
