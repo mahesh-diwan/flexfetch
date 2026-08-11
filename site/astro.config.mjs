@@ -9,4 +9,9 @@ export default defineConfig({
   },
   compressHTML: true,
   prefetch: true,
+  markdown: {
+    shikiConfig: {
+      theme: 'css-variables',
+    },
+  },
 });

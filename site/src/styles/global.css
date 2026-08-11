@@ -1,6 +1,6 @@
 /* ==========================================================================
    flexfetch · terminal-sheet world (herdr transplant)
-   Ground: dark sheet, hairline frames, one mauve spot.
+   Ground: dark sheet, hairline frames, one accent.
    ========================================================================== */
 
 /* ==========================================================================
@@ -8,43 +8,101 @@
    ========================================================================== */
 
 :root {
-  --bg: #17171a;
-  --panel: #1e1e22;
-  --mass: #26262b;
+  /* ── color aliases → semantic token layer (theme.css, source of truth) ── */
+  --bg: var(--color-bg);
+  --panel: var(--color-surface);
+  --mass: var(--color-surface-raised);
 
-  --ink: #eae8ee;
-  --dim: #cdccd2;
-  --faint: #b0afb6;
-  --faint2: #908f96;
+  --ink: var(--color-fg);
+  --dim: var(--color-fg-muted);
+  --faint: var(--color-fg-subtle);
+  --faint2: var(--color-fg-subtle);
 
-  --line: #26262b;
-  --line2: #35353d;
+  --line: var(--color-border-subtle);
+  --line2: var(--color-border);
 
-  --spot: #cba6f7;
-  --spot-ink: #17171a;
+  --spot: var(--color-accent);
+  --spot-ink: var(--color-fg-on-accent);
 
-  --grid: #202024;
+  --grid: var(--color-bg-subtle);
 
-  --run: #5fae74;
-  --wait: #d3a027;
-  --idle: #5a615c;
-  --done: #6f6a86;
+  --run: var(--color-success);
+  --wait: var(--color-warning);
+  --idle: var(--color-fg-subtle);
+  --done: var(--color-fg-subtle);
 
-  --font-display: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* ── font aliases → semantic token layer ── */
+  --font-body: var(--font-sans);
+  --font-display: var(--font-mono); /* terminal identity: display stays mono */
 
+  /* ── layout (component-local, no token in DESIGN.md) ── */
   --maxw: 1120px;
   --nav-h: 60px;
-  --radius: 2px;
+  --radius: var(--radius-xs);
   --gut: 34px;
 
-  /* animation tokens */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 600ms;
+  /* ── motion: theme has no 600ms step, alias to nearest ── */
+  --duration-normal: var(--duration-slower);
+}
+
+/* ── code highlight tokens (Shiki css-variables theme) → semantic layer ── */
+:root {
+  --shiki-color-text: var(--color-fg);
+  --shiki-color-background: var(--color-bg);
+  --shiki-token-constant: var(--color-accent);
+  --shiki-token-string: var(--color-success);
+  --shiki-token-comment: var(--color-fg-subtle);
+  --shiki-token-keyword: var(--color-accent);
+  --shiki-token-parameter: var(--color-fg-muted);
+  --shiki-token-function: var(--color-info);
+  --shiki-token-string-expression: var(--color-success);
+  --shiki-token-punctuation: var(--color-fg-muted);
+  --shiki-token-link: var(--color-info);
+  --shiki-token-number: var(--color-warning);
+  --shiki-token-property: var(--color-fg);
+  --shiki-token-variable: var(--color-fg);
+  --shiki-token-regexp: var(--color-warning);
+  --shiki-token-type: var(--color-info);
+  --shiki-token-operator: var(--color-fg-muted);
+  --shiki-token-builtin: var(--color-info);
+  --shiki-token-interpolation: var(--color-accent);
+  --shiki-token-decorator: var(--color-accent);
+  --shiki-token-symbol: var(--color-warning);
+  --shiki-token-macro: var(--color-accent);
+  --shiki-token-namespace: var(--color-accent);
+  --shiki-token-selector: var(--color-accent);
+  --shiki-token-title: var(--color-info);
+  --shiki-token-attribute: var(--color-accent);
+  --shiki-token-definition: var(--color-info);
+  --shiki-token-class: var(--color-info);
+  --shiki-token-string-special: var(--color-success);
+  --shiki-token-number-special: var(--color-warning);
+  --shiki-token-comment-special: var(--color-fg-subtle);
+
+  /* Astro aliases (@astrojs/markdown-remark uses --astro-code-*) */
+  --astro-code-background: var(--color-bg);
+  --astro-code-foreground: var(--color-fg);
+  --astro-code-token-constant: var(--color-accent);
+  --astro-code-token-string: var(--color-success);
+  --astro-code-token-comment: var(--color-fg-subtle);
+  --astro-code-token-keyword: var(--color-accent);
+  --astro-code-token-parameter: var(--color-fg-muted);
+  --astro-code-token-function: var(--color-info);
+  --astro-code-token-string-expression: var(--color-success);
+  --astro-code-token-punctuation: var(--color-fg-muted);
+  --astro-code-token-link: var(--color-info);
+  --astro-code-token-number: var(--color-warning);
+  --astro-code-token-property: var(--color-fg);
+  --astro-code-token-variable: var(--color-fg);
+  --astro-code-token-regexp: var(--color-warning);
+  --astro-code-token-type: var(--color-info);
+  --astro-code-token-operator: var(--color-fg-muted);
+  --astro-code-token-builtin: var(--color-info);
+  --astro-code-token-class: var(--color-info);
+  --astro-code-token-title: var(--color-info);
+  --astro-code-token-selector: var(--color-accent);
+  --astro-code-token-attribute: var(--color-accent);
+  --astro-code-token-definition: var(--color-info);
 }
 
 * {
@@ -69,7 +127,7 @@ body {
 }
 
 ::selection {
-  background: rgba(203, 166, 247, 0.28);
+  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
   color: var(--ink);
 }
 
@@ -178,7 +236,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(23, 23, 26, 0.85);
+  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--line2);
@@ -188,7 +246,7 @@ img {
 
 .nav.scrolled {
   border-color: var(--line2);
-  background: rgba(23, 23, 26, 0.94);
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
 }
 
 .brand {
@@ -342,8 +400,8 @@ img {
 }
 
 .btn-primary:hover {
-  background: #d9c3fa;
-  border-color: #d9c3fa;
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 
 .btn-ghost {
@@ -365,12 +423,6 @@ img {
 .btn-sm {
   padding: 7px 14px;
   font-size: 11px;
-}
-
-/* focus-visible ring — one authored style for every interactive element */
-:focus-visible {
-  outline: 2px solid var(--spot);
-  outline-offset: 2px;
 }
 
 /* ==========================================================================
@@ -484,7 +536,7 @@ h1 em {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--line2);
-  background: rgba(30, 30, 34, 0.85);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
   backdrop-filter: blur(6px);
   border-radius: var(--radius);
   overflow: hidden;
@@ -679,7 +731,7 @@ h1 em {
 }
 
 .caps > .cap:hover {
-  background: rgba(203, 166, 247, 0.04);
+  background: color-mix(in srgb, var(--color-accent) 4%, transparent);
 }
 
 .caps > .cap:hover h3 {
@@ -893,15 +945,15 @@ h1 em {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--spot);
-  background: rgba(203, 166, 247, 0.1);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
   padding: 3px 8px;
-  border: 1px solid rgba(203, 166, 247, 0.25);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
   border-radius: var(--radius);
   margin-bottom: 12px;
 }
 
 .code-block {
-  background: #0f0f12;
+  background: var(--color-bg);
   border: 1px solid var(--line2);
   border-radius: 6px;
   overflow: hidden;
@@ -1137,7 +1189,7 @@ h1 em {
 }
 
 .live-term {
-  background: #0f0f12;
+  background: var(--color-bg);
   border: 1px solid var(--line2);
   border-radius: 6px;
   overflow: hidden;
