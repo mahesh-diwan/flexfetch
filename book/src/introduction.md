@@ -9,8 +9,8 @@ and themeable output.
 |     | Feature              | What it means                                                                                              |
 | --- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
 | 📝  | **Tera templates**   | Jinja2-style templates. Variables, loops, conditionals. Default template renders side-by-side logo + info. |
-| 🎭  | **28 theme presets** | Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Rose Pine, and more. Switch with `--theme`.               |
-| ⚡  | **Rust + Rayon**     | Parallel detection. Static binary, zero runtime deps. As small as ~1.7 MB in the minimal build.            |
+| 🎭  | **27 theme presets** | Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Rose Pine, and more. Switch with `--theme`.               |
+| ⚡  | **Rust + Rayon**     | Parallel detection. Statically linked on Linux; as small as ~1.75 MB in the minimal build.                  |
 | 🖥️  | **Live dashboard**   | Real-time CPU/memory gauges with sparklines, top processes, network throughput.                            |
 | 🔑  | **Smart fetch**      | Context-relevant info: git branch, project type, container/venv detection.                                 |
 | 🏥  | **Health score**     | 0–100 system health from disk, swap, load, and battery.                                                    |
