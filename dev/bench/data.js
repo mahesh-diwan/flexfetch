@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786455676180,
+  "lastUpdate": 1786464988384,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1043,6 +1043,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2563418,
             "range": "± 31745",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "6f35951a9ffd4c39b47fa432b28311509450a5af",
+          "message": "feat(site): design-taste v5 redesign — bento features, kinetic marquee, live module grid\n\nVisual overhaul of the static landing page following the design-taste directives: Geist + Geist Mono (no Inter/serif); single amber accent on zinc neutrals (competing cyan removed, warm-tinted shadows); asymmetric split hero with the real render terminal, kinetic module marquee, hairline stats band, bento grid of 8 spotlight cards with perpetual micro-interactions (latency bars, swatch pulse, logo shimmer, gauge + sparkline, chip marquee, module typewriter, plugin locks), 39-module filterable grid with empty state, install stack, CTA band. Motion is transform/opacity only: magnetic buttons (CSS-var driven, rAF), 3D terminal tilt with settle snap-back, staggered reveals, html.js progressive enhancement, prefers-reduced-motion. Terminal shows skeleton to real render with error + retry. Fixes: canonical install command (was opencode.ai), dead modules.html link removed. Verified by Playwright: render lines preserved (49), reveals visible (opacity 1), filter + empty state, 0 console errors, 0px mobile overflow.",
+          "timestamp": "2026-08-11T21:43:32+05:30",
+          "tree_id": "76420948c60143412e99713c03b59cfd3df853f3",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/6f35951a9ffd4c39b47fa432b28311509450a5af"
+        },
+        "date": 1786464986703,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2579907,
+            "range": "± 30752",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2569637,
+            "range": "± 35956",
             "unit": "ns/iter"
           }
         ]
