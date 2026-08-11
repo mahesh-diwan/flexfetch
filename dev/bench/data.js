@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786449726532,
+  "lastUpdate": 1786450190803,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -899,6 +899,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1961508,
             "range": "± 44384",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "d0833cfa1b4806c711a9dbf22049684232f73365",
+          "message": "site: design-system showcase page (live token reference)\n\nRender every token from DESIGN.md live via CSS vars (auto-updates on\ntheme regen). Primitive palette, semantic colors, fluid type scale,\nspacing/radius/elevation, motion durations, breakpoints, live viewport\nindicator. Plain CSS, no React — matches the site's framework-less\nstack. Route: /flexfetch/design-system/.",
+          "timestamp": "2026-08-11T17:37:16+05:30",
+          "tree_id": "41edb47385538210fd2b1e075bf5c44eebb1246d",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/d0833cfa1b4806c711a9dbf22049684232f73365"
+        },
+        "date": 1786450189457,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1914781,
+            "range": "± 42418",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1923821,
+            "range": "± 69048",
             "unit": "ns/iter"
           }
         ]
