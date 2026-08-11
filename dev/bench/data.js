@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786444363923,
+  "lastUpdate": 1786449726532,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -863,6 +863,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2662934,
             "range": "± 124487",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "9809971886e71030441ae7271c7885c634ef2b47",
+          "message": "site: design-system token layer + full refactor (v0.32.0)\n\nAdd DESIGN.md + theme.css as the closed token layer (schema v1, generated).\nLayout imports theme.css and forces class=\"dark\".\n\nglobal.css: replace :root literal block (20 hex) with aliases to semantic\ntokens; 8 inline rgba literals -> color-mix() over --color-accent;\ndrop single-outline :focus-visible (double-layer ring from theme wins);\nfonts IBM Plex Sans -> Inter, display stays mono (JetBrains Mono).\ndocs/[slug].astro: 7 literals -> color-mix(). Shiki -> css-variables\ntheme with --astro-code-*/--shiki-* tokens (code blocks no longer inline\ngithub-dark). theme-color meta -> neutral-950.",
+          "timestamp": "2026-08-11T17:28:34+05:30",
+          "tree_id": "87995261aaeb5f6f41f6c9958a88407e0f344a2f",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/9809971886e71030441ae7271c7885c634ef2b47"
+        },
+        "date": 1786449724708,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1967033,
+            "range": "± 43128",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1961508,
+            "range": "± 44384",
             "unit": "ns/iter"
           }
         ]
