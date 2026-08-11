@@ -95,4 +95,5 @@ The minimal build (`--no-default-features`) drops the tera engine to save
 output, no template files.
 
 > In minimal builds, a `template` config value is ignored (there is no
-> template engine to honor it) and SVG/HTML/PNG exports use the plain renderer.
+> template engine to honor it). SVG and HTML exports still work (they render
+> from the plain renderer); PNG export requires the `image-logos` feature.

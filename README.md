@@ -47,7 +47,7 @@ flexfetch --theme catppuccin  # switch theme
 - **SSH remote fetch** — fetch info from remote hosts in parallel
 - **Flash mode** — fastest one-shot fetch with no config file
 - **Custom modules** — define info sources inline in config (shell commands)
-- **Export formats** — text, JSON, Markdown, CSV, Prometheus, Ansible, Terraform, GitHub Actions
+- **Export formats** — `-f` prints text, JSON, Markdown, CSV, Prometheus, Ansible, Terraform, or GitHub Actions; `--export` writes SVG, HTML, PNG, or Markdown files
 - **Shell completions** — bash, zsh, fish
 - **Health score** — 0–100 system health from disk, swap, load, battery
 - **Smart fetch** — context-aware info (git branch, project type, container, SSH)

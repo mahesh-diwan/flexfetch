@@ -2,11 +2,18 @@
 
 ## Formats
 
-| Format     | Use case                     | Command                 |
-| ---------- | ---------------------------- | ----------------------- |
-| `text`     | Terminal (default)           | `flexfetch`             |
-| `json`     | Scripts, tooling             | `flexfetch -f json`     |
-| `markdown` | Documentation, GitHub README | `flexfetch -f markdown` |
+`-f`/`--format` selects the output format. It accepts:
+
+| Format       | Use case                     | Command                 |
+| ------------ | ---------------------------- | ----------------------- |
+| `text`       | Terminal (default)           | `flexfetch`             |
+| `json`       | Scripts, tooling             | `flexfetch -f json`     |
+| `markdown`   | Documentation, GitHub README | `flexfetch -f markdown` |
+| `ansible`    | Ansible facts JSON           | `flexfetch -f ansible`  |
+| `terraform`  | Terraform variable stubs     | `flexfetch -f terraform`|
+| `csv`        | Spreadsheets                 | `flexfetch -f csv`      |
+| `prometheus` | OpenMetrics exposition       | `flexfetch -f prometheus`|
+| `github`     | GitHub Actions group output  | `flexfetch -f github`   |
 
 JSON mode disables ASCII art and themes. Output is structured for parsing:
 
@@ -17,7 +24,8 @@ flexfetch -f markdown > system-info.md
 
 ## Export
 
-Export to file-based formats:
+`--export` writes file-based exports (these are separate from `-f`, which
+prints to stdout):
 
 ```bash
 flexfetch --export svg --output out.svg
@@ -42,7 +50,7 @@ Options:
   -c, --config <CONFIG>          Config file path
   -m, --modules <MODULES>        Colon-separated module list ("os:kernel:uptime")
   -t, --template <TEMPLATE>      Template name
-  -f, --format <FORMAT>          Output format [default: text] (text|json|markdown)
+  -f, --format <FORMAT>          Output format [default: text] (text|json|markdown|ansible|terraform|csv|prometheus|github)
       --theme <THEME>            Theme preset name (or "random")
       --debug                    Debug output
       --gen-config               Generate default config

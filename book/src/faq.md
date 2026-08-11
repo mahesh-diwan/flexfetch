@@ -45,8 +45,9 @@ them on the next refresh.
 ## Modules
 
 **How many modules are there?**
-39 built-in modules across 5 sections (System, Hardware, Network, Software,
-Context & extras).
+38 built-in modules across 5 sections (System, Hardware, Network, Software,
+Context & extras), plus two template-only layout directives (`title` and
+`separator`).
 
 **What's the difference between static and dynamic modules?**
 Static modules are collected once per session and reused in watch/live mode.

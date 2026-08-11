@@ -1,6 +1,6 @@
 # Themes
 
-flexfetch ships 28 curated theme presets with the same output, dramatically
+flexfetch ships 27 curated theme presets with the same output, dramatically
 different looks. Switch at runtime:
 
 ```bash
@@ -11,38 +11,43 @@ flexfetch --theme dracula
 flexfetch --theme catppuccin
 ```
 
+`flexfetch --list-themes` prints every preset name.
+
 ## Built-in themes
 
-| Theme                  | Keys   | Values | Description              |
-| ---------------------- | ------ | ------ | ------------------------ |
-| `catppuccin`           | blue   | teal   | Catppuccin Mocha         |
-| `catppuccin-mocha`     | blue   | teal   | Catppuccin Mocha (alias) |
-| `catppuccin-frappe`    | blue   | teal   | Catppuccin Frappe        |
-| `catppuccin-macchiato` | blue   | teal   | Catppuccin Macchiato     |
-| `dracula`              | purple | cyan   | Dracula                  |
-| `nord`                 | blue   | green  | Nord                     |
-| `gruvbox`              | yellow | green  | Gruvbox                  |
-| `tokyo-night`          | blue   | cyan   | Tokyo Night              |
-| `tokyo-night-storm`    | blue   | cyan   | Tokyo Night Storm        |
-| `solarized-dark`       | blue   | green  | Solarized Dark           |
-| `solarized-light`      | blue   | green  | Solarized Light          |
-| `rose-pine`            | pink   | teal   | Rose Pine                |
-| `rose-pine-dawn`       | pink   | teal   | Rose Pine Dawn           |
-| `everforest-dark`      | yellow | green  | Everforest Dark          |
-| `everforest-light`     | yellow | green  | Everforest Light         |
-| `bamboo`               | yellow | green  | Bamboo                   |
-| `oxocarbon-dark`       | blue   | cyan   | Oxocarbon Dark           |
-| `one-dark`             | purple | cyan   | One Dark                 |
-| `one-light`            | purple | cyan   | One Light                |
-| `monokai`              | yellow | green  | Monokai                  |
-| `monokai-pro`          | yellow | green  | Monokai Pro              |
-| `ayu-dark`             | yellow | cyan   | Ayu Dark                 |
-| `ayu-mirage`           | yellow | cyan   | Ayu Mirage               |
-| `palenight`            | purple | cyan   | Material Palenight       |
-| `material-ocean`       | purple | cyan   | Material Ocean           |
-| `kanagawa`             | red    | teal   | Kanagawa                 |
-| `mellow-purple`        | purple | green  | Mellow Purple            |
-| `none`                 | —      | —      | No colors                |
+Keys and values are the 16-color ANSI codes each preset maps to its key/value
+slots (the terminal also gets per-slot truecolor RGB when it supports 24-bit
+color).
+
+| Theme                  | Keys             | Values            |
+| ---------------------- | ---------------- | ----------------- |
+| `catppuccin`           | bright-blue      | bright-cyan       |
+| `catppuccin-mocha`     | blue             | cyan              |
+| `catppuccin-frappe`    | blue             | cyan              |
+| `catppuccin-macchiato` | blue             | cyan              |
+| `dracula`              | bright-magenta   | bright-cyan       |
+| `nord`                 | bright-blue      | bright-green      |
+| `gruvbox`              | bright-yellow    | bright-green      |
+| `tokyo-night`          | bright-blue      | bright-cyan       |
+| `tokyo-night-storm`    | blue             | cyan              |
+| `solarized-dark`       | cyan             | blue              |
+| `solarized-light`      | blue             | cyan              |
+| `rose-pine`            | cyan             | magenta           |
+| `rose-pine-dawn`       | cyan             | magenta           |
+| `everforest-dark`      | blue             | cyan              |
+| `everforest-light`     | blue             | cyan              |
+| `bamboo`               | green            | cyan              |
+| `oxocarbon-dark`       | cyan             | magenta           |
+| `one-dark`             | red              | green             |
+| `one-light`            | red              | green             |
+| `monokai`              | bold bright-green| bright-red        |
+| `monokai-pro`          | bold bright-cyan | bright-yellow     |
+| `ayu-dark`             | bold bright-cyan | bright-green      |
+| `ayu-mirage`           | bold bright-cyan | bright-yellow     |
+| `palenight`            | bold bright-cyan | bright-green      |
+| `material-ocean`       | bold bright-cyan | bright-red        |
+| `kanagawa`             | bold bright-cyan | bright-green      |
+| `mellow-purple`        | bold bright-cyan | bright-green      |
 
 ## Custom colors
 

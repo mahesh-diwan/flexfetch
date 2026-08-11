@@ -44,15 +44,14 @@ Define inline info sources that run a shell command on every fetch:
 ```toml
 [custom]
 my_temp = { command = "sensors | grep temp1", label = "Temp" }
-sys_load = { command = "uptime | awk -'load average:' '{print $2}'", label = "Load" }
+sys_load = { command = "uptime | awk -F'load average:' '{print $2}'", label = "Load" }
 ```
 
-### `[[modules_config]]` section
+### `[modules_config]` section
 
 Per-module color overrides:
 
 ```toml
-[[modules_config]]
 [modules_config.cpu]
 color_keys = "yellow"
 color_values = "green"
@@ -73,15 +72,7 @@ frame = "none"
 progress_bars = true
 gradient_title = true
 palette_style = "blocks"
-
-[cache]
-ttl = 60
 ```
-
-## Cache
-
-Cache is a JSON file at `~/.cache/flexfetch/`. Reduces repeated disk reads.
-TTL = 60s by default; `0` disables caching.
 
 ## Presets
 

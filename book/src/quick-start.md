@@ -28,7 +28,7 @@ flexfetch
 ## Next steps
 
 1. **Customize** — run `flexfetch --wizard` for an interactive config builder
-2. **Pick a theme** — `flexfetch --list-themes` shows all 28 presets
+2. **Pick a theme** — `flexfetch --list-themes` shows all 27 presets
 3. **Select modules** — `flexfetch --list-modules` shows all 38 built-in modules
 4. **Try the dashboard** — `flexfetch --live` for real-time monitoring
 

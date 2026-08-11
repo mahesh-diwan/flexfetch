@@ -43,3 +43,6 @@ site/tsconfig.json
 site/*.png
 *.cjs
 book/src/*#*
+
+# mdBook anchor junk (scraper artifacts)
+book/src/*#*

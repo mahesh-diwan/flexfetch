@@ -225,8 +225,8 @@
   const modsEmpty = document.getElementById("mods-empty");
   if (searchInput && modGrid) {
     const mods = modGrid.querySelectorAll(".mod");
-    const total = mods.length;
-    if (searchCount) searchCount.textContent = total + " modules";
+    const moduleCount = [...mods].filter((m) => m.dataset.tag !== "layout").length;
+    if (searchCount) searchCount.textContent = moduleCount + " modules";
     searchInput.addEventListener("input", () => {
       const q = searchInput.value.toLowerCase().trim();
       let shown = 0;
@@ -235,10 +235,12 @@
         const tag = (m.dataset.tag || "").toLowerCase();
         const match = !q || name.includes(q) || tag.includes(q);
         m.classList.toggle("hidden", !match);
-        if (match) shown++;
+        if (match && m.dataset.tag !== "layout") shown++;
       });
       if (searchCount) {
-        searchCount.textContent = q ? shown + " of " + total : total + " modules";
+        searchCount.textContent = q
+          ? shown + " of " + moduleCount + " modules"
+          : moduleCount + " modules";
         searchCount.setAttribute("aria-live", "polite");
       }
       if (modsEmpty) modsEmpty.classList.toggle("show", shown === 0);
