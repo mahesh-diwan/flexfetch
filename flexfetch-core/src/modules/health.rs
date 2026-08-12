@@ -23,7 +23,9 @@ fn disk_usage_percent() -> Option<u8> {
     if total == 0 {
         return None;
     }
-    let pct = ((total - avail) * 100 / total).min(100) as u8;
+    // saturating_sub: f_bavail > f_blocks is kernel-impossible but a
+    // virtualized fs could report it — don't underflow.
+    let pct = (total.saturating_sub(avail) * 100 / total).min(100) as u8;
     Some(pct)
 }
 
@@ -34,11 +36,14 @@ fn swap_percent(ctx: &Context) -> Option<u8> {
     let mut free = 0u64;
     for line in content.lines() {
         if let Some((k, v)) = line.split_once(':') {
-            let num: u64 = v.trim().trim_end_matches(" kB").parse().ok()?;
-            match k.trim() {
-                "SwapTotal" => total = num,
-                "SwapFree" => free = num,
-                _ => {}
+            // `if let` — a single unparseable line (foreign locale, garbage)
+            // must skip that key, not abort the whole swap probe.
+            if let Ok(num) = v.trim().trim_end_matches(" kB").parse::<u64>() {
+                match k.trim() {
+                    "SwapTotal" => total = num,
+                    "SwapFree" => free = num,
+                    _ => {}
+                }
             }
         }
     }
@@ -159,5 +164,34 @@ mod tests {
         let ctx = test_ctx(MockFs::new().file("/proc/loadavg", "2.00 1.50 1.00 2/123 4567\n"));
         let lpc = load_per_core(&ctx).expect("load should parse");
         assert!(lpc > 0.0);
+    }
+
+    #[test]
+    fn swap_survives_garbage_meminfo_lines() {
+        // Garbage lines must not abort the whole swap probe: one has no colon
+        // (skipped by split_once), the other has a colon but a non-numeric
+        // value (the exact path the `if let Ok` parse guard protects).
+        let meminfo = "MemTotal:        16000000 kB\n\
+                       not a valid meminfo line\n\
+                       Dirty:           100 kB\n\
+                       SwapTotal:        not-a-number kB\n\
+                       SwapFree:         4000000 kB\n";
+        let ctx = test_ctx(MockFs::new().file("/proc/meminfo", meminfo));
+        // SwapTotal fails to parse → skipped; SwapFree parses → total stays 0.
+        assert_eq!(swap_percent(&ctx), None);
+
+        // A colon-having numeric-value line still yields the expected probe.
+        let ok = "MemTotal:        16000000 kB\n\
+                  Dirty:           100 kB\n\
+                  SwapTotal:       8000000 kB\n\
+                  SwapFree:        4000000 kB\n";
+        let ctx2 = test_ctx(MockFs::new().file("/proc/meminfo", ok));
+        assert_eq!(swap_percent(&ctx2), Some(50));
+    }
+
+    #[test]
+    fn load_per_core_none_on_garbage() {
+        let ctx = test_ctx(MockFs::new().file("/proc/loadavg", "garbage\n"));
+        assert!(load_per_core(&ctx).is_none());
     }
 }

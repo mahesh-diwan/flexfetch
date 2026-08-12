@@ -138,7 +138,10 @@ fn statvfs_usage(mp: &str) -> Option<(String, String, String)> {
     let free = st.f_bfree as u64 * frsize;
     let avail = st.f_bavail as u64 * frsize;
     let used = total.saturating_sub(free);
-    let pct = (total - avail)
+    // saturating_sub: f_bavail > f_blocks is kernel-impossible, but a
+    // malicious/virtualized fs could report it — don't underflow.
+    let pct = total
+        .saturating_sub(avail)
         .checked_mul(100)
         .and_then(|n| n.checked_div(total))
         .map(|p| p.min(100))

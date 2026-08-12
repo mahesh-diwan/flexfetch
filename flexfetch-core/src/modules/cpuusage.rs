@@ -23,17 +23,25 @@ impl Module for CpuUsageModule {
 fn since_boot_usage(content: &str) -> Option<f64> {
     let line = content.lines().find(|l| l.starts_with("cpu "))?;
     let parts: Vec<&str> = line.split_whitespace().collect();
+    // saturating fold: a plain sum() panics in debug (and wraps in release)
+    // on counters near u64::MAX — a hostile/malformed /proc/stat must not
+    // crash the fetch.
     let total: u64 = parts
         .iter()
         .skip(1)
         .filter_map(|v| v.parse::<u64>().ok())
-        .sum();
-    let idle: u64 = parts.get(4).and_then(|v| v.parse().ok()).unwrap_or(0)
-        + parts.get(5).and_then(|v| v.parse().ok()).unwrap_or(0);
+        .fold(0u64, u64::saturating_add);
+    let idle: u64 = parts
+        .get(4)
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0u64)
+        .saturating_add(parts.get(5).and_then(|v| v.parse().ok()).unwrap_or(0u64));
     if total == 0 {
         return None;
     }
-    Some((total - idle) as f64 / total as f64 * 100.0)
+    // saturating_sub: malformed /proc/stat (idle > total) must not panic in
+    // debug or wrap in release — a garbage file reports 0% busy, not UB.
+    Some(total.saturating_sub(idle) as f64 / total as f64 * 100.0)
 }
 
 #[cfg(test)]
@@ -59,5 +67,21 @@ mod tests {
     fn garbage_input_is_none() {
         assert!(since_boot_usage("").is_none());
         assert!(since_boot_usage("not a stat file").is_none());
+    }
+
+    #[test]
+    fn missing_cpu_line_is_none() {
+        assert!(since_boot_usage("cpu0 1 2 3 4 5\n").is_none());
+        // Only a per-core line, no aggregate `cpu ` line.
+        assert!(since_boot_usage("cpu0 1 2 3 4 5\ncpu1 1 2 3 4 5\n").is_none());
+    }
+
+    #[test]
+    fn huge_values_saturate_safely() {
+        // Near-u64::MAX counters: a plain `sum()` panics in debug on this
+        // input; the saturating fold keeps the result a finite percentage.
+        let content = "cpu 18446744073709551615 18446744073709551615 0 0 0 0 0 0 0 0";
+        let pct = since_boot_usage(content).unwrap();
+        assert!((0.0..=100.0).contains(&pct), "pct out of range: {pct}");
     }
 }
