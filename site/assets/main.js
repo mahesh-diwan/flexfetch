@@ -139,6 +139,45 @@
     document.body.removeChild(ta);
   }
 
+  /* ---------- stat count-up (tabular, fires once on reveal, reduced-motion safe) ---------- */
+  const counters = document.querySelectorAll("[data-count]");
+  if (counters.length && "IntersectionObserver" in window) {
+    const animate = (el) => {
+      const target = parseFloat(el.dataset.count || "0");
+      const decimals = parseInt(el.dataset.decimals || "0", 10);
+      const suffix = el.dataset.suffix || "";
+      const dur = 1100;
+      if (prefersReduced) {
+        el.textContent = el.dataset.count + suffix;
+        return;
+      }
+      const t0 = performance.now();
+      const step = (now) => {
+        const p = Math.min((now - t0) / dur, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const v = target * eased;
+        el.textContent =
+          v.toFixed(decimals) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    const cio = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            animate(e.target);
+            cio.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+    counters.forEach((el) => cio.observe(el));
+  } else {
+    counters.forEach((el) => (el.textContent = el.dataset.count + (el.dataset.suffix || "")));
+  }
+
   /* ---------- hero terminal: skeleton -> render, with error state ---------- */
   const heroTerm = document.getElementById("hero-terminal");
   if (heroTerm) {

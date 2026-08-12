@@ -56,7 +56,7 @@
         <div class="hero-text reveal in" style="--i:0">
           <span class="kicker">
             <span class="dot" aria-hidden="true"></span>
-            Rust &middot; Linux &amp; macOS &middot; <em>reads /proc directly</em>
+            Rust &middot; Linux &amp; macOS &middot; <em>reads the system directly</em>
           </span>
           <h1>Your whole system.<br /><span class="accent">Fetched in milliseconds.</span></h1>
           <p class="hero-sub">
@@ -76,10 +76,10 @@
           </div>
 
           <div class="hero-stats">
-            <span class="hs"><b>1.75 MB</b> minimal binary</span>
-            <span class="hs"><b>38</b> modules</span>
-            <span class="hs"><b>527</b> logos</span>
-            <span class="hs"><b>0.7 ms</b> cpu module</span>
+            <span class="hs"><b data-count="1.75" data-decimals="2" data-suffix=" MB">1.75 MB</b> minimal binary</span>
+            <span class="hs"><b data-count="38">38</b> modules</span>
+            <span class="hs"><b data-count="527">527</b> logos</span>
+            <span class="hs"><b data-count="0.7" data-decimals="1" data-suffix=" ms">0.7 ms</b> cpu module</span>
           </div>
 
           <div class="social-proof">
@@ -135,22 +135,22 @@
     <div class="container">
       <div class="stats-grid">
         <div class="stat reveal" style="--i:0">
-          <span class="stat-num">38</span>
+          <span class="stat-num" data-count="38">38</span>
           <span class="stat-label">Modules</span>
           <span class="stat-note">from os to weather</span>
         </div>
         <div class="stat reveal" style="--i:1">
-          <span class="stat-num">527</span>
+          <span class="stat-num" data-count="527">527</span>
           <span class="stat-label">Logos</span>
           <span class="stat-note">fastfetch-imported</span>
         </div>
         <div class="stat reveal" style="--i:2">
-          <span class="stat-num">0.7 ms</span>
+          <span class="stat-num" data-count="0.7" data-decimals="1" data-suffix=" ms">0.7 ms</span>
           <span class="stat-label">Fastest module</span>
           <span class="stat-note">cpu, read via /proc</span>
         </div>
         <div class="stat reveal" style="--i:3">
-          <span class="stat-num">1.75 MB</span>
+          <span class="stat-num" data-count="1.75" data-decimals="2" data-suffix=" MB">1.75 MB</span>
           <span class="stat-label">Minimal binary</span>
           <span class="stat-note">LTO, no default features</span>
         </div>
@@ -166,7 +166,7 @@
           <span class="eyebrow">What it does</span>
           <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
         </div>
-        <p class="head-note">Every module reads the system directly &mdash; <code>/proc</code>, sysfs, or macOS APIs. No shelling out, no startup cost, no surprises.</p>
+        <p class="head-note">Core modules read the system directly &mdash; <code>/proc</code>, sysfs, or macOS APIs. A few optional ones shell out to a platform tool only when needed.</p>
       </div>
 
       <div class="bento">
@@ -176,22 +176,22 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline></svg>
           </span>
           <h3>Reads the system directly</h3>
-          <p>Most collectors read <code>/proc</code>, sysfs, or macOS APIs directly &mdash; the cpu module finishes in under a millisecond. A few optional modules (wifi, bluetooth, media, wallpaper, git) shell out to the platform tool only when needed.</p>
+          <p>Most collectors read <code>/proc</code>, sysfs, or macOS APIs directly &mdash; the cpu module typically finishes in under a millisecond. A few optional modules (wifi, bluetooth, media, wallpaper, git) shell out to the platform tool only when needed.</p>
           <div class="latency" aria-hidden="true">
             <div class="lat-row">
               <span class="lat-label">all modules</span>
               <span class="lat-track"><i style="--w:1;--d:0s"></i></span>
-              <span class="lat-ms">25.8 ms</span>
+              <span class="lat-ms">33 ms</span>
             </div>
             <div class="lat-row">
               <span class="lat-label">cpu module</span>
-              <span class="lat-track"><i style="--w:.1;--d:.45s"></i></span>
-              <span class="lat-ms">0.73 ms</span>
+              <span class="lat-track"><i style="--w:.08;--d:.45s"></i></span>
+              <span class="lat-ms">0.7 ms</span>
             </div>
             <div class="lat-row">
               <span class="lat-label">template render</span>
               <span class="lat-track"><i style="--w:.04;--d:.9s"></i></span>
-              <span class="lat-ms">0.22 ms</span>
+              <span class="lat-ms">0.37 ms</span>
             </div>
           </div>
           <p class="lat-note" aria-hidden="true">cold-run measurements from <code>flexfetch --benchmark</code> (author&rsquo;s machine)</p>

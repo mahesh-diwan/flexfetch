@@ -148,6 +148,16 @@ a:hover {
   padding: 0 32px;
 }
 
+/* ---------- data numerals (stable tabular alignment) ---------- */
+.hs b,
+.stat-num,
+.lat-ms,
+.mod-count,
+.hero-stats .hs,
+.secure-item b {
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- nav (liquid glass pill) ---------- */
 .nav {
   position: fixed;
@@ -441,6 +451,7 @@ h1 .accent {
   max-width: 46ch;
   line-height: 1.65;
   margin-bottom: 30px;
+  text-wrap: pretty;
 }
 .hero-sub strong {
   color: var(--text-strong);
@@ -793,9 +804,13 @@ h1 .accent {
 .stat {
   padding: 44px 28px;
   border-left: 1px solid var(--border);
+  transition: background 0.3s var(--ease);
 }
 .stat:first-child {
   border-left: none;
+}
+.stat:hover {
+  background: rgba(255, 255, 255, 0.015);
 }
 .stat-num {
   font: 500 clamp(32px, 4.2vw, 52px)/1 var(--font-mono);
@@ -880,6 +895,7 @@ h1 .accent {
   color: var(--muted);
   line-height: 1.6;
   max-width: 52ch;
+  text-wrap: pretty;
 }
 .card code {
   font-family: var(--font-mono);
@@ -1309,6 +1325,7 @@ h1 .accent {
   line-height: 1.65;
   margin-bottom: 26px;
   max-width: 46ch;
+  text-wrap: pretty;
 }
 .secure-list {
   display: flex;
