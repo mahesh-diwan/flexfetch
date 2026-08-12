@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786541570029,
+  "lastUpdate": 1786543653392,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1223,6 +1223,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2732403,
             "range": "± 50009",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "4dacf1ecd77dec2fa28869651d9424196b14cd55",
+          "message": "feat(core): real filesystem seam behind Context — modules testable with MockFs\n\nPer the codebase-design skill: Context::read_file was a fake seam (doc promised mock data, nothing injectable). Now a real one — two adapters (RealFs in prod, MockFs in tests).\n\nfs.rs: FileSystem trait (read_to_string/read_dir/exists/is_dir — the whole read surface), RealFs, cfg(test) MockFs with implicit parent-dir registration, test_ctx() helper.\n\nContext: fs field + with_fs constructor + read_dir/exists/is_dir delegates; Context::new keeps the small public interface.\n\n22 module collectors migrated from std::fs to ctx.* — /proc, /sys, /etc, package DB, and ~/.config reads (wallpaper/wm). gpu symlink + weather cache mtime stay on std::fs (documented edge cases).\n\nautotheme builds a throwaway RealFs Context for detect_wallpaper (feature-gated, off the hot path); template.rs: 4 tera-only tests gated so --no-default-features builds (pre-existing minimal-build breakage).\n\n18 new mock-fs unit tests: host, os, cpu, battery, processes, packages, health, container, fsdeep, resolution now verified against fake /proc and /sys trees.\n\nVerified: 125 workspace tests, 112 minimal-build tests, clippy -D warnings clean, all-features check clean.",
+          "timestamp": "2026-08-12T19:34:45+05:30",
+          "tree_id": "e55a5348c84836d6033e0d60493a72880a66bd50",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/4dacf1ecd77dec2fa28869651d9424196b14cd55"
+        },
+        "date": 1786543652923,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2755027,
+            "range": "± 40334",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2739995,
+            "range": "± 28254",
             "unit": "ns/iter"
           }
         ]
