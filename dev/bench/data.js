@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786544959557,
+  "lastUpdate": 1786545530624,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1331,6 +1331,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2643600,
             "range": "± 45328",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "3385c16b84b89b629fa84fee3c6d552a200a8dbd",
+          "message": "fix(logo): recover from poisoned logo cache lock instead of panicking\n\nnomistakes audit of the CLI + remaining core files (main.rs, tools.rs, render_diff, template/export/theme/config, hardware_db, image_logo, cache, module_registry) — the diff[0]/[1] and run_selected_times[0] indexing is guarded, render_diff is safe, and publicip already handles poison.\n\nThe one real hazard: cached_fastfetch_logo used lock().unwrap() on the global FF_LOGO_CACHE. A thread panic while holding the lock (e.g. during a hashmap op in --live mode) would poison it and panic on every subsequent detect() call, bricking the whole fetch. Now lock().unwrap_or_else(|e| e.into_inner()) recovers the still-valid data.\n\nRegression test: deliberately poisons the mutex via catch_unwind, asserts is_poisoned(), then assert detect('arch') still returns a logo. Fails on the old code (PoisonError panic), passes on the new.",
+          "timestamp": "2026-08-12T20:06:09+05:30",
+          "tree_id": "072a3263ac134e5522db885b38e89531c4752126",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/3385c16b84b89b629fa84fee3c6d552a200a8dbd"
+        },
+        "date": 1786545529997,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2155118,
+            "range": "± 41517",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2173124,
+            "range": "± 43907",
             "unit": "ns/iter"
           }
         ]
