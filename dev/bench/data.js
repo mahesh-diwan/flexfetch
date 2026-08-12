@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786544129203,
+  "lastUpdate": 1786544959557,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1295,6 +1295,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2571620,
             "range": "± 73338",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "c23533414a11d788f70fe76baf4c6059d7b8eb52",
+          "message": "fix(modules): nomistakes audit — saturating arithmetic + parse guards for untrusted /proc input\n\nFull panic/overflow audit of every module collector parsing /proc and /sys. Indexed accesses and len guards were already sound; five real hazards fixed:\n\ncpuusage: /proc/stat total was a plain sum() — panics in debug on near-u64::MAX counters (my new test caught it: attempt to add with overflow). Now a saturating fold + saturating_add idle; idle>total degrades to 0% not UB.\n\nswap: total/used accumulation could overflow on malformed /proc/swaps — saturating_add; percent clamped to 100 (was rendering 147% for used>size).\n\nhealth: swap probe used parse().ok()? inside the loop — one garbage meminfo line aborted the entire probe. Now if-let skips bad keys. disk_usage_percent statvfs subtraction saturating.\n\ndisk: statvfs total-avail subtraction saturating (f_bavail>f_blocks is kernel-impossible but a virtualized fs could report it).\n\n7 new regression tests covering the exact malformed-input paths: huge counters, used>size, garbage lines with/without colons.\n\nVerified: 131 workspace tests, 98 minimal, clippy -D warnings clean.",
+          "timestamp": "2026-08-12T19:56:32+05:30",
+          "tree_id": "e2c422a21cf9f61a3102c175e4042076c38a3a4e",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/c23533414a11d788f70fe76baf4c6059d7b8eb52"
+        },
+        "date": 1786544958609,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2635455,
+            "range": "± 28394",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2643600,
+            "range": "± 45328",
             "unit": "ns/iter"
           }
         ]
