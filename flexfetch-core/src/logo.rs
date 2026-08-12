@@ -143,11 +143,15 @@ static FF_LOGO_CACHE: std::sync::OnceLock<
 fn cached_fastfetch_logo(src: &'static str) -> &'static Logo {
     let cache =
         FF_LOGO_CACHE.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
-    if let Some(logo) = cache.lock().unwrap().get(src) {
+    // Poisoning-recovery: if any thread ever panicked while holding this lock
+    // (e.g. during make_logo allocation), the data itself is still valid —
+    // recover it instead of panicking on every --live refresh.
+    let mut lock = cache.lock().unwrap_or_else(|e| e.into_inner());
+    if let Some(logo) = lock.get(src) {
         return logo;
     }
     let logo = make_logo(src);
-    cache.lock().unwrap().insert(src, logo);
+    lock.insert(src, logo);
     logo
 }
 
@@ -248,6 +252,23 @@ mod tests {
     #[test]
     fn detect_unknown_distro_returns_generic() {
         let logo = detect("unknown_distro_xyz");
+        assert!(!logo.lines.is_empty());
+    }
+
+    #[test]
+    fn detect_recovers_from_poisoned_cache_lock() {
+        // Poison the shared logo cache exactly the way a real thread panic
+        // would (lock acquired, then panic while held). Every subsequent
+        // detect() call must still work — the old lock().unwrap() would
+        // have panicked here on each --live refresh.
+        let cache =
+            FF_LOGO_CACHE.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+        let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _guard = cache.lock().unwrap();
+            panic!("deliberate poison");
+        }));
+        assert!(cache.is_poisoned());
+        let logo = detect("arch");
         assert!(!logo.lines.is_empty());
     }
 
