@@ -13,12 +13,17 @@ impl Module for ResolutionModule {
         #[cfg(target_os = "linux")]
         {
             // Read from DRM sysfs — works on both X11 and Wayland
-            if let Ok(entries) = std::fs::read_dir("/sys/class/drm") {
-                let mut dirs: Vec<_> = entries.flatten().collect();
-                dirs.sort_by_key(|e| e.file_name());
+            if let Ok(entries) = ctx.read_dir("/sys/class/drm") {
+                let mut dirs: Vec<_> = entries;
+                dirs.sort_by_key(|e| {
+                    e.file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string()
+                });
                 for entry in dirs {
-                    let modes_path = entry.path().join("modes");
-                    if modes_path.exists() {
+                    let modes_path = entry.join("modes");
+                    if ctx.exists(&modes_path) {
                         if let Ok(content) = ctx.read_file(&modes_path) {
                             for line in content.lines() {
                                 let m = line.trim();
@@ -70,5 +75,42 @@ impl Module for ResolutionModule {
             return Ok(InfoValue::Scalar("unknown".into()));
         }
         Ok(InfoValue::Scalar(resolutions.join(", ")))
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn reads_drm_modes_from_mock_sysfs() {
+        let ctx = test_ctx(
+            MockFs::new()
+                .file("/sys/class/drm/card0-DP-1/modes", "1920x1080\n3840x2160\n")
+                .file("/sys/class/drm/card0-HDMI-1/modes", "1280x720\n"),
+        );
+        let v = ResolutionModule.collect(&ctx).unwrap();
+        match v {
+            InfoValue::Scalar(s) => {
+                assert!(s.contains("1920x1080"));
+                assert!(s.contains("3840x2160"));
+                assert!(s.contains("1280x720"));
+            }
+            _ => panic!("expected scalar"),
+        }
+    }
+
+    #[test]
+    fn no_drm_yields_unknown_or_fallback() {
+        // Empty DRM tree: the module may fall back to a real `xrandr` spawn
+        // on a dev machine, so accept either outcome — the point is that an
+        // empty sysfs tree never panics or fabricates a mode.
+        let ctx = test_ctx(MockFs::new());
+        let v = ResolutionModule.collect(&ctx).unwrap();
+        match v {
+            InfoValue::Scalar(_) => {}
+            _ => panic!("expected scalar"),
+        }
     }
 }

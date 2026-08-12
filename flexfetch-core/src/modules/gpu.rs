@@ -11,11 +11,15 @@ impl Module for GpuModule {
         #[cfg(target_os = "linux")]
         {
             // Use sysfs first (faster, no process spawn)
-            if let Ok(entries) = std::fs::read_dir("/sys/class/drm/") {
-                for entry in entries.flatten() {
-                    let name = entry.file_name().to_string_lossy().to_string();
+            if let Ok(entries) = ctx.read_dir("/sys/class/drm/") {
+                for path in entries {
+                    let name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
                     if name.starts_with("card") && name.len() <= 6 {
-                        let dev = entry.path().join("device");
+                        let dev = path.join("device");
 
                         // Phase 5.8: resolve the vendor:device ID against the
                         // hardware DB (cached + bundled seed) for a friendly

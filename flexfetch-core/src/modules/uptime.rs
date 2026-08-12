@@ -3,16 +3,17 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct UptimeModule;
 
 impl Module for UptimeModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
-        let secs = uptime_secs().unwrap_or(0);
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
+        let secs = uptime_secs(ctx).unwrap_or(0);
         Ok(InfoValue::Scalar(format_uptime(secs)))
     }
 }
 
-fn uptime_secs() -> Option<u64> {
+#[allow(unused_variables)] // ctx is only read on Linux (macOS uses sysctl)
+fn uptime_secs(ctx: &Context) -> Option<u64> {
     #[cfg(target_os = "linux")]
     {
-        let content = std::fs::read_to_string("/proc/uptime").ok()?;
+        let content = ctx.read_file("/proc/uptime").ok()?;
         content
             .split_whitespace()
             .next()?

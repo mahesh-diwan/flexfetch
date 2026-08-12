@@ -1451,18 +1451,21 @@ mod tests {
     use super::*;
     use crate::Config;
 
+    #[cfg(feature = "tera")]
     #[test]
     fn compile_template_valid() {
         let result = compile_template("Hello {{ name }}");
         assert!(result.is_ok());
     }
 
+    #[cfg(feature = "tera")]
     #[test]
     fn compile_template_invalid() {
         let result = compile_template("Hello {% invalid %}");
         assert!(result.is_err());
     }
 
+    #[cfg(feature = "tera")]
     #[test]
     fn compile_template_has_pad_filter() {
         let tera = compile_template("{{ \"hi\" | pad(width=10) }}").unwrap();
@@ -1471,6 +1474,7 @@ mod tests {
         assert_eq!(result, "hi        ");
     }
 
+    #[cfg(feature = "tera")]
     #[test]
     fn compile_template_has_progress_bar_filter() {
         let tera = compile_template("{{ 50 | progress_bar(width=10) }}").unwrap();

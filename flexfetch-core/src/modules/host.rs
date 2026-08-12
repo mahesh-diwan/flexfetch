@@ -3,17 +3,18 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct HostModule;
 
 impl Module for HostModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         Ok(InfoValue::Scalar(
-            hostname().unwrap_or_else(|| "unknown".into()),
+            hostname(ctx).unwrap_or_else(|| "unknown".into()),
         ))
     }
 }
 
-fn hostname() -> Option<String> {
+#[allow(unused_variables)] // ctx is only read on Linux (macOS uses libc)
+fn hostname(ctx: &Context) -> Option<String> {
     #[cfg(target_os = "linux")]
     {
-        std::fs::read_to_string("/proc/sys/kernel/hostname")
+        ctx.read_file("/proc/sys/kernel/hostname")
             .ok()
             .map(|s| s.trim().to_string())
     }
@@ -34,5 +35,23 @@ fn hostname() -> Option<String> {
     #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         None
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn hostname_reads_mock_proc() {
+        let ctx = test_ctx(MockFs::new().file("/proc/sys/kernel/hostname", "mybox\n"));
+        assert_eq!(hostname(&ctx).as_deref(), Some("mybox"));
+    }
+
+    #[test]
+    fn hostname_empty_when_file_missing() {
+        let ctx = test_ctx(MockFs::new());
+        assert!(hostname(&ctx).is_none());
     }
 }

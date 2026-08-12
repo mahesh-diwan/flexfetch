@@ -14,9 +14,13 @@ impl Module for NetworkModule {
             // Phase 4.1: one getifaddrs() call gives every interface's addresses
             // (no `ip` subprocess); the MAC comes straight from sysfs (no `cat`).
             let addrs = iface_addrs();
-            if let Ok(entries) = std::fs::read_dir("/sys/class/net/") {
-                for entry in entries.flatten() {
-                    let name = entry.file_name().to_string_lossy().to_string();
+            if let Ok(entries) = ctx.read_dir("/sys/class/net/") {
+                for path in entries {
+                    let name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
                     if name == "lo"
                         || name.starts_with("docker")
                         || name.starts_with("br-")

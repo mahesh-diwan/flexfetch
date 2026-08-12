@@ -4,17 +4,17 @@ use std::path::Path;
 
 pub struct ContextModule;
 
-fn detect_container() -> Option<String> {
+fn detect_container(ctx: &Context) -> Option<String> {
     // Docker
-    if Path::new("/.dockerenv").exists() {
+    if ctx.exists("/.dockerenv") {
         return Some("docker".into());
     }
     // Podman / other container runtimes
-    if Path::new("/run/.containerenv").exists() {
+    if ctx.exists("/run/.containerenv") {
         return Some("podman".into());
     }
     // cgroup v1/v2 indicators
-    if let Ok(cgroup) = std::fs::read_to_string("/proc/1/cgroup") {
+    if let Ok(cgroup) = ctx.read_file("/proc/1/cgroup") {
         if cgroup.contains("docker") {
             return Some("docker".into());
         }
@@ -26,11 +26,11 @@ fn detect_container() -> Option<String> {
 }
 
 impl Module for ContextModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         // Container
-        if let Some(kind) = detect_container() {
+        if let Some(kind) = detect_container(ctx) {
             map.insert("container".into(), kind);
         }
 

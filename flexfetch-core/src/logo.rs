@@ -249,7 +249,6 @@ mod tests {
     fn detect_unknown_distro_returns_generic() {
         let logo = detect("unknown_distro_xyz");
         assert!(!logo.lines.is_empty());
-        assert!(logo.lines.len() > 0);
     }
 
     #[test]

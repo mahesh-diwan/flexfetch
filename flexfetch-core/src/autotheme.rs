@@ -154,7 +154,16 @@ pub fn auto_theme() -> Option<ThemeStrings> {
     if !crate::theme::supports_truecolor() {
         return None;
     }
-    let wallpaper = crate::modules::wallpaper::detect_wallpaper()?;
+    // Feature-gated and off the hot render path, so a throwaway RealFs
+    // Context is fine here: the wallpaper config reads are user config, and
+    // the image decode + cache mtime stay on std::fs regardless.
+    let ctx = crate::Context::new(
+        std::env::temp_dir().join("flexfetch-autotheme"),
+        crate::get_cache_dir(),
+        false,
+        std::collections::HashMap::new(),
+    );
+    let wallpaper = crate::modules::wallpaper::detect_wallpaper(&ctx)?;
     let mtime = std::fs::metadata(&wallpaper).ok()?.modified().ok()?;
     let cache = cache_path(&wallpaper, mtime);
 

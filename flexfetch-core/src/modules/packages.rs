@@ -3,17 +3,17 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct PackagesModule;
 
 impl Module for PackagesModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut results: Vec<(String, usize)> = Vec::new();
 
         // Phase 4.1: parse the package databases directly (no subprocesses).
         // Each returns None when the DB isn't present, and we fall back to the
         // CLI for that manager (rpm has no plain-file DB — Berkeley DB only).
         for (label, count) in [
-            ("dpkg", count_dpkg()),
-            ("pacman", count_pacman()),
-            ("flatpak", count_flatpak()),
-            ("snap", count_snap()),
+            ("dpkg", count_dpkg(ctx)),
+            ("pacman", count_pacman(ctx)),
+            ("flatpak", count_flatpak(ctx)),
+            ("snap", count_snap(ctx)),
             ("rpm", count_rpm()),
         ] {
             if let Some(n) = count {
@@ -45,8 +45,8 @@ impl Module for PackagesModule {
 }
 
 /// Count installed dpkg packages from /var/lib/dpkg/status (no `dpkg` spawn).
-fn count_dpkg() -> Option<usize> {
-    let content = std::fs::read_to_string("/var/lib/dpkg/status").ok()?;
+fn count_dpkg(ctx: &Context) -> Option<usize> {
+    let content = ctx.read_file("/var/lib/dpkg/status").ok()?;
     let count = content
         .lines()
         .filter(|l| l.starts_with("Status: install ok installed"))
@@ -61,12 +61,9 @@ fn count_dpkg() -> Option<usize> {
 /// Count installed pacman packages: one directory per package in /var/lib/pacman/local/.
 /// Skip non-directory entries (ALPM_DB_VERSION, *_NOTICE files) — those are DB
 /// metadata, not packages.
-fn count_pacman() -> Option<usize> {
-    let entries = std::fs::read_dir("/var/lib/pacman/local/").ok()?;
-    let count = entries
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
-        .count();
+fn count_pacman(ctx: &Context) -> Option<usize> {
+    let entries = ctx.read_dir("/var/lib/pacman/local/").ok()?;
+    let count = entries.iter().filter(|p| ctx.is_dir(p)).count();
     if count == 0 {
         None
     } else {
@@ -75,11 +72,11 @@ fn count_pacman() -> Option<usize> {
 }
 
 /// Count flatpak apps + runtimes by directory (system + per-user installs).
-fn count_flatpak() -> Option<usize> {
+fn count_flatpak(ctx: &Context) -> Option<usize> {
     let mut count = 0usize;
     for base in ["/var/lib/flatpak/app", "/var/lib/flatpak/runtime"] {
-        if let Ok(entries) = std::fs::read_dir(base) {
-            count += entries.filter_map(|e| e.ok()).count();
+        if let Ok(entries) = ctx.read_dir(base) {
+            count += entries.len();
         }
     }
     if count == 0 {
@@ -90,11 +87,15 @@ fn count_flatpak() -> Option<usize> {
 }
 
 /// Count snap packages: one .snap file per revision in /var/lib/snapd/snaps/.
-fn count_snap() -> Option<usize> {
-    let entries = std::fs::read_dir("/var/lib/snapd/snaps/").ok()?;
+fn count_snap(ctx: &Context) -> Option<usize> {
+    let entries = ctx.read_dir("/var/lib/snapd/snaps/").ok()?;
     let count = entries
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_name().to_string_lossy().ends_with(".snap"))
+        .iter()
+        .filter(|p| {
+            p.file_name()
+                .map(|n| n.to_string_lossy().ends_with(".snap"))
+                .unwrap_or(false)
+        })
         .count();
     if count == 0 {
         None
@@ -155,5 +156,38 @@ fn count_all_cli() -> Vec<(String, usize)> {
     #[cfg(not(feature = "parallel"))]
     {
         commands.iter().filter_map(probe).collect()
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn counts_dpkg_status() {
+        let status = "Package: a\nStatus: install ok installed\n\n\
+                      Package: b\nStatus: install ok installed\n\n\
+                      Package: c\nStatus: deinstall ok config-files\n\n";
+        let ctx = test_ctx(MockFs::new().file("/var/lib/dpkg/status", status));
+        assert_eq!(count_dpkg(&ctx), Some(2));
+    }
+
+    #[test]
+    fn dpkg_none_when_missing() {
+        let ctx = test_ctx(MockFs::new());
+        assert_eq!(count_dpkg(&ctx), None);
+    }
+
+    #[test]
+    fn counts_pacman_dirs() {
+        let ctx = test_ctx(
+            MockFs::new()
+                .dir("/var/lib/pacman/local/foo-1.0")
+                .dir("/var/lib/pacman/local/bar-2.1")
+                .file("/var/lib/pacman/local/ALPM_DB_VERSION", "9\n"),
+        );
+        // Non-directory metadata files are excluded.
+        assert_eq!(count_pacman(&ctx), Some(2));
     }
 }

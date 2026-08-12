@@ -44,7 +44,7 @@ impl Module for OsModule {
             // WSL1 and WSL2; the kernel version string disambiguates them.
             // Only spawns `cmd.exe /c ver` on an actual WSL system (off the
             // default path otherwise, so cold start is unaffected).
-            if std::path::Path::new("/proc/sys/fs/binfmt_misc/WSLInterop").exists() {
+            if ctx.exists("/proc/sys/fs/binfmt_misc/WSLInterop") {
                 let kernel = ctx
                     .read_file("/proc/sys/kernel/osrelease")
                     .unwrap_or_default()
@@ -110,5 +110,42 @@ impl Module for OsModule {
 
         map.insert("arch".into(), std::env::consts::ARCH.to_string());
         Ok(InfoValue::Map(map))
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn parses_mock_os_release() {
+        let ctx = test_ctx(MockFs::new().file(
+            "/etc/os-release",
+            "NAME=\"TestOS\"\nPRETTY_NAME=\"TestOS 1.0\"\nID=testos\nVERSION_ID=\"1.0\"\n",
+        ));
+        let v = OsModule.collect(&ctx).unwrap();
+        let map = match v {
+            InfoValue::Map(m) => m,
+            _ => panic!("expected map"),
+        };
+        assert_eq!(map.get("name").map(String::as_str), Some("TestOS"));
+        assert_eq!(
+            map.get("pretty_name").map(String::as_str),
+            Some("TestOS 1.0")
+        );
+        assert_eq!(map.get("id").map(String::as_str), Some("testos"));
+        assert!(!map.contains_key("wsl"), "no WSL marker in mock");
+    }
+
+    #[test]
+    fn arch_release_fallback() {
+        let ctx = test_ctx(MockFs::new().file("/etc/arch-release", "\n"));
+        let v = OsModule.collect(&ctx).unwrap();
+        let map = match v {
+            InfoValue::Map(m) => m,
+            _ => panic!("expected map"),
+        };
+        assert_eq!(map.get("name").map(String::as_str), Some("Arch Linux"));
     }
 }

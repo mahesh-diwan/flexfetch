@@ -8,11 +8,15 @@ impl Module for TemperatureModule {
         let mut map = HashMap::new();
 
         // Try /sys/class/thermal first (most reliable)
-        if let Ok(entries) = std::fs::read_dir("/sys/class/thermal") {
-            for entry in entries.flatten() {
-                let name = entry.file_name().to_string_lossy().to_string();
+        if let Ok(entries) = ctx.read_dir("/sys/class/thermal") {
+            for path in entries {
+                let name = path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
                 if name.starts_with("thermal_zone") {
-                    if let Ok(temp_str) = ctx.read_file(entry.path().join("temp")) {
+                    if let Ok(temp_str) = ctx.read_file(path.join("temp")) {
                         if let Ok(mk) = temp_str.trim().parse::<u64>() {
                             map.insert("cpu".into(), format!("{}°C", mk / 1000));
                             break;
@@ -23,16 +27,20 @@ impl Module for TemperatureModule {
         }
 
         // GPU temp from hwmon
-        if let Ok(drm) = std::fs::read_dir("/sys/class/drm") {
-            for entry in drm.flatten() {
-                let name = entry.file_name().to_string_lossy().to_string();
+        if let Ok(drm) = ctx.read_dir("/sys/class/drm") {
+            for path in drm {
+                let name = path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
                 if !name.starts_with("card") {
                     continue;
                 }
-                let hwmon_base = entry.path().join("device/hwmon");
-                if let Ok(hm_entries) = std::fs::read_dir(&hwmon_base) {
-                    for hm in hm_entries.flatten() {
-                        let temp_file = hm.path().join("temp1_input");
+                let hwmon_base = path.join("device/hwmon");
+                if let Ok(hm_entries) = ctx.read_dir(&hwmon_base) {
+                    for hm in hm_entries {
+                        let temp_file = hm.join("temp1_input");
                         if let Ok(temp_str) = ctx.read_file(&temp_file) {
                             if let Ok(mk) = temp_str.trim().parse::<u64>() {
                                 map.insert("gpu".into(), format!("{}°C", mk / 1000));
@@ -48,9 +56,9 @@ impl Module for TemperatureModule {
         }
 
         // Fan speed from hwmon
-        if let Ok(hwmon) = std::fs::read_dir("/sys/class/hwmon") {
-            for entry in hwmon.flatten() {
-                let fan_file = entry.path().join("fan1_input");
+        if let Ok(hwmon) = ctx.read_dir("/sys/class/hwmon") {
+            for path in hwmon {
+                let fan_file = path.join("fan1_input");
                 if let Ok(fan_str) = ctx.read_file(&fan_file) {
                     if let Ok(rpm) = fan_str.trim().parse::<u64>() {
                         if rpm > 0 {

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub struct WmModule;
 
 impl Module for WmModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         let de = std::env::var("XDG_CURRENT_DESKTOP")
@@ -24,7 +24,7 @@ impl Module for WmModule {
         // Phase 4.1: read GTK theme/icons/cursor/font from ~/.config/gtk-*.ini
         // instead of spawning gsettings per key (zero subprocesses on the
         // default path). Falls back to gsettings only when no config files exist.
-        let gtk = gtk_config();
+        let gtk = gtk_config(ctx);
         let mut from_config = false;
         for (key, field) in [
             ("gtk-theme-name", "theme"),
@@ -83,7 +83,7 @@ fn gsettings_value(schema: &str, key: &str) -> Option<String> {
 
 /// Parse every `gtk-*` key from ~/.config/gtk-3.0/settings.ini and
 /// gtk-4.0/settings.ini into one map (each file read at most once).
-fn gtk_config() -> HashMap<String, String> {
+fn gtk_config(ctx: &Context) -> HashMap<String, String> {
     let mut out = HashMap::new();
     let home = match std::env::var("HOME") {
         Ok(h) => h,
@@ -91,7 +91,7 @@ fn gtk_config() -> HashMap<String, String> {
     };
     for rel in ["gtk-3.0/settings.ini", "gtk-4.0/settings.ini"] {
         let path = format!("{home}/.config/{rel}");
-        if let Ok(content) = std::fs::read_to_string(&path) {
+        if let Ok(content) = ctx.read_file(&path) {
             for line in content.lines() {
                 let line = line.trim();
                 if let Some((k, v)) = line.split_once('=') {

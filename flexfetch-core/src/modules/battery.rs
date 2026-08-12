@@ -11,14 +11,16 @@ impl Module for BatteryModule {
 
         #[cfg(target_os = "linux")]
         {
-            if let Ok(entries) = std::fs::read_dir("/sys/class/power_supply") {
-                for entry in entries.flatten() {
-                    let name = entry.file_name();
-                    let name = name.to_str().unwrap_or("");
+            if let Ok(entries) = ctx.read_dir("/sys/class/power_supply") {
+                for base in entries {
+                    let name = base
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
                     if !name.starts_with("BAT") {
                         continue;
                     }
-                    let base = entry.path();
                     if let Ok(cap) = ctx.read_file(base.join("capacity")) {
                         let pct_str = cap.trim().to_string();
                         map.insert("percent_int".into(), pct_str.clone());
@@ -65,5 +67,37 @@ impl Module for BatteryModule {
             return Ok(InfoValue::Scalar("unknown".into()));
         }
         Ok(InfoValue::Map(map))
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn reads_mock_bat0() {
+        let ctx = test_ctx(
+            MockFs::new()
+                .file("/sys/class/power_supply/BAT0/capacity", "79\n")
+                .file("/sys/class/power_supply/BAT0/status", "Discharging\n"),
+        );
+        let v = BatteryModule.collect(&ctx).unwrap();
+        let map = match v {
+            InfoValue::Map(m) => m,
+            _ => panic!("expected map"),
+        };
+        assert_eq!(map.get("percent").map(String::as_str), Some("79%"));
+        assert_eq!(map.get("percent_int").map(String::as_str), Some("79"));
+        assert_eq!(map.get("status").map(String::as_str), Some("Discharging"));
+    }
+
+    #[test]
+    fn unknown_when_no_battery() {
+        let ctx = test_ctx(MockFs::new());
+        assert!(matches!(
+            BatteryModule.collect(&ctx).unwrap(),
+            InfoValue::Scalar(ref s) if s == "unknown"
+        ));
     }
 }

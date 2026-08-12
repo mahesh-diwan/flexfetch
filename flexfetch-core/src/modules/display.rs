@@ -4,7 +4,7 @@ use std::process::Command;
 pub struct DisplayModule;
 
 impl Module for DisplayModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Try wlr-randr first (Wayland-native)
         if let Some(v) = try_wlr_randr() {
             return Ok(InfoValue::Scalar(v));
@@ -14,7 +14,7 @@ impl Module for DisplayModule {
             return Ok(InfoValue::Scalar(v));
         }
         // Fallback: DRM sysfs
-        if let Some(v) = try_drm() {
+        if let Some(v) = try_drm(ctx) {
             return Ok(InfoValue::Scalar(v));
         }
         Ok(InfoValue::Scalar("unknown".into()))
@@ -66,12 +66,12 @@ fn try_xrandr() -> Option<String> {
     None
 }
 
-fn try_drm() -> Option<String> {
-    let entries = std::fs::read_dir("/sys/class/drm").ok()?;
-    for entry in entries.flatten() {
-        let modes_path = entry.path().join("modes");
-        if modes_path.exists() {
-            if let Ok(content) = std::fs::read_to_string(&modes_path) {
+fn try_drm(ctx: &Context) -> Option<String> {
+    let entries = ctx.read_dir("/sys/class/drm").ok()?;
+    for entry in entries {
+        let modes_path = entry.join("modes");
+        if ctx.exists(&modes_path) {
+            if let Ok(content) = ctx.read_file(&modes_path) {
                 if let Some(mode) = content.lines().next() {
                     let mode = mode.trim();
                     if !mode.is_empty() {

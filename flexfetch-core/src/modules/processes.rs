@@ -3,23 +3,23 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct ProcessesModule;
 
 impl Module for ProcessesModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
-        let count = process_count();
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
+        let count = process_count(ctx);
         Ok(InfoValue::Scalar(count))
     }
 }
 
-fn process_count() -> String {
+#[allow(unused_variables)] // ctx only read on Linux
+fn process_count(ctx: &Context) -> String {
     #[cfg(target_os = "linux")]
     {
-        if let Ok(entries) = std::fs::read_dir("/proc") {
+        if let Ok(entries) = ctx.read_dir("/proc") {
             let count = entries
-                .filter_map(|e| e.ok())
-                .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
-                .filter(|e| {
-                    e.file_name()
-                        .to_str()
-                        .map(|s| s.bytes().all(|b| b.is_ascii_digit()))
+                .into_iter()
+                .filter(|p| ctx.is_dir(p))
+                .filter(|p| {
+                    p.file_name()
+                        .map(|s| s.to_string_lossy().bytes().all(|b| b.is_ascii_digit()))
                         .unwrap_or(false)
                 })
                 .count();
@@ -37,4 +37,31 @@ fn process_count() -> String {
     }
 
     "unknown".to_string()
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn counts_numeric_proc_dirs() {
+        // PID dirs + one non-numeric entry that must be skipped.
+        let ctx = test_ctx(
+            MockFs::new()
+                .dir("/proc/1")
+                .dir("/proc/2")
+                .dir("/proc/1234")
+                .file("/proc/version", "mock\n"),
+        );
+        assert_eq!(process_count(&ctx), "3");
+    }
+
+    #[test]
+    fn zero_when_proc_has_no_pids() {
+        // An empty /proc is impossible on a real kernel, but MockFs shows the
+        // collector degrades to "0" (read_dir succeeds with no numeric dirs).
+        let ctx = test_ctx(MockFs::new().dir("/proc").file("/proc/version", "mock\n"));
+        assert_eq!(process_count(&ctx), "0");
+    }
 }

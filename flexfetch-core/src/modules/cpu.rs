@@ -48,17 +48,21 @@ impl Module for CpuModule {
             }
 
             // CPU usage: read /proc/stat twice with small delay for accurate %
-            let usage = get_cpu_usage();
+            let usage = get_cpu_usage(ctx);
             if let Some(pct) = usage {
                 map.insert("usage_pct".into(), format!("{}%", pct));
             }
 
             // CPU temp
-            if let Ok(entries) = std::fs::read_dir("/sys/class/thermal") {
-                for entry in entries.flatten() {
-                    let name = entry.file_name().to_string_lossy().to_string();
+            if let Ok(entries) = ctx.read_dir("/sys/class/thermal") {
+                for path in entries {
+                    let name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
                     if name.starts_with("thermal_zone") {
-                        if let Ok(temp_str) = ctx.read_file(entry.path().join("temp")) {
+                        if let Ok(temp_str) = ctx.read_file(path.join("temp")) {
                             if let Ok(mk) = temp_str.trim().parse::<u64>() {
                                 map.insert("temp".into(), format!("{}°C", mk / 1000));
                                 break;
@@ -131,9 +135,10 @@ impl Module for CpuModule {
 }
 
 #[cfg(target_os = "linux")]
-fn get_cpu_usage() -> Option<u32> {
+#[allow(unused_variables)] // ctx only read on Linux
+fn get_cpu_usage(ctx: &Context) -> Option<u32> {
     // Read current stats
-    let content = std::fs::read_to_string("/proc/stat").ok()?;
+    let content = ctx.read_file("/proc/stat").ok()?;
     let line = content.lines().next()?;
     let parts: Vec<&str> = line.split_whitespace().collect();
     let total: u64 = parts
@@ -166,4 +171,36 @@ fn get_cpu_usage() -> Option<u32> {
 
     // Return cached or approximate
     None
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn parses_mock_cpuinfo() {
+        let ctx = test_ctx(MockFs::new().file(
+            "/proc/cpuinfo",
+            "processor\t: 0\nmodel name\t: AMD Ryzen 7\ncpu MHz\t\t: 3400.000\n\n\
+             processor\t: 1\nmodel name\t: AMD Ryzen 7\ncpu MHz\t\t: 3400.000\n\n",
+        ));
+        let v = CpuModule.collect(&ctx).unwrap();
+        let map = match v {
+            InfoValue::Map(m) => m,
+            _ => panic!("expected map"),
+        };
+        assert_eq!(map.get("model").map(String::as_str), Some("AMD Ryzen 7"));
+        assert_eq!(map.get("cores").map(String::as_str), Some("2"));
+        assert_eq!(map.get("freq_mhz").map(String::as_str), Some("3400.000"));
+    }
+
+    #[test]
+    fn empty_when_cpuinfo_missing() {
+        let ctx = test_ctx(MockFs::new());
+        assert!(matches!(
+            CpuModule.collect(&ctx).unwrap(),
+            InfoValue::Scalar(ref s) if s == "unknown"
+        ));
+    }
 }

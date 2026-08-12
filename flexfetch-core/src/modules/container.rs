@@ -2,18 +2,17 @@ use crate::{Context, InfoValue, Module, Result};
 use std::collections::HashMap;
 #[cfg(unix)]
 use std::io::{Read, Write};
-use std::path::Path;
 
 pub struct ContainerModule;
 
 impl Module for ContainerModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Phase 4.15: deep container introspection. Only meaningful inside a
         // container (or when a docker/podman socket is mounted).
         let mut map = HashMap::new();
 
-        let runtime = detect_runtime();
-        let container_id = container_id();
+        let runtime = detect_runtime(ctx);
+        let container_id = container_id(ctx);
 
         if runtime.is_none() && container_id.is_none() {
             // Not in a container and no socket: empty map → line omitted.
@@ -25,15 +24,17 @@ impl Module for ContainerModule {
         }
 
         // Docker / Podman socket: query the engine API for the current container.
-        if let Some(info) = socket_container_info(&container_id) {
+        if let Some(info) = socket_container_info(ctx, &container_id) {
             for (k, v) in info {
                 map.insert(k, v);
             }
         }
 
         // Kubernetes serviceaccount metadata.
-        if let Some(ns) = read_first_line("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
-        {
+        if let Some(ns) = read_first_line(
+            ctx,
+            "/var/run/secrets/kubernetes.io/serviceaccount/namespace",
+        ) {
             map.insert("k8s_namespace".into(), ns);
         }
         if let Ok(pod) = std::env::var("HOSTNAME") {
@@ -50,15 +51,15 @@ impl Module for ContainerModule {
     }
 }
 
-fn detect_runtime() -> Option<String> {
-    if Path::new("/.dockerenv").exists() {
+fn detect_runtime(ctx: &Context) -> Option<String> {
+    if ctx.exists("/.dockerenv") {
         return Some("docker".into());
     }
-    if Path::new("/run/.containerenv").exists() {
+    if ctx.exists("/run/.containerenv") {
         return Some("podman".into());
     }
     // Cgroup v1/v2 mention of containers.
-    if let Ok(cgroup) = std::fs::read_to_string("/proc/self/cgroup") {
+    if let Ok(cgroup) = ctx.read_file("/proc/self/cgroup") {
         if cgroup.contains("docker") {
             return Some("docker".into());
         }
@@ -70,8 +71,8 @@ fn detect_runtime() -> Option<String> {
 }
 
 /// Container ID from /proc/self/cgroup (64-hex digest in any of the segments).
-fn container_id() -> Option<String> {
-    let cgroup = std::fs::read_to_string("/proc/self/cgroup").ok()?;
+fn container_id(ctx: &Context) -> Option<String> {
+    let cgroup = ctx.read_file("/proc/self/cgroup").ok()?;
     parse_container_id(&cgroup)
 }
 
@@ -89,10 +90,10 @@ fn parse_container_id(cgroup: &str) -> Option<String> {
 }
 
 /// Query the docker/podman Unix socket for the current container's image info.
-fn socket_container_info(id: &Option<String>) -> Option<HashMap<String, String>> {
-    let socket = if Path::new("/var/run/docker.sock").exists() {
+fn socket_container_info(ctx: &Context, id: &Option<String>) -> Option<HashMap<String, String>> {
+    let socket = if ctx.exists("/var/run/docker.sock") {
         "/var/run/docker.sock"
-    } else if Path::new("/run/podman/podman.sock").exists() {
+    } else if ctx.exists("/run/podman/podman.sock") {
         "/run/podman/podman.sock"
     } else {
         return None;
@@ -143,15 +144,15 @@ fn unix_http_get(_socket: &str, _path: &str) -> Option<String> {
     None
 }
 
-fn read_first_line(path: &str) -> Option<String> {
-    std::fs::read_to_string(path)
+fn read_first_line(ctx: &Context, path: &str) -> Option<String> {
+    ctx.read_file(path)
         .ok()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
 }
 #[cfg(test)]
 mod tests {
-    use super::parse_container_id;
+    use super::*;
 
     #[test]
     fn detects_64_hex_container_id() {
@@ -164,5 +165,29 @@ mod tests {
     #[test]
     fn rejects_non_hex_cgroup() {
         assert_eq!(parse_container_id("0::/system.slice/sshd.service"), None);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn detects_docker_from_mock_fs() {
+        use crate::fs::{test_ctx, MockFs};
+        // 64 hex chars (16x4) — the real cgroup digest length.
+        let digest = "0123456789abcdef".repeat(4);
+        let cgroup = format!("0::/system.slice/docker/{digest}\n");
+        let ctx = test_ctx(
+            MockFs::new()
+                .file("/.dockerenv", "")
+                .file("/proc/self/cgroup", cgroup),
+        );
+        assert_eq!(detect_runtime(&ctx).as_deref(), Some("docker"));
+        assert_eq!(container_id(&ctx).as_deref(), Some("0123456789ab"));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn no_runtime_on_clean_fs() {
+        use crate::fs::{test_ctx, MockFs};
+        let ctx = test_ctx(MockFs::new());
+        assert_eq!(detect_runtime(&ctx), None);
     }
 }

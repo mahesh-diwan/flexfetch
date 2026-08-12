@@ -5,12 +5,12 @@ use std::path::PathBuf;
 pub struct WallpaperModule;
 
 impl Module for WallpaperModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Phase 4.8: wallpaper path + desktop context from per-DE config files
         // (no spawns on the common paths — gsettings only as a GNOME fallback).
         let mut map = HashMap::new();
 
-        if let Some(path) = detect_wallpaper() {
+        if let Some(path) = detect_wallpaper(ctx) {
             map.insert("path".into(), path);
             if let Some(name) = wallpaper_name(&map["path"]) {
                 map.insert("file".into(), name);
@@ -18,13 +18,13 @@ impl Module for WallpaperModule {
         }
 
         // GTK theme context (theme/icons/cursor) from the wm module's source.
-        if let Some(t) = gtk_theme("gtk-theme-name") {
+        if let Some(t) = gtk_theme(ctx, "gtk-theme-name") {
             map.insert("gtk_theme".into(), t);
         }
-        if let Some(t) = gtk_theme("gtk-icon-theme-name") {
+        if let Some(t) = gtk_theme(ctx, "gtk-icon-theme-name") {
             map.insert("icon_theme".into(), t);
         }
-        if let Some(t) = gtk_theme("gtk-cursor-theme-name") {
+        if let Some(t) = gtk_theme(ctx, "gtk-cursor-theme-name") {
             map.insert("cursor_theme".into(), t);
         }
 
@@ -35,12 +35,12 @@ impl Module for WallpaperModule {
 /// Detect the current wallpaper path per DE/WM (sway, hyprland, KDE, feh,
 /// nitrogen, variety, GNOME gsettings fallback). No spawns on the common paths.
 /// `pub(crate)`: reused by the Phase 5.4 `auto-theme` module.
-pub(crate) fn detect_wallpaper() -> Option<String> {
+pub(crate) fn detect_wallpaper(ctx: &Context) -> Option<String> {
     let home = std::env::var("HOME").ok()?;
     let cfg = PathBuf::from(&home).join(".config");
 
     // Sway: `output * bg /path/to/img ...`
-    if let Ok(content) = std::fs::read_to_string(cfg.join("sway/config")) {
+    if let Ok(content) = ctx.read_file(cfg.join("sway/config")) {
         for line in content.lines() {
             let line = line.trim();
             if line.starts_with("output") && line.contains("bg ") {
@@ -58,7 +58,7 @@ pub(crate) fn detect_wallpaper() -> Option<String> {
 
     // Hyprland: `wallpaper = ,/path/to/img`
     for conf in ["hypr/hyprland.conf", "hypr/hyprpaper.conf"] {
-        if let Ok(content) = std::fs::read_to_string(cfg.join(conf)) {
+        if let Ok(content) = ctx.read_file(cfg.join(conf)) {
             for line in content.lines() {
                 if let Some(rest) = line.trim().strip_prefix("wallpaper") {
                     if let Some(eq) = rest.find('=') {
@@ -74,9 +74,7 @@ pub(crate) fn detect_wallpaper() -> Option<String> {
     }
 
     // KDE Plasma: parse plasma-org.kde.plasma.desktop-appletsrc for Image=
-    if let Ok(content) =
-        std::fs::read_to_string(cfg.join("plasma-org.kde.plasma.desktop-appletsrc"))
-    {
+    if let Ok(content) = ctx.read_file(cfg.join("plasma-org.kde.plasma.desktop-appletsrc")) {
         for line in content.lines() {
             if let Some(v) = line.trim().strip_prefix("Image=") {
                 let v = v.trim().trim_matches('"');
@@ -94,7 +92,7 @@ pub(crate) fn detect_wallpaper() -> Option<String> {
         ".config/variety/variety.conf",
     ] {
         let path = PathBuf::from(&home).join(f);
-        if let Ok(content) = std::fs::read_to_string(&path) {
+        if let Ok(content) = ctx.read_file(&path) {
             for line in content.lines() {
                 let line = line.trim();
                 if line.contains("feh") && line.contains("--bg") {
@@ -136,11 +134,11 @@ fn wallpaper_name(path: &str) -> Option<String> {
 }
 
 /// Read a gtk-* key from the gtk settings.ini files (no spawn).
-fn gtk_theme(key: &str) -> Option<String> {
+fn gtk_theme(ctx: &Context, key: &str) -> Option<String> {
     let home = std::env::var("HOME").ok()?;
     for rel in ["gtk-3.0/settings.ini", "gtk-4.0/settings.ini"] {
         let path = format!("{home}/.config/{rel}");
-        if let Ok(content) = std::fs::read_to_string(&path) {
+        if let Ok(content) = ctx.read_file(&path) {
             for line in content.lines() {
                 let line = line.trim();
                 if let Some((k, v)) = line.split_once('=') {

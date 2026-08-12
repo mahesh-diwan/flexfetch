@@ -25,11 +25,11 @@ const MANIFESTS: &[(&str, &str)] = &[
 /// Walk up from `start` looking for a project manifest. Returns
 /// (type_label, project_name) where project_name is the enclosing directory
 /// name when the manifest doesn't carry a name we can cheaply read.
-fn detect_project(start: &Path) -> Option<(String, String)> {
+fn detect_project(ctx: &Context, start: &Path) -> Option<(String, String)> {
     let mut dir = start.to_path_buf();
     loop {
         for (manifest, kind) in MANIFESTS {
-            if dir.join(manifest).exists() {
+            if ctx.exists(dir.join(manifest)) {
                 let name = dir
                     .file_name()
                     .and_then(|s| s.to_str())
@@ -46,11 +46,11 @@ fn detect_project(start: &Path) -> Option<(String, String)> {
 }
 
 impl Module for ProjectModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         if let Ok(cwd) = std::env::current_dir() {
-            if let Some((kind, name)) = detect_project(&cwd) {
+            if let Some((kind, name)) = detect_project(ctx, &cwd) {
                 map.insert("type".into(), kind);
                 map.insert("name".into(), name);
             }
@@ -77,7 +77,13 @@ mod tests {
     fn detects_cargo_project() {
         let dir = temp_dir("cargo");
         std::fs::write(dir.join("Cargo.toml"), "").unwrap();
-        let got = detect_project(&dir);
+        let ctx = crate::Context::new(
+            std::env::temp_dir().join("ff-proj-cfg"),
+            std::env::temp_dir().join("ff-proj-cache"),
+            false,
+            Default::default(),
+        );
+        let got = detect_project(&ctx, &dir);
         assert_eq!(
             got,
             Some((
@@ -92,7 +98,13 @@ mod tests {
     fn detects_node_project() {
         let dir = temp_dir("node");
         std::fs::write(dir.join("package.json"), "{}").unwrap();
-        let got = detect_project(&dir);
+        let ctx = crate::Context::new(
+            std::env::temp_dir().join("ff-proj-cfg"),
+            std::env::temp_dir().join("ff-proj-cache"),
+            false,
+            Default::default(),
+        );
+        let got = detect_project(&ctx, &dir);
         assert_eq!(
             got,
             Some((
@@ -106,7 +118,13 @@ mod tests {
     #[test]
     fn empty_when_no_manifest() {
         let dir = temp_dir("empty");
-        let got = detect_project(&dir);
+        let ctx = crate::Context::new(
+            std::env::temp_dir().join("ff-proj-cfg"),
+            std::env::temp_dir().join("ff-proj-cache"),
+            false,
+            Default::default(),
+        );
+        let got = detect_project(&ctx, &dir);
         assert_eq!(got, None);
         std::fs::remove_dir_all(&dir).ok();
     }

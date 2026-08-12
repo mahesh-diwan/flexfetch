@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub struct CpuCacheModule;
 
 impl Module for CpuCacheModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // `mut` is only needed on Linux (the /sys cache dirs are the only
         // inserts); macOS leaves the map empty, so silence the unused warning.
         #[allow(unused_mut)]
@@ -12,19 +12,21 @@ impl Module for CpuCacheModule {
 
         #[cfg(target_os = "linux")]
         {
-            if let Ok(entries) = std::fs::read_dir("/sys/devices/system/cpu/cpu0/cache") {
-                for entry in entries.flatten() {
-                    let dir = entry.path();
-                    if !dir.is_dir() {
+            if let Ok(entries) = ctx.read_dir("/sys/devices/system/cpu/cpu0/cache") {
+                for dir in entries {
+                    if !ctx.is_dir(&dir) {
                         continue;
                     }
-                    let level = std::fs::read_to_string(dir.join("level"))
+                    let level = ctx
+                        .read_file(dir.join("level"))
                         .ok()
                         .and_then(|s| s.trim().parse::<u32>().ok());
-                    let cache_type = std::fs::read_to_string(dir.join("type"))
+                    let cache_type = ctx
+                        .read_file(dir.join("type"))
                         .ok()
                         .map(|s| s.trim().to_string());
-                    let size = std::fs::read_to_string(dir.join("size"))
+                    let size = ctx
+                        .read_file(dir.join("size"))
                         .ok()
                         .map(|s| s.trim().to_string());
 
