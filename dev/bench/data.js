@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786545530624,
+  "lastUpdate": 1786547504915,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1367,6 +1367,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2173124,
             "range": "± 43907",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "9d2356e5c411a1d8a8f0e1da8cb82eec016e9e89",
+          "message": "harden: fail-closed checksums, exact u128 percent math, config/preset validation, parser fuzzing\n\nAll three followups from the nomistakes audit:\n\n[install.sh] set -euo pipefail; checksum verification is now fail-closed — a fetch failure or missing sha256 tool aborts the install instead of silently skipping (release.yml always publishes .sha256, so skip was a genuine integrity gap). Guarded the hash pipeline so a failing tool gets a clean message.\n\n[config.rs] migrate_config no longer truncates the schema version with  — 2^32+1 wraps to 1 and silently passed the current-version check; now try_from + refuse. Config::load warns loudly (load_layer) instead of silently swallowing corrupt configs. load_preset rejects traversal names (/ \\ . ..) before touching the fs.\n\n[overflow] memory.rs + health.rs percent math moved to exact u128 (saturating_mul was wrong: MAX*100/MAX would render 1% instead of 100%); meminfo fallback sums and macOS page sums now saturating. Regression tests lock in the exact 100% values.\n\n[proptest] new property tests fuzz the /proc,/sys parsers (since_boot_usage, swap, swap_percent, load_per_core, meminfo collect, human_size, migrate_config) — never panic and stay in-range on arbitrary input.",
+          "timestamp": "2026-08-12T20:38:50+05:30",
+          "tree_id": "3a74c3ec643d956aa2bd7ed282d560bccddfca84",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/9d2356e5c411a1d8a8f0e1da8cb82eec016e9e89"
+        },
+        "date": 1786547504244,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2784853,
+            "range": "± 57724",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2759024,
+            "range": "± 52644",
             "unit": "ns/iter"
           }
         ]
