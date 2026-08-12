@@ -38,6 +38,10 @@ impl FileSystem for RealFs {
     }
 
     fn read_dir(&self, path: &Path) -> io::Result<Vec<PathBuf>> {
+        // Best-effort listing: an entry that fails to read (e.g. permission
+        // denied, or a procfs entry vanishing mid-iteration) is dropped rather
+        // than failing the whole listing — matches how sysfs/procfs tools
+        // behave. The dir itself missing is still an `Err`.
         Ok(std::fs::read_dir(path)?
             .filter_map(|e| e.ok())
             .map(|e| e.path())
@@ -70,12 +74,12 @@ impl MockFs {
         Self::default()
     }
 
-    /// Register a file; its parent chain is implicitly registered as dirs.
+    /// Register a file; every ancestor directory is implicitly registered, so
+    /// `read_dir`/`exists`/`is_dir` on any level of the chain behave exactly as
+    /// they would against a real filesystem.
     pub fn file(mut self, path: impl Into<PathBuf>, content: impl Into<String>) -> Self {
         let path = path.into();
-        if let Some(parent) = path.parent() {
-            self.dirs.insert(parent.to_path_buf());
-        }
+        self.register_ancestors(&path);
         self.files.insert(path, content.into());
         self
     }
@@ -83,11 +87,22 @@ impl MockFs {
     /// Register a directory explicitly (e.g. empty dirs like `/proc` entries).
     pub fn dir(mut self, path: impl Into<PathBuf>) -> Self {
         let path = path.into();
-        if let Some(parent) = path.parent() {
-            self.dirs.insert(parent.to_path_buf());
-        }
+        self.register_ancestors(&path);
         self.dirs.insert(path);
         self
+    }
+
+    /// Insert every ancestor of `path` (excluding the filesystem root) into
+    /// `dirs`, so nested paths behave like a real tree.
+    fn register_ancestors(&mut self, path: &Path) {
+        let mut parent = path.parent();
+        while let Some(p) = parent {
+            if p.as_os_str().is_empty() {
+                break;
+            }
+            self.dirs.insert(p.to_path_buf());
+            parent = p.parent();
+        }
     }
 }
 
@@ -101,6 +116,15 @@ impl FileSystem for MockFs {
     }
 
     fn read_dir(&self, path: &Path) -> io::Result<Vec<PathBuf>> {
+        // Contract fidelity with RealFs: reading an unregistered dir is `Err`,
+        // never a silently-empty `Ok` — otherwise a test could pass against the
+        // mock while production takes the missing-dir branch.
+        if !self.dirs.contains(path) {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "mock directory not registered",
+            ));
+        }
         let mut out: Vec<PathBuf> = self
             .files
             .keys()
@@ -133,4 +157,57 @@ pub fn test_ctx(fs: MockFs) -> crate::Context {
         HashMap::new(),
         Box::new(fs),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mock_read_dir_missing_is_err() {
+        // Contract fidelity with RealFs: a missing dir must be `Err`, never a
+        // silently-empty `Ok` — otherwise a test could pass against the mock
+        // while production takes the missing-dir branch.
+        let fs = MockFs::new().file("/etc/os-release", "NAME=\"Test\"\n");
+        assert!(fs.read_dir(Path::new("/nonexistent")).is_err());
+    }
+
+    #[test]
+    fn mock_ancestors_are_dirs() {
+        // Registering a nested file implicitly creates its whole ancestor
+        // chain, matching how a real filesystem behaves.
+        let fs = MockFs::new().file("/sys/class/power_supply/BAT0/capacity", "79\n");
+        assert!(fs.is_dir(Path::new("/sys/class/power_supply")));
+        assert!(fs.is_dir(Path::new("/sys/class/power_supply/BAT0")));
+        assert!(fs.exists(Path::new("/sys/class/power_supply/BAT0/capacity")));
+        let children = fs.read_dir(Path::new("/sys/class/power_supply")).unwrap();
+        assert_eq!(
+            children,
+            vec![PathBuf::from("/sys/class/power_supply/BAT0")]
+        );
+    }
+
+    #[test]
+    fn mock_read_dir_lists_direct_children_only() {
+        let fs = MockFs::new()
+            .file("/sys/class/drm/card0/modes", "1920x1080\n")
+            .file("/sys/class/drm/card1/modes", "3840x2160\n")
+            .file("/sys/class/drm/card0/device/vendor", "0x1002\n");
+        // Only direct children of /sys/class/drm are listed; the nested
+        // device/ subdir is not a sibling.
+        let children = fs.read_dir(Path::new("/sys/class/drm")).unwrap();
+        assert_eq!(
+            children,
+            vec![
+                PathBuf::from("/sys/class/drm/card0"),
+                PathBuf::from("/sys/class/drm/card1"),
+            ]
+        );
+    }
+
+    #[test]
+    fn mock_read_to_string_missing_is_err() {
+        let fs = MockFs::new();
+        assert!(fs.read_to_string(Path::new("/proc/absent")).is_err());
+    }
 }
