@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786543653392,
+  "lastUpdate": 1786544129203,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1259,6 +1259,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2739995,
             "range": "± 28254",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "2ea6645c204134eeb570c52650597161a8cffb2e",
+          "message": "fix(fs): MockFs contract fidelity — missing dir is Err, ancestors are dirs\n\nnomistakes audit of the fs seam caught two adapter-drift bugs where a test could pass against MockFs while production took a different branch:\n\n1. MockFs::read_dir returned Ok(empty) for an unregistered dir; RealFs (and the trait doc) return Err. Now Err — plus a contract test locking it in.\n\n2. MockFs::file/dir only registered the immediate parent as a dir, so read_dir on a grandparent (e.g. /sys/class/power_supply) silently found nothing. Now register_ancestors() builds the whole chain; test asserts is_dir/exists/read_dir on each level.\n\n3. Documented RealFs read_dir's intentional best-effort entry filtering (permission-denied / vanishing procfs entries are dropped, not fatal).\n\nAdded 4 fs.rs contract tests (missing-dir Err, ancestor walk, direct-children-only listing, missing-file Err).\n\nVerified: 123 core tests (97 lib + integration), 125 workspace, minimal build, clippy -D warnings clean.",
+          "timestamp": "2026-08-12T19:42:46+05:30",
+          "tree_id": "772c2a149f77f51b983aa2758fd1b016797920d4",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/2ea6645c204134eeb570c52650597161a8cffb2e"
+        },
+        "date": 1786544128724,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2595277,
+            "range": "± 48003",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2571620,
+            "range": "± 73338",
             "unit": "ns/iter"
           }
         ]
