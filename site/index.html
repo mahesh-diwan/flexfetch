@@ -14,9 +14,8 @@
   <meta property="og:image:height" content="630" />
   <meta name="theme-color" content="#0b0b0d" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23e8913a'/%3E%3Cstop offset='1' stop-color='%23f2a45c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M13 9l7 7-7 7' stroke='%230b0b0d' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preload" href="assets/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
@@ -166,7 +165,7 @@
           <span class="eyebrow">What it does</span>
           <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
         </div>
-        <p class="head-note">Core modules read the system directly &mdash; <code>/proc</code>, sysfs, or macOS APIs. A few optional ones shell out to a platform tool only when needed.</p>
+        <p class="head-note">Core modules read the system directly: <code>/proc</code>, sysfs, or macOS APIs. A few optional ones shell out to a platform tool only when needed.</p>
       </div>
 
       <div class="bento">
@@ -176,7 +175,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline></svg>
           </span>
           <h3>Reads the system directly</h3>
-          <p>Most collectors read <code>/proc</code>, sysfs, or macOS APIs directly &mdash; the cpu module typically finishes in under a millisecond. A few optional modules (wifi, bluetooth, media, wallpaper, git) shell out to the platform tool only when needed.</p>
+          <p>Most collectors read <code>/proc</code>, sysfs, or macOS APIs directly; the cpu module typically finishes in under a millisecond. A few optional modules (wifi, bluetooth, media, wallpaper, git) shell out to the platform tool only when needed.</p>
           <div class="latency" aria-hidden="true">
             <div class="lat-row">
               <span class="lat-label">all modules</span>
@@ -203,7 +202,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
           </span>
           <h3>Themes &amp; gradients</h3>
-          <p>Catppuccin, Dracula, Nord, Solarized, Tokyo Night &mdash; truecolor everywhere, per-module key/value colors, gradient accents.</p>
+          <p>Catppuccin, Dracula, Nord, Solarized, Tokyo Night: truecolor everywhere, per-module key/value colors, gradient accents.</p>
           <div class="swatches" aria-hidden="true">
             <span class="swatch"><span class="chip" style="--i:0;background:#f5e0dc"></span>catppuccin</span>
             <span class="swatch"><span class="chip" style="--i:1;background:#bd93f9"></span>dracula</span>
@@ -249,7 +248,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
           </span>
           <h3>Templates &amp; exports</h3>
-          <p>Tera templates with loops and conditionals for layout control, and output as text, JSON, Markdown, CSV, Prometheus, Ansible, Terraform, or GitHub Actions &mdash; plus SVG, HTML, and PNG file exports via <code>--export</code>.</p>
+          <p>Tera templates with loops and conditionals for layout control, and output as text, JSON, Markdown, CSV, Prometheus, Ansible, Terraform, or GitHub Actions. SVG, HTML, and PNG file exports via <code>--export</code>.</p>
           <div class="chips-track" aria-hidden="true">
             <div class="chips">
               <span class="chip hot">json</span><span class="chip">markdown</span><span class="chip">csv</span><span class="chip">prometheus</span><span class="chip hot">ansible</span><span class="chip">terraform</span><span class="chip">github</span><span class="chip">text</span>
@@ -291,7 +290,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
           </span>
           <h3>Supply-chain hardened</h3>
-          <p>Every release artifact ships SHA-256 checksums, cosign signatures, and a CycloneDX SBOM &mdash; and the installer aborts if a checksum doesn't match.</p>
+          <p>Every release artifact ships SHA-256 checksums, cosign signatures, and a CycloneDX SBOM. The installer aborts if a checksum doesn't match.</p>
           <div class="secure-grid" aria-hidden="true">
             <div class="secure-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -388,7 +387,7 @@
           <h2>On your machine in one command.</h2>
           <p>
             Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries.
-            Every release ships SHA-256 checksums and cosign signatures &mdash; the installer
+            Every release ships SHA-256 checksums and cosign signatures. The installer
             verifies the checksum before unpacking and aborts on a mismatch (verification needs a
             sha256sum/shasum tool; it's skipped with a warning when none is available).
           </p>

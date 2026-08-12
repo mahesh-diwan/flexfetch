@@ -1,9 +1,25 @@
 /* ==========================================================================
    flexfetch — landing page (v5 · design-taste)
    Palette : zinc neutrals + single amber accent (#e8913a)
-   Type    : Geist (display/body) + Geist Mono (data/terminal)
+   Type    : Geist (display/body) + Geist Mono (data/terminal) — self-hosted
    Motion  : transform/opacity only, cubic-bezier(0.16,1,0.3,1), CSS-var driven
    ========================================================================== */
+
+/* Self-hosted variable fonts (no Google Fonts dependency) */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/Geist-Variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/GeistMono-Variable.woff2") format("woff2");
+}
 
 :root {
   --bg: #0b0b0d;
@@ -17,8 +33,8 @@
 
   --text: #a1a1aa;
   --text-strong: #f4f4f5;
-  --muted: #71717a;
-  --faint: #52525b;
+  --muted: #8a8a94;
+  --faint: #7a7a85;
 
   --accent: #e8913a;
   --accent-strong: #f2a45c;
@@ -952,7 +968,7 @@ h1 .accent {
 }
 .lat-note {
   margin-top: 14px;
-  font: 10.5px var(--font-mono);
+  font: 11px var(--font-mono);
   color: var(--faint);
 }
 
@@ -1269,7 +1285,7 @@ h1 .accent {
   opacity: 0.8;
 }
 .mod .mtag {
-  font-size: 9.5px;
+  font-size: 10px;
   color: var(--faint);
   text-transform: uppercase;
   letter-spacing: 0.06em;
