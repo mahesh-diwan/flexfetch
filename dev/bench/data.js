@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786547504915,
+  "lastUpdate": 1786553182005,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1403,6 +1403,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2759024,
             "range": "± 52644",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "84c69079ea524f98c7f99c449b815df0970041d0",
+          "message": "site: self-host Geist fonts, fix contrast floor, trim em-dash overuse\n\nCritique-driven polish (impeccable critique of site/index.html, 30/36 -> fixes for the top issues):\n\nFonts: replace the Google Fonts dependency with self-hosted variable woff2\n(Geist + Geist Mono, latin subset, ~56K total). The page's only network\ndependency is gone; font-display: swap + preload added. The overused-font\ndetector hit also disappears.\n\nContrast: --muted raised to #8a8a94 (4.07:1 -> 5.75:1) and --faint to #7a7a85\n(2.54:1 -> 4.64:1); both now pass WCAG AA on the #0b0b0d background. Bumped\nthe two smallest mono notes (.lat-note 10.5px, .mod .mtag 9.5px) one step.\n\nCopy: trimmed em-dashes from 26 to 3 deliberate ones (title, og:title,\nterm-title); six body-copy dashes converted to colons/periods. The remaining\ndetector hit is a false positive on the raw-file path (it counts --i/--h CSS\ncustom-property syntax in inline style attrs and --export-style CLI flags).",
+          "timestamp": "2026-08-12T22:13:55+05:30",
+          "tree_id": "8eaeb227920e8c76f6b06fc6665f63d7f7619982",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/84c69079ea524f98c7f99c449b815df0970041d0"
+        },
+        "date": 1786553181275,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1807108,
+            "range": "± 105630",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1765121,
+            "range": "± 50669",
             "unit": "ns/iter"
           }
         ]
