@@ -160,3 +160,32 @@ fn human_size(bytes: u64) -> String {
         format!("{}K", bytes / 1024)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::human_size;
+
+    #[test]
+    fn units_are_sane() {
+        assert_eq!(human_size(0), "0K");
+        assert_eq!(human_size(1024), "1K");
+        assert!(human_size(1024 * 1024).ends_with('M'));
+        assert!(human_size(1024 * 1024 * 1024).ends_with('G'));
+    }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// human_size must never panic and must always render a non-empty
+        /// string with a unit suffix.
+        #[test]
+        fn human_size_never_panics(bytes: u64) {
+            let s = human_size(bytes);
+            prop_assert!(!s.is_empty());
+            prop_assert!(
+                s.ends_with('G') || s.ends_with('M') || s.ends_with('K'),
+                "no unit suffix: {s}"
+            );
+        }
+    }
+}

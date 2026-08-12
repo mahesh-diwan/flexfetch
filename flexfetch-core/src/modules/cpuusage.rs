@@ -84,4 +84,30 @@ mod tests {
         let pct = since_boot_usage(content).unwrap();
         assert!((0.0..=100.0).contains(&pct), "pct out of range: {pct}");
     }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// The /proc/stat parser must never panic and must always return a
+        /// sane percentage on arbitrary (hostile/malformed) input.
+        #[test]
+        fn since_boot_usage_never_panics(content in ".*") {
+            if let Some(pct) = since_boot_usage(&content) {
+                prop_assert!(
+                    (0.0..=100.0).contains(&pct),
+                    "pct out of range: {pct}"
+                );
+            }
+        }
+
+        /// Any two whitespace-separated numbers, even near u64::MAX, must
+        /// produce a finite percentage — never an overflow panic.
+        #[test]
+        fn since_boot_usage_huge_fields(rest in prop::collection::vec("[0-9]{1,20}", 0..20)) {
+            let content = format!("cpu {}", rest.join(" "));
+            if let Some(pct) = since_boot_usage(&content) {
+                prop_assert!((0.0..=100.0).contains(&pct));
+            }
+        }
+    }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # flexfetch installer — interactive, colorful, single-file.
 # Only install channel. curl shows real download progress.
-set -eu
+set -euo pipefail
 
 REPO="mahesh-diwan/flexfetch"
 BIN="flexfetch"
@@ -168,28 +168,35 @@ verify_checksum() {
 	elif command -v shasum >/dev/null 2>&1; then
 		sum_tool="shasum -a 256"
 	else
-		info "no sha256 tool found — skipping checksum verification"
-		return 0
+		fail "no sha256 tool found — refusing to install without verification"
+		return 1
 	fi
 
 	if command -v curl >/dev/null 2>&1; then
 		curl -sfL "$url" -o "$tmpdir/$BIN.sha256" 2>/dev/null || {
-			info "could not fetch checksum — skipping verification"
-			return 0
+			fail "could not fetch checksum — refusing to install without verification"
+			echo "    $url"
+			return 1
 		}
 	elif command -v wget >/dev/null 2>&1; then
 		wget -q "$url" -O "$tmpdir/$BIN.sha256" 2>/dev/null || {
-			info "could not fetch checksum — skipping verification"
-			return 0
+			fail "could not fetch checksum — refusing to install without verification"
+			echo "    $url"
+			return 1
 		}
 	else
-		info "no download tool — skipping checksum verification"
-		return 0
+		fail "no download tool — refusing to install without verification"
+		return 1
 	fi
 
 	local expected actual
 	expected=$(awk '{print $1}' "$tmpdir/$BIN.sha256")
-	actual=$($sum_tool "$tmpdir/$BIN.tar.gz" | awk '{print $1}')
+	# Guarded so a failing hash tool (unreadable archive, disk error) hits the
+	# clean fail path below instead of a bare `set -e` abort under pipefail.
+	if ! actual=$($sum_tool "$tmpdir/$BIN.tar.gz" | awk '{print $1}'); then
+		fail "could not hash the downloaded archive"
+		return 1
+	fi
 
 	if [ -n "$expected" ] && [ "$expected" = "$actual" ]; then
 		ok "checksum verified (sha256)"

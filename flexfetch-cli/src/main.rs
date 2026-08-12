@@ -787,6 +787,15 @@ pub(crate) fn handle_export(
 }
 
 fn load_preset(name: &str) -> Vec<String> {
+    // Reject path traversal before touching the filesystem: a preset name must
+    // be a bare file stem ("neofetch", "minimal"), never a path. A hostile
+    // `--preset ../../etc/x` would otherwise read arbitrary TOML files.
+    if name.is_empty() || name.contains(['/', '\\']) || name.starts_with('.') || name.contains("..")
+    {
+        eprintln!("preset '{name}' not found, using default modules");
+        return Config::default_modules();
+    }
+
     // Check built-in presets first (via core)
     if presets::builtin_presets().contains_key(name) {
         return presets::load_preset(name);
@@ -911,4 +920,38 @@ pub(crate) fn list_modules() {
         }
     }
     println!("\nLayout directives (template-only): title, separator");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::load_preset;
+
+    #[test]
+    fn preset_traversal_names_are_rejected() {
+        // Must fall back to defaults without touching the filesystem.
+        for evil in [
+            "../etc/shadow",
+            "/etc/passwd",
+            "../../x",
+            ".hidden",
+            "a..b",
+            "",
+            "..\\win",
+        ] {
+            let m = load_preset(evil);
+            assert!(
+                !m.is_empty(),
+                "preset {evil:?} should fall back to defaults, not read a file"
+            );
+        }
+    }
+
+    #[test]
+    fn preset_clean_names_work() {
+        // Valid names resolve through the builtin catalog (or warn + default).
+        let m = load_preset("neofetch");
+        assert!(!m.is_empty());
+        let m = load_preset("minimal");
+        assert!(!m.is_empty());
+    }
 }

@@ -359,38 +359,17 @@ impl Config {
 
         // Layer 1: User config ($XDG_CONFIG_HOME/flexfetch/config.toml)
         if let Some(user_config) = find_user_config() {
-            if let Ok(content) = std::fs::read_to_string(&user_config) {
-                if let Ok(migrated) = migrate_config(&content) {
-                    if let Ok(merged) = toml::from_str::<Config>(&migrated) {
-                        config = merge_config(config, merged);
-                    }
-                }
-            }
+            load_layer(&mut config, &user_config);
         }
 
         // Layer 2: Project config (./flexfetch.toml)
         if let Ok(cwd) = std::env::current_dir() {
-            let project_config = cwd.join("flexfetch.toml");
-            if project_config.exists() {
-                if let Ok(content) = std::fs::read_to_string(&project_config) {
-                    if let Ok(migrated) = migrate_config(&content) {
-                        if let Ok(merged) = toml::from_str::<Config>(&migrated) {
-                            config = merge_config(config, merged);
-                        }
-                    }
-                }
-            }
+            load_layer(&mut config, &cwd.join("flexfetch.toml"));
         }
 
         // Layer 3: Explicit path (CLI --config)
         if let Some(explicit) = path {
-            if let Ok(content) = std::fs::read_to_string(explicit) {
-                if let Ok(migrated) = migrate_config(&content) {
-                    if let Ok(merged) = toml::from_str::<Config>(&migrated) {
-                        config = merge_config(config, merged);
-                    }
-                }
-            }
+            load_layer(&mut config, explicit);
         }
 
         Ok(config)
@@ -437,7 +416,13 @@ fn find_user_config() -> Option<PathBuf> {
 pub fn migrate_config(raw: &str) -> crate::Result<String> {
     let doc: toml::Value = toml::from_str(raw)
         .map_err(|e| crate::Error::Config(format!("config parse error: {e}")))?;
-    let version = doc.get("version").and_then(|v| v.as_integer()).unwrap_or(1) as u32;
+    // Try-convert, never `as u32` truncation: `version = 4294967297` would wrap
+    // to 1 and silently pass the "current" check. Missing key → legacy v1;
+    // out-of-u32-range → treated as newer (refused below).
+    let version: u32 = match doc.get("version").and_then(|v| v.as_integer()) {
+        None => 1,
+        Some(v) => u32::try_from(v).unwrap_or(u32::MAX),
+    };
 
     match version {
         // v1 is the current schema — nothing to do.
@@ -453,6 +438,24 @@ pub fn migrate_config(raw: &str) -> crate::Result<String> {
             "config schema version {v} is newer than this flexfetch supports ({CURRENT_SCHEMA}); \
              upgrade flexfetch or run `flexfetch --gen-config` to see the current format"
         ))),
+    }
+}
+
+/// Apply one config file layer. Unlike the old silent `if let Ok` chain, a
+/// file that exists but fails to parse warns loudly — a corrupt config must
+/// not be silently ignored (the user would think their settings are active).
+fn load_layer(config: &mut Config, path: &std::path::Path) {
+    if path.exists() {
+        match std::fs::read_to_string(path) {
+            Ok(content) => match migrate_config(&content).and_then(|migrated| {
+                toml::from_str::<Config>(&migrated)
+                    .map_err(|e| crate::Error::Config(format!("parse: {e}")))
+            }) {
+                Ok(merged) => *config = merge_config(config.clone(), merged),
+                Err(e) => eprintln!("warning: ignoring {} — {e}", path.display()),
+            },
+            Err(e) => eprintln!("warning: cannot read {} — {e}", path.display()),
+        }
     }
 }
 
@@ -507,8 +510,31 @@ mod tests {
     }
 
     #[test]
+    fn migrate_refuses_version_outside_u32_range() {
+        // 2^32 + 1: a naive `as u32` truncates this to 1 == CURRENT_SCHEMA,
+        // silently accepting a future version. try_from must refuse it.
+        let raw = "version = 4294967297\nmodules = [\"os\"]\n";
+        assert!(migrate_config(raw).is_err());
+
+        // Negative versions are invalid too.
+        let raw = "version = -1\nmodules = [\"os\"]\n";
+        assert!(migrate_config(raw).is_err());
+    }
+
+    #[test]
     fn default_version_is_current() {
         assert_eq!(Config::default_for_testing().version, CURRENT_SCHEMA);
+    }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// Arbitrary config text must never panic migrate_config — it returns
+        /// Err for unparseable input, never panics.
+        #[test]
+        fn migrate_config_never_panics(raw in ".*") {
+            let _ = migrate_config(&raw);
+        }
     }
 
     #[test]

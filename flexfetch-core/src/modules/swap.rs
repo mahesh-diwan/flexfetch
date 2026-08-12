@@ -113,4 +113,22 @@ mod tests {
             _ => panic!("unexpected variant"),
         }
     }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// Arbitrary /proc/swaps content must never panic the collector, and
+        /// any rendered percent must be within 0..=100.
+        #[test]
+        fn collect_never_panics_on_arbitrary_swaps(content in ".*") {
+            let ctx = test_ctx(MockFs::new().file("/proc/swaps", &content));
+            if let InfoValue::Map(m) = SwapModule.collect(&ctx).unwrap() {
+                if let Some(pct) = m.get("percent").and_then(|s| {
+                    s.strip_suffix('%').and_then(|n| n.parse::<u32>().ok())
+                }) {
+                    prop_assert!(pct <= 100, "percent {pct} out of range");
+                }
+            }
+        }
+    }
 }

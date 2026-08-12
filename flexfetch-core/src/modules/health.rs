@@ -23,9 +23,10 @@ fn disk_usage_percent() -> Option<u8> {
     if total == 0 {
         return None;
     }
-    // saturating_sub: f_bavail > f_blocks is kernel-impossible but a
-    // virtualized fs could report it — don't underflow.
-    let pct = (total.saturating_sub(avail) * 100 / total).min(100) as u8;
+    // u128 math: the *100 product overflows u64 for near-u64::MAX totals —
+    // exact math stays correct and never panics on a virtualized fs.
+    let used = total.saturating_sub(avail);
+    let pct = ((used as u128 * 100 / total as u128) as u64).min(100) as u8;
     Some(pct)
 }
 
@@ -50,7 +51,11 @@ fn swap_percent(ctx: &Context) -> Option<u8> {
     if total == 0 {
         return None;
     }
-    Some(((total.saturating_sub(free)) * 100 / total).min(100) as u8)
+    // u128 math: the *100 product overflows u64 for near-u64::MAX totals
+    // (hostile meminfo) — exact math in u128 stays correct (100%), not a
+    // saturating approximation (which would round MAX*100/MAX down to 1).
+    let used = total.saturating_sub(free);
+    Some(((used as u128 * 100 / total as u128) as u64).min(100) as u8)
 }
 
 /// 1-minute load average normalized per logical core (1.0 = saturated).
@@ -193,5 +198,37 @@ mod tests {
     fn load_per_core_none_on_garbage() {
         let ctx = test_ctx(MockFs::new().file("/proc/loadavg", "garbage\n"));
         assert!(load_per_core(&ctx).is_none());
+    }
+
+    #[test]
+    fn swap_percent_huge_counters_do_not_overflow() {
+        // SwapTotal near u64::MAX with SwapFree 0: the old `x * 100 / total`
+        // overflowed before saturating_sub could help — u128 math must stay
+        // exact: MAX*100/MAX = 100.
+        let meminfo = "SwapTotal:       18446744073709551615 kB\n\
+                       SwapFree:        0 kB\n";
+        let ctx = test_ctx(MockFs::new().file("/proc/meminfo", meminfo));
+        assert_eq!(swap_percent(&ctx), Some(100));
+    }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// Arbitrary /proc/meminfo must never panic the swap probe, and the
+        /// percent must stay within 0..=100.
+        #[test]
+        fn swap_percent_never_panics(meminfo in ".*") {
+            let ctx = test_ctx(MockFs::new().file("/proc/meminfo", &meminfo));
+            if let Some(pct) = swap_percent(&ctx) {
+                prop_assert!(pct <= 100, "swap percent {pct} out of range");
+            }
+        }
+
+        /// Arbitrary /proc/loadavg must never panic load_per_core.
+        #[test]
+        fn load_per_core_never_panics(loadavg in ".*") {
+            let ctx = test_ctx(MockFs::new().file("/proc/loadavg", &loadavg));
+            let _ = load_per_core(&ctx);
+        }
     }
 }

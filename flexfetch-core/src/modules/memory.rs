@@ -35,7 +35,9 @@ impl Module for MemoryModule {
                 }
 
                 if avail_kb == 0 {
-                    avail_kb = free_kb + cached_kb;
+                    // saturating: hostile /proc/meminfo with near-u64::MAX
+                    // counters must not overflow the fallback sum.
+                    avail_kb = free_kb.saturating_add(cached_kb);
                 }
 
                 if total_kb > 0 {
@@ -60,10 +62,9 @@ impl Module for MemoryModule {
                             "swap_used".into(),
                             format!("{:.1} GiB", swap_used as f64 / 1048576.0),
                         );
-                        map.insert(
-                            "swap_percent".into(),
-                            format!("{}%", swap_used * 100 / swap_total),
-                        );
+                        // u128 math: *100 overflows u64 near u64::MAX.
+                        let pct = ((swap_used as u128 * 100 / swap_total as u128) as u64).min(100);
+                        map.insert("swap_percent".into(), format!("{pct}%"));
                     }
                 }
             }
@@ -100,11 +101,12 @@ impl Module for MemoryModule {
                     }
                 }
 
-                let used_pages = pages_active + pages_wired;
-                let total_pages = used_pages + pages_free;
+                // saturating: a weird vm_stat dump must not overflow the sums.
+                let used_pages = pages_active.saturating_add(pages_wired);
+                let total_pages = used_pages.saturating_add(pages_free);
                 if total_pages > 0 {
-                    let total_bytes = total_pages * page_size;
-                    let used_bytes = used_pages * page_size;
+                    let total_bytes = total_pages.saturating_mul(page_size);
+                    let used_bytes = used_pages.saturating_mul(page_size);
                     let total_gb = total_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
                     let used_gb = used_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
                     let percent = (used_bytes as f64 / total_bytes as f64 * 100.0) as u32;
@@ -153,10 +155,9 @@ impl Module for MemoryModule {
                             "swap_used".into(),
                             format!("{:.1} GiB", swap_used as f64 / 1073741824.0),
                         );
-                        map.insert(
-                            "swap_percent".into(),
-                            format!("{}%", swap_used * 100 / swap_total),
-                        );
+                        // u128 math: *100 overflows u64 near u64::MAX.
+                        let pct = ((swap_used as u128 * 100 / swap_total as u128) as u64).min(100);
+                        map.insert("swap_percent".into(), format!("{pct}%"));
                     }
                 }
             }
@@ -166,5 +167,69 @@ impl Module for MemoryModule {
             return Ok(InfoValue::Scalar("unknown".into()));
         }
         Ok(InfoValue::Map(map))
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::fs::{test_ctx, MockFs};
+
+    #[test]
+    fn huge_meminfo_counters_do_not_overflow() {
+        // free + cached both near u64::MAX: the fallback sum must saturate,
+        // not panic in debug builds.
+        let meminfo = "MemTotal:        1000000 kB\n\
+                       MemFree:         18446744073709551615 kB\n\
+                       Cached:          18446744073709551615 kB\n";
+        let ctx = test_ctx(MockFs::new().file("/proc/meminfo", meminfo));
+        match MemoryModule.collect(&ctx).unwrap() {
+            InfoValue::Map(m) => {
+                // used = total.saturating_sub(avail) -> 0
+                assert_eq!(m.get("used").map(|s| s.as_str()), Some("0.0 GiB"));
+            }
+            other => panic!("unexpected variant: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn huge_swap_percent_product_does_not_overflow() {
+        // SwapTotal near u64::MAX, SwapFree 0: used*100 must stay exact (100%)
+        // via u128 math — never overflow, never saturate down to 1%.
+        let meminfo = "MemTotal:        1000000 kB\n\
+                       SwapTotal:       18446744073709551615 kB\n\
+                       SwapFree:        0 kB\n";
+        let ctx = test_ctx(MockFs::new().file("/proc/meminfo", meminfo));
+        match MemoryModule.collect(&ctx).unwrap() {
+            InfoValue::Map(m) => {
+                let pct = m
+                    .get("swap_percent")
+                    .map(|s| s.as_str())
+                    .unwrap_or_default();
+                // (MAX-0)*100/MAX = 100%
+                assert_eq!(pct, "100%");
+            }
+            other => panic!("unexpected variant: {other:?}"),
+        }
+    }
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// Arbitrary /proc/meminfo must never panic the collector, and any
+        /// rendered percent must be within 0..=100.
+        #[test]
+        fn collect_never_panics_on_arbitrary_meminfo(content in ".*") {
+            let ctx = test_ctx(MockFs::new().file("/proc/meminfo", &content));
+            if let InfoValue::Map(m) = MemoryModule.collect(&ctx).unwrap() {
+                for key in ["percent", "swap_percent"] {
+                    if let Some(pct) = m.get(key).and_then(|s| {
+                        s.strip_suffix('%').and_then(|n| n.parse::<u32>().ok())
+                    }) {
+                        prop_assert!(pct <= 100, "{key} {pct} out of range");
+                    }
+                }
+            }
+        }
     }
 }
