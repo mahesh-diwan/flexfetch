@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786470590604,
+  "lastUpdate": 1786541570029,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1187,6 +1187,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2173057,
             "range": "± 18474",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "e870340333591546833c32f1c1b32d218d71f797",
+          "message": "fix(site): correct stale benchmark numbers, polish data typography\n\nTruth fixes after a full audit against the real binary and source:\n\n- Latency widget: 25.8 ms -> 33 ms (real run_selected), 0.22 ms -> 0.37 ms (real template render); cpu stays 0.7 ms. Bar widths re-proportioned.\n\n- Head-note no longer contradicts card A: core modules read /proc/sysfs/macOS APIs directly, a few optional ones shell out only when needed.\n\n- Hero kicker: 'reads /proc directly' -> 'reads the system directly' (macOS has no /proc).\n\n- Card A: 'finishes in under a millisecond' -> 'typically finishes in under a millisecond' (matches real 0.55-1.08ms spread).\n\nPolish per design skills:\n\n- data-count count-up micro-interaction for hero + stats band numbers (rAF, cubic ease-out, fires once on reveal, prefers-reduced-motion + no-IO fallbacks).\n\n- font-variant-numeric: tabular-nums on all data numerals; text-wrap: pretty on paragraphs; subtle .stat hover.\n\nVerified: 38 modules / 527 logos / 1.75 MB minimal / 3 Linux musl + 2 macOS targets / cosign+SBOM all confirmed true against source; Playwright site+docs suites green, 0 console errors, 0px overflow.",
+          "timestamp": "2026-08-12T19:00:03+05:30",
+          "tree_id": "11c778e551cd89c68a4c5f06a469c23c7b801c23",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/e870340333591546833c32f1c1b32d218d71f797"
+        },
+        "date": 1786541569487,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2709439,
+            "range": "± 31351",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2732403,
+            "range": "± 50009",
             "unit": "ns/iter"
           }
         ]
