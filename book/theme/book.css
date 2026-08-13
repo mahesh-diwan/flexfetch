@@ -5,7 +5,22 @@
    All rules are #mdbook-* scoped so they beat mdBook's default selectors.
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+/* Self-hosted fonts (shared with the landing page): the docs are built into
+   site/docs, so the woff2 files live one directory up under site/assets/fonts. */
+@font-face {
+  font-family: "Geist";
+  src: url("../../assets/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../../assets/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --bg: #0b0b0d;
@@ -17,8 +32,8 @@
   --border-strong: rgba(255, 255, 255, 0.16);
   --text: #a1a1aa;
   --text-strong: #f4f4f5;
-  --muted: #71717a;
-  --faint: #52525b;
+  --muted: #8a8a94;
+  --faint: #7a7a85;
   --accent: #e8913a;
   --accent-strong: #f2a45c;
   --accent-dim: rgba(232, 145, 58, 0.12);

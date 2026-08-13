@@ -330,6 +330,52 @@
     }
   }
 
+  /* ---------- live gauge mini-demo (card D): organic ticker ---------- */
+  const gaugeRow = document.querySelector(".gauge-row");
+  if (gaugeRow && !prefersReduced && "IntersectionObserver" in window) {
+    const gauge = gaugeRow.querySelector(".gauge");
+    const gaugeVal = gaugeRow.querySelector(".gauge span");
+    const bars = gaugeRow.querySelectorAll(".spark i");
+    let timer = null;
+    let pct = 37;
+    // seed heights from the current bars so the first tick is a continuation
+    let heights = Array.from(bars, (b) =>
+      parseFloat(b.style.getPropertyValue("--h")) || 0.4
+    );
+
+    const tick = () => {
+      // don't waste ticks while the tab is hidden
+      if (document.hidden) return;
+      // organic random walk, clamped to a plausible CPU band
+      pct = Math.max(18, Math.min(72, pct + (Math.random() * 14 - 7)));
+      const rounded = Math.round(pct);
+      if (gauge) gauge.style.setProperty("--p", rounded);
+      if (gaugeVal) gaugeVal.textContent = rounded + "%";
+      // scroll the sparkline: drop the oldest sample, append a new one
+      heights = heights.slice(1);
+      const last = heights[heights.length - 1] || 0.4;
+      heights.push(
+        Math.max(0.12, Math.min(0.95, last + (Math.random() * 0.36 - 0.18)))
+      );
+      bars.forEach((b, i) => b.style.setProperty("--h", heights[i].toFixed(2)));
+    };
+
+    const gaugeIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting && !timer) {
+            timer = setInterval(tick, 1400);
+          } else if (!e.isIntersecting && timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+        });
+      },
+      { threshold: 0.35 }
+    );
+    gaugeIo.observe(gaugeRow);
+  }
+
   /* ---------- platform hint ---------- */
   const platHint = document.getElementById("plat-hint");
   if (platHint) {

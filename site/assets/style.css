@@ -34,7 +34,6 @@
   --text: #a1a1aa;
   --text-strong: #f4f4f5;
   --muted: #8a8a94;
-  --faint: #7a7a85;
 
   --accent: #e8913a;
   --accent-strong: #f2a45c;
@@ -545,7 +544,7 @@ h1 .accent {
 
 .plat-hint {
   font: 11.5px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
   margin-top: 9px;
   max-width: 560px;
 }
@@ -569,7 +568,7 @@ h1 .accent {
   align-items: baseline;
   gap: 7px;
   font: 12px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 .hs b {
   font-weight: 500;
@@ -584,7 +583,7 @@ h1 .accent {
   flex-wrap: wrap;
   gap: 8px 16px;
   font: 12px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 .social-proof a {
   color: var(--muted);
@@ -653,7 +652,7 @@ h1 .accent {
 .term-title {
   margin-left: 10px;
   font: 11px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .term-body {
@@ -753,7 +752,7 @@ h1 .accent {
   align-items: center;
   gap: 2.6rem;
   font: 12px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
@@ -800,7 +799,7 @@ h1 .accent {
 }
 .eyebrow::before {
   content: "//";
-  color: var(--faint);
+  color: var(--muted);
 }
 .section-head .head-note {
   font-size: 14px;
@@ -846,7 +845,7 @@ h1 .accent {
   display: block;
   margin-top: 6px;
   font: 11.5px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 
 /* ---------- bento feature grid ---------- */
@@ -969,7 +968,7 @@ h1 .accent {
 .lat-note {
   margin-top: 14px;
   font: 11px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 
 /* theme swatches (card B) */
@@ -1211,7 +1210,7 @@ h1 .accent {
 .field label {
   display: block;
   font: 500 11px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.09em;
   margin-bottom: 8px;
@@ -1224,7 +1223,7 @@ h1 .accent {
   left: 13px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--faint);
+  color: var(--muted);
   pointer-events: none;
 }
 .field input {
@@ -1239,7 +1238,7 @@ h1 .accent {
   transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 .field input::placeholder {
-  color: var(--faint);
+  color: var(--muted);
 }
 .field input:focus {
   border-color: rgba(232, 145, 58, 0.5);
@@ -1248,7 +1247,7 @@ h1 .accent {
 .mod-count {
   margin-top: 10px;
   font: 11.5px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .mods-grid {
@@ -1286,7 +1285,7 @@ h1 .accent {
 }
 .mod .mtag {
   font-size: 10px;
-  color: var(--faint);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   border: 1px solid var(--border);
@@ -1313,7 +1312,7 @@ h1 .accent {
   display: flex;
 }
 .mods-empty svg {
-  color: var(--faint);
+  color: var(--muted);
 }
 .mods-empty b {
   color: var(--text-strong);
@@ -1421,7 +1420,7 @@ h1 .accent {
 .inst-card .note {
   margin-top: 10px;
   font: 11px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 .inst-alt {
   display: flex;
@@ -1507,7 +1506,7 @@ footer {
   font: 600 10.5px var(--font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--faint);
+  color: var(--muted);
   margin-bottom: 14px;
 }
 .foot-col a {
@@ -1529,7 +1528,7 @@ footer {
   padding-top: 24px;
   border-top: 1px solid var(--border);
   font: 11.5px var(--font-mono);
-  color: var(--faint);
+  color: var(--muted);
 }
 .foot-bottom a {
   color: var(--muted);
