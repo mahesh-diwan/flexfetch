@@ -1371,6 +1371,58 @@ fn plain_value(name: &str, value: &InfoValue) -> Option<String> {
             }
             "locale" => m.get("lang").filter(|s| !s.is_empty()).cloned(),
             "wm" => m.get("name").filter(|s| !s.is_empty()).cloned(),
+            "terminal" => {
+                // Mirrors default.tera's terminal row: name | font | truecolor
+                // | image_protocols (deterministic field order).
+                let name = m.get("name").cloned().unwrap_or_default();
+                if name.is_empty() {
+                    None
+                } else {
+                    let mut s = name;
+                    if let Some(f) = m.get("font") {
+                        if !f.is_empty() {
+                            s.push_str(&format!(" | {f}"));
+                        }
+                    }
+                    if m.get("truecolor").map(|v| v == "yes").unwrap_or(false) {
+                        s.push_str(" | truecolor");
+                    }
+                    if let Some(p) = m.get("image_protocols") {
+                        if !p.is_empty() {
+                            s.push_str(&format!(" | {p}"));
+                        }
+                    }
+                    Some(s)
+                }
+            }
+            "wifi" => {
+                // Deterministic rendering (mirrors default.tera's wifi row):
+                // ssid, signal, frequency, then security. The generic catch-all
+                // below pulls arbitrary HashMap order, so wifi output varied
+                // between runs.
+                let ssid = m.get("ssid").cloned().unwrap_or_default();
+                if ssid.is_empty() {
+                    None
+                } else {
+                    let mut s = ssid;
+                    if let Some(sig) = m.get("signal") {
+                        if !sig.is_empty() {
+                            s.push_str(&format!(" {sig}"));
+                        }
+                    }
+                    if let Some(freq) = m.get("frequency") {
+                        if !freq.is_empty() {
+                            s.push_str(&format!(" {freq}"));
+                        }
+                    }
+                    if let Some(sec) = m.get("security") {
+                        if !sec.is_empty() {
+                            s.push_str(&format!(" [{sec}]"));
+                        }
+                    }
+                    Some(s)
+                }
+            }
             "context" => {
                 let mut parts = Vec::new();
                 if let Some(c) = m.get("container") {
@@ -1395,14 +1447,19 @@ fn plain_value(name: &str, value: &InfoValue) -> Option<String> {
                 }
             }
             _ => {
-                let vals: Vec<&String> = m.values().filter(|v| !v.is_empty()).collect();
-                if vals.is_empty() {
+                // Sort keys so the rendered values are stable across runs
+                // (HashMap iteration order is randomized per process).
+                let mut pairs: Vec<(&String, &String)> =
+                    m.iter().filter(|(_, v)| !v.is_empty()).collect();
+                pairs.sort_by_key(|(k, _)| *k);
+                if pairs.is_empty() {
                     None
                 } else {
                     Some(
-                        vals.iter()
+                        pairs
+                            .iter()
                             .take(2)
-                            .map(|s| s.to_string())
+                            .map(|(_, s)| (*s).clone())
                             .collect::<Vec<_>>()
                             .join(", "),
                     )
@@ -1679,6 +1736,30 @@ mod tests {
             }),
         );
         info.add("gpu", InfoValue::List(vec!["AMD Radeon RX 6700 XT".into()]));
+        // wifi/terminal are HashMap-backed: the plain renderer must produce the
+        // same deterministic row as the template regardless of map order.
+        info.add(
+            "wifi",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("ssid".to_string(), "HomeNet".to_string());
+                m.insert("signal".to_string(), "87%".to_string());
+                m.insert("frequency".to_string(), "5200 MHz".to_string());
+                m.insert("security".to_string(), "WPA2".to_string());
+                m
+            }),
+        );
+        info.add(
+            "terminal",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("name".to_string(), "kitty".to_string());
+                m.insert("font".to_string(), "JetBrains Mono".to_string());
+                m.insert("truecolor".to_string(), "yes".to_string());
+                m.insert("image_protocols".to_string(), "kitty".to_string());
+                m
+            }),
+        );
 
         let config = Config::default_for_testing();
         let engine = TeraEngine::new_default();

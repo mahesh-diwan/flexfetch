@@ -6,6 +6,30 @@ pub struct WifiModule;
 
 impl Module for WifiModule {
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
+        // Reuse the shared cache (60 s TTL) so repeated invocations skip the
+        // ~35 ms nmcli spawn entirely — the SSID/signal barely change between
+        // runs (same pattern as the publicip module).
+        if let Ok(cache) = ctx.cache.lock() {
+            if let Some(cached) = cache.get("wifi") {
+                if let Ok(value) = serde_json::from_str::<InfoValue>(&cached) {
+                    return Ok(value);
+                }
+            }
+        }
+
+        let result = collect_uncached(ctx);
+        if let Ok(value) = &result {
+            if let Ok(mut cache) = ctx.cache.lock() {
+                if let Ok(json) = serde_json::to_string(value) {
+                    cache.set("wifi", json);
+                }
+            }
+        }
+        result
+    }
+}
+
+fn collect_uncached(ctx: &Context) -> Result<InfoValue> {
         // Tier 1: native /proc read + iwgetid (fast path).
         #[cfg(target_os = "linux")]
         {
@@ -36,7 +60,6 @@ impl Module for WifiModule {
 
         // Tier 2: fallback to NetworkManager.
         Ok(nmcli_fallback())
-    }
 }
 
 fn nmcli_fallback() -> InfoValue {

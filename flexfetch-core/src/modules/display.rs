@@ -5,20 +5,41 @@ pub struct DisplayModule;
 
 impl Module for DisplayModule {
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
+        // Reuse the shared cache (60 s TTL): the resolution/refresh rate barely
+        // changes between runs, so repeated invocations skip the xrandr spawn
+        // (same pattern as the publicip module).
+        if let Ok(cache) = ctx.cache.lock() {
+            if let Some(cached) = cache.get("display") {
+                return Ok(InfoValue::Scalar(cached));
+            }
+        }
+
+        let value = collect_uncached(ctx);
+        if let InfoValue::Scalar(s) = &value {
+            if s != "unknown" {
+                if let Ok(mut cache) = ctx.cache.lock() {
+                    cache.set("display", s.clone());
+                }
+            }
+        }
+        Ok(value)
+    }
+}
+
+fn collect_uncached(ctx: &Context) -> InfoValue {
         // Try wlr-randr first (Wayland-native)
         if let Some(v) = try_wlr_randr() {
-            return Ok(InfoValue::Scalar(v));
+            return InfoValue::Scalar(v);
         }
         // Try xrandr
         if let Some(v) = try_xrandr() {
-            return Ok(InfoValue::Scalar(v));
+            return InfoValue::Scalar(v);
         }
         // Fallback: DRM sysfs
         if let Some(v) = try_drm(ctx) {
-            return Ok(InfoValue::Scalar(v));
+            return InfoValue::Scalar(v);
         }
-        Ok(InfoValue::Scalar("unknown".into()))
-    }
+        InfoValue::Scalar("unknown".into())
 }
 
 fn try_wlr_randr() -> Option<String> {

@@ -4,6 +4,26 @@ pub struct PackagesModule;
 
 impl Module for PackagesModule {
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
+        // Reuse the shared cache (60 s TTL): the count only changes when the
+        // user installs/removes a package, so repeated invocations skip the
+        // DB reads entirely (pacman's dir has tens of thousands of entries).
+        if let Ok(cache) = ctx.cache.lock() {
+            if let Some(cached) = cache.get("packages") {
+                return Ok(InfoValue::Scalar(cached));
+            }
+        }
+
+        let value = collect_uncached(ctx)?;
+        if let InfoValue::Scalar(s) = &value {
+            if let Ok(mut cache) = ctx.cache.lock() {
+                cache.set("packages", s.clone());
+            }
+        }
+        Ok(value)
+    }
+}
+
+fn collect_uncached(ctx: &Context) -> Result<InfoValue> {
         let mut results: Vec<(String, usize)> = Vec::new();
 
         // Phase 4.1: parse the package databases directly (no subprocesses).
@@ -41,7 +61,6 @@ impl Module for PackagesModule {
             total,
             breakdown.join(", ")
         )))
-    }
 }
 
 /// Count installed dpkg packages from /var/lib/dpkg/status (no `dpkg` spawn).
