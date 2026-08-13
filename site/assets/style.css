@@ -656,11 +656,11 @@ h1 .accent {
 }
 
 .term-body {
-  padding: 20px 22px 22px;
-  min-height: 336px;
-  max-height: 420px;
+  padding: 18px 20px 20px;
+  min-height: 394px;
+  max-height: 432px;
   overflow: auto;
-  font: 12px/1.75 var(--font-mono);
+  font: 11px/1.55 var(--font-mono);
   white-space: pre;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
@@ -669,13 +669,37 @@ h1 .accent {
   font: inherit;
   white-space: pre;
 }
-.term-body .fade-in {
-  animation: termIn 0.6s var(--ease) both;
+/* bottom fade — hints the terminal holds more output than the fold shows */
+.term::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  background: linear-gradient(180deg, transparent, #0d0d10 92%);
+  pointer-events: none;
+  opacity: 0.9;
+  z-index: 2;
 }
-@keyframes termIn {
+/* fetch cascade — each real-output line prints in sequence on load.
+   Base state stays visible (opacity 1) so failed scripts / no-@keyframes
+   browsers never hide the terminal; `both` fill hides each line during its
+   stagger delay, then animates to the visible base. */
+.term-body .fade-in .hero-line {
+  display: block;
+  white-space: pre;
+  animation: lineIn 0.26s var(--ease) both;
+  animation-delay: calc(var(--n, 0) * 16ms);
+}
+@keyframes lineIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -1768,6 +1792,9 @@ footer {
   .marquee-track,
   .chips {
     animation: none;
+  }
+  .term-body .fade-in .hero-line {
+    animation-delay: 0ms !important;
   }
   .term {
     transform: none;

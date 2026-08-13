@@ -195,7 +195,13 @@
           loaded = true;
           const wrap = document.createElement("div");
           wrap.className = "fade-in";
-          wrap.innerHTML = html;
+          // split the real output into lines and stagger each line's print-in,
+          // like watching flexfetch fetch your system (one-shot, ~0.8s total)
+          wrap.innerHTML = html
+            .split("\n")
+            .filter(Boolean)
+            .map((line, i) => '<span class="hero-line" style="--n:' + i + '">' + line + "</span>")
+            .join("");
           heroTerm.innerHTML = "";
           heroTerm.appendChild(wrap);
         })
