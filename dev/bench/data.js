@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786635224821,
+  "lastUpdate": 1786636786052,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1835,6 +1835,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1910091,
             "range": "± 61285",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "7080e5aff4de96bf9132bc82f279285d4a947920",
+          "message": "feat(site): sleek aligned hero terminal + live TUI dashboard card\n\nHero terminal: replaced the stale, ragged capture (CachyOS logo with\nwrapped info columns and a duplicated section) with a compact aligned\nrender — the FLEXFETCH brand logo on the left, real system values in a\nclean key/value column, site palette, and no lines wider than the\nterminal's ~68ch capacity at any viewport. The hero now stacks below\n1200px so the terminal keeps full width instead of clipping.\n\nLive card: upgraded the single gauge + sparkline into a mini live-TUI\ndashboard mock — three SVG ring gauges (cpu/memory/disk in site\naccent colors), per-process bars, and a network sparkline inside a\nterminal-framed panel with a pulsing 1s tick.\n\nVerified in a headless browser across 1440-480px: no hero wrapping,\nno page-level horizontal scroll, rings/percentages/bars all computed\ncorrectly, zero console errors.\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T21:26:57+05:30",
+          "tree_id": "479a45718da9f24dbecb2d16e60eedd47dcf7736",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/7080e5aff4de96bf9132bc82f279285d4a947920"
+        },
+        "date": 1786636785021,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2677971,
+            "range": "± 48466",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2625073,
+            "range": "± 59415",
             "unit": "ns/iter"
           }
         ]
