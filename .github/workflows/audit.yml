@@ -14,11 +14,16 @@ on:
 permissions:
   contents: read
   issues: write # rustsec/audit-check files advisories as issues
+  checks: write # rustsec/audit-check reports via a check run
 
 jobs:
   audit:
     name: cargo-audit (RUSTSEC)
     runs-on: ubuntu-latest
+    # Dependabot pushes carry a read-only GITHUB_TOKEN that can never create
+    # check runs, so audit-check would fail after a clean audit. The daily
+    # schedule plus pushes to main still cover dependabot's dependency changes.
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v4
 
