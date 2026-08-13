@@ -24,43 +24,43 @@ impl Module for PackagesModule {
 }
 
 fn collect_uncached(ctx: &Context) -> Result<InfoValue> {
-        let mut results: Vec<(String, usize)> = Vec::new();
+    let mut results: Vec<(String, usize)> = Vec::new();
 
-        // Phase 4.1: parse the package databases directly (no subprocesses).
-        // Each returns None when the DB isn't present, and we fall back to the
-        // CLI for that manager (rpm has no plain-file DB — Berkeley DB only).
-        for (label, count) in [
-            ("dpkg", count_dpkg(ctx)),
-            ("pacman", count_pacman(ctx)),
-            ("flatpak", count_flatpak(ctx)),
-            ("snap", count_snap(ctx)),
-            ("rpm", count_rpm()),
-        ] {
-            if let Some(n) = count {
-                results.push((label.to_string(), n));
-            }
+    // Phase 4.1: parse the package databases directly (no subprocesses).
+    // Each returns None when the DB isn't present, and we fall back to the
+    // CLI for that manager (rpm has no plain-file DB — Berkeley DB only).
+    for (label, count) in [
+        ("dpkg", count_dpkg(ctx)),
+        ("pacman", count_pacman(ctx)),
+        ("flatpak", count_flatpak(ctx)),
+        ("snap", count_snap(ctx)),
+        ("rpm", count_rpm()),
+    ] {
+        if let Some(n) = count {
+            results.push((label.to_string(), n));
         }
+    }
 
-        // If no DB was readable at all (e.g. macOS, or a foreign distro), fall
-        // back to the package CLIs.
-        if results.is_empty() {
-            results = count_all_cli();
-        }
+    // If no DB was readable at all (e.g. macOS, or a foreign distro), fall
+    // back to the package CLIs.
+    if results.is_empty() {
+        results = count_all_cli();
+    }
 
-        let total: usize = results.iter().map(|(_, c)| c).sum();
-        if total == 0 {
-            return Ok(InfoValue::Scalar("0".into()));
-        }
+    let total: usize = results.iter().map(|(_, c)| c).sum();
+    if total == 0 {
+        return Ok(InfoValue::Scalar("0".into()));
+    }
 
-        let breakdown: Vec<String> = results
-            .iter()
-            .map(|(name, count)| format!("{}: {}", name, count))
-            .collect();
-        Ok(InfoValue::Scalar(format!(
-            "{} ({})",
-            total,
-            breakdown.join(", ")
-        )))
+    let breakdown: Vec<String> = results
+        .iter()
+        .map(|(name, count)| format!("{}: {}", name, count))
+        .collect();
+    Ok(InfoValue::Scalar(format!(
+        "{} ({})",
+        total,
+        breakdown.join(", ")
+    )))
 }
 
 /// Count installed dpkg packages from /var/lib/dpkg/status (no `dpkg` spawn).

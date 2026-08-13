@@ -581,6 +581,14 @@ fn benchmark(
     let iterations = cli.benchmark.unwrap_or(1).max(1);
     let t0 = std::time::Instant::now();
 
+    // Cache state sampled BEFORE collection: the per-module loop below
+    // populates the cache, so checking afterwards would always say "warm".
+    let cached = ctx
+        .cache
+        .lock()
+        .map(|c| c.get("wifi").is_some())
+        .unwrap_or(false);
+
     // Per-module timing (single iteration, existing behavior)
     let mut timings = Vec::new();
     for name in modules {
@@ -613,6 +621,10 @@ fn benchmark(
     eprintln!(
         "--- flexfetch benchmark ({iterations} iteration{}) ---",
         if iterations == 1 { "" } else { "s" }
+    );
+    eprintln!(
+        "  cache:           {} (per-module timings are cold; run_selected is warm)",
+        if cached { "warm" } else { "cold" }
     );
     eprintln!("  cold start:      {:?}", t_cold_start.elapsed());
     eprintln!("  setup:           {:?}", t0.elapsed());

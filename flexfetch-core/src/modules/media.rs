@@ -33,58 +33,58 @@ impl Module for MediaModule {
 }
 
 fn collect_uncached(_ctx: &Context) -> Result<InfoValue> {
-        let mut map = HashMap::new();
+    let mut map = HashMap::new();
 
-        #[cfg(target_os = "linux")]
+    #[cfg(target_os = "linux")]
+    {
+        // Prefer the pure-Rust zbus client when the `music` feature is on;
+        // fall back to shelling out to `dbus-send` if it fails or the
+        // feature is disabled (keeps the default binary dependency-free).
+        #[cfg(feature = "music")]
         {
-            // Prefer the pure-Rust zbus client when the `music` feature is on;
-            // fall back to shelling out to `dbus-send` if it fails or the
-            // feature is disabled (keeps the default binary dependency-free).
-            #[cfg(feature = "music")]
-            {
-                if !collect_mpris_zbus(&mut map) {
-                    collect_mpris_dbus_send(&mut map);
-                }
-            }
-            #[cfg(not(feature = "music"))]
-            {
+            if !collect_mpris_zbus(&mut map) {
                 collect_mpris_dbus_send(&mut map);
             }
         }
-
-        #[cfg(target_os = "macos")]
+        #[cfg(not(feature = "music"))]
         {
-            // macOS Now Playing — use `nowplaying-cli` if available
-            if let Ok(output) = Command::new("nowplaying-cli").arg("get").output() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                for line in stdout.lines() {
-                    if let Some((k, v)) = line.split_once(':') {
-                        let v = v.trim();
-                        match k.trim() {
-                            "Title" => {
-                                map.insert("title".into(), v.to_string());
-                            }
-                            "Artist" => {
-                                map.insert("artist".into(), v.to_string());
-                            }
-                            "Playback Rate" => {
-                                let status = if v == "0" { "Paused" } else { "Playing" };
-                                map.insert("status".into(), status.to_string());
-                            }
-                            _ => {}
+            collect_mpris_dbus_send(&mut map);
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        // macOS Now Playing — use `nowplaying-cli` if available
+        if let Ok(output) = Command::new("nowplaying-cli").arg("get").output() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            for line in stdout.lines() {
+                if let Some((k, v)) = line.split_once(':') {
+                    let v = v.trim();
+                    match k.trim() {
+                        "Title" => {
+                            map.insert("title".into(), v.to_string());
                         }
+                        "Artist" => {
+                            map.insert("artist".into(), v.to_string());
+                        }
+                        "Playback Rate" => {
+                            let status = if v == "0" { "Paused" } else { "Playing" };
+                            map.insert("status".into(), status.to_string());
+                        }
+                        _ => {}
                     }
                 }
-                if !map.is_empty() {
-                    map.insert("player".into(), "NowPlaying".into());
-                }
+            }
+            if !map.is_empty() {
+                map.insert("player".into(), "NowPlaying".into());
             }
         }
+    }
 
-        if map.is_empty() {
-            return Ok(InfoValue::Scalar("no media".into()));
-        }
-        Ok(InfoValue::Map(map))
+    if map.is_empty() {
+        return Ok(InfoValue::Scalar("no media".into()));
+    }
+    Ok(InfoValue::Map(map))
 }
 
 /// MPRIS lookup via the pure-Rust zbus client (feature `music`).

@@ -5,6 +5,7 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct GpuModule;
 
 impl Module for GpuModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut gpus = Vec::new();
 

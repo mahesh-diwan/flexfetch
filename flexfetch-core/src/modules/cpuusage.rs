@@ -44,7 +44,7 @@ fn since_boot_usage(content: &str) -> Option<f64> {
     Some(total.saturating_sub(idle) as f64 / total as f64 * 100.0)
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod tests {
     use super::since_boot_usage;
 

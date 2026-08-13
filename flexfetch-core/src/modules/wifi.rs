@@ -29,55 +29,57 @@ impl Module for WifiModule {
     }
 }
 
+#[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
 fn collect_uncached(ctx: &Context) -> Result<InfoValue> {
-        // Tier 1: native /proc read + iwgetid (fast path).
-        #[cfg(target_os = "linux")]
-        {
-            if let Ok(content) = ctx.read_file("/proc/net/wireless") {
-                if let Some((iface, quality)) = parse_wireless(&content) {
-                    if let Ok(o) = Command::new("iwgetid").args(["-r", &iface]).output() {
-                        if o.status.success() {
-                            let ssid = String::from_utf8_lossy(&o.stdout).trim().to_string();
-                            if !ssid.is_empty() {
-                                let mut map = HashMap::new();
-                                map.insert("ssid".into(), ssid);
-                                map.insert(
-                                    "signal".into(),
-                                    format!("{}%", quality_percent(quality)),
-                                );
-                                return Ok(InfoValue::Map(map));
-                            }
+    // Tier 1: native /proc read + iwgetid (fast path).
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(content) = ctx.read_file("/proc/net/wireless") {
+            if let Some((iface, quality)) = parse_wireless(&content) {
+                if let Ok(o) = Command::new("iwgetid").args(["-r", &iface]).output() {
+                    if o.status.success() {
+                        let ssid = String::from_utf8_lossy(&o.stdout).trim().to_string();
+                        if !ssid.is_empty() {
+                            let mut map = HashMap::new();
+                            map.insert("ssid".into(), ssid);
+                            map.insert("signal".into(), format!("{}%", quality_percent(quality)));
+                            return Ok(InfoValue::Map(map));
                         }
                     }
-                    // No iwgetid ssid — try `iw dev <iface> link` (much faster
-                    // than the nmcli fallback: ~3 ms vs ~35 ms).
-                    if let Some((ssid, freq)) = iw_link_ssid(&iface) {
-                        let mut map = HashMap::new();
-                        map.insert("ssid".into(), ssid);
-                        map.insert("signal".into(), format!("{}%", quality_percent(quality)));
-                        if !freq.is_empty() {
-                            map.insert("frequency".into(), freq);
-                        }
-                        return Ok(InfoValue::Map(map));
-                    }
-                    // Active link but no SSID source — fall through to nmcli.
-                } else {
-                    // /proc readable but no active link: kernel wifi is known —
-                    // report it without paying for an nmcli spawn.
-                    return Ok(InfoValue::Scalar("not connected".into()));
                 }
+                // No iwgetid ssid — try `iw dev <iface> link` (much faster
+                // than the nmcli fallback: ~3 ms vs ~35 ms).
+                if let Some((ssid, freq)) = iw_link_ssid(&iface) {
+                    let mut map = HashMap::new();
+                    map.insert("ssid".into(), ssid);
+                    map.insert("signal".into(), format!("{}%", quality_percent(quality)));
+                    if !freq.is_empty() {
+                        map.insert("frequency".into(), freq);
+                    }
+                    return Ok(InfoValue::Map(map));
+                }
+                // Active link but no SSID source — fall through to nmcli.
+            } else {
+                // /proc readable but no active link: kernel wifi is known —
+                // report it without paying for an nmcli spawn.
+                return Ok(InfoValue::Scalar("not connected".into()));
             }
         }
+    }
 
-        // Tier 2: fallback to NetworkManager.
-        Ok(nmcli_fallback())
+    // Tier 2: fallback to NetworkManager.
+    Ok(nmcli_fallback())
 }
 
 /// Read the connected SSID (and frequency) via `iw dev <iface> link` — a
 /// ~3 ms spawn vs ~35 ms for nmcli. Returns `(ssid, freq)` where freq is
 /// "<mhz> MHz" (empty when the link line is absent).
+#[cfg(target_os = "linux")]
 fn iw_link_ssid(iface: &str) -> Option<(String, String)> {
-    let out = Command::new("iw").args(["dev", iface, "link"]).output().ok()?;
+    let out = Command::new("iw")
+        .args(["dev", iface, "link"])
+        .output()
+        .ok()?;
     if !out.status.success() {
         return None;
     }
@@ -86,6 +88,7 @@ fn iw_link_ssid(iface: &str) -> Option<(String, String)> {
 }
 
 /// Parse `iw dev <iface> link` output into (ssid, freq).
+#[cfg(target_os = "linux")]
 fn parse_iw_link(output: &str) -> Option<(String, String)> {
     let mut ssid = None;
     let mut freq = String::new();
@@ -167,6 +170,7 @@ fn nmcli_fallback() -> InfoValue {
 /// Parse `/proc/net/wireless` and return (iface, link quality) of the active
 /// interface with the highest quality. Returns `None` when no interface is
 /// associated (quality > 0).
+#[cfg(target_os = "linux")]
 fn parse_wireless(content: &str) -> Option<(String, u8)> {
     let mut best: Option<(String, u8)> = None;
     for line in content.lines() {
@@ -194,11 +198,12 @@ fn parse_wireless(content: &str) -> Option<(String, u8)> {
 }
 
 /// Kernel link quality is 0–70, scaled to 0–100%.
+#[cfg(target_os = "linux")]
 fn quality_percent(quality: u8) -> u8 {
     (quality.min(70) as u16 * 100 / 70) as u8
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod tests {
     use super::*;
 

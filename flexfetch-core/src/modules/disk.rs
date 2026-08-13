@@ -3,6 +3,7 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct DiskModule;
 
 impl Module for DiskModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut disks = Vec::new();
 

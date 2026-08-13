@@ -128,6 +128,9 @@ where
 
 #[derive(Clone)]
 struct ProcInfo {
+    // Only populated/read on Linux (sample_processes is Linux-only); Windows
+    // builds never construct a ProcInfo, so silence the dead-code lint there.
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
     cpu_pct: f64,
 }
 
@@ -189,7 +192,8 @@ fn sampler_loop(
             let now = file_mtime(path);
             if now != last_mtime {
                 last_mtime = now;
-                let cfg = Config::load(Some(path)).unwrap_or_else(|_| Config::default_for_testing());
+                let cfg =
+                    Config::load(Some(path)).unwrap_or_else(|_| Config::default_for_testing());
                 let custom = cfg.custom.clone();
                 ctx = Context::new(
                     ctx.config_dir.clone(),

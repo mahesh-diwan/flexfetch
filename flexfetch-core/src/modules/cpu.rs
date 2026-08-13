@@ -18,6 +18,7 @@ struct CpuStats {
 pub struct CpuModule;
 
 impl Module for CpuModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

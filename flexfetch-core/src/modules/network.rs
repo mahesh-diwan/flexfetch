@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub struct NetworkModule;
 
 impl Module for NetworkModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Explicit type: on macOS the `&mut nets` read loop precedes the first
         // `push`, so inference can't resolve the element type there.

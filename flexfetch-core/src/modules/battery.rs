@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub struct BatteryModule;
 
 impl Module for BatteryModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub struct DnsModule;
 
 impl Module for DnsModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Explicit element type: on Windows no push ever happens (the collectors
         // are Linux/macOS), so inference cannot otherwise resolve the Vec.

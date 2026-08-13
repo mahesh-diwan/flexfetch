@@ -27,19 +27,19 @@ impl Module for DisplayModule {
 }
 
 fn collect_uncached(ctx: &Context) -> InfoValue {
-        // Try wlr-randr first (Wayland-native)
-        if let Some(v) = try_wlr_randr() {
-            return InfoValue::Scalar(v);
-        }
-        // Try xrandr
-        if let Some(v) = try_xrandr() {
-            return InfoValue::Scalar(v);
-        }
-        // Fallback: DRM sysfs
-        if let Some(v) = try_drm(ctx) {
-            return InfoValue::Scalar(v);
-        }
-        InfoValue::Scalar("unknown".into())
+    // Try wlr-randr first (Wayland-native)
+    if let Some(v) = try_wlr_randr() {
+        return InfoValue::Scalar(v);
+    }
+    // Try xrandr
+    if let Some(v) = try_xrandr() {
+        return InfoValue::Scalar(v);
+    }
+    // Fallback: DRM sysfs
+    if let Some(v) = try_drm(ctx) {
+        return InfoValue::Scalar(v);
+    }
+    InfoValue::Scalar("unknown".into())
 }
 
 fn try_wlr_randr() -> Option<String> {

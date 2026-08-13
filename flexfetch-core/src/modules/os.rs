@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub struct OsModule;
 
 impl Module for OsModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 

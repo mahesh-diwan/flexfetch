@@ -5,6 +5,7 @@ use crate::{Context, InfoValue, Module, Result};
 pub struct ResolutionModule;
 
 impl Module for ResolutionModule {
+    #[cfg_attr(not(target_os = "linux"), allow(unused_variables))]
     fn collect(&self, ctx: &Context) -> Result<InfoValue> {
         // Explicit element type: on Windows no push ever happens (the collectors
         // are Linux-only), so inference cannot otherwise resolve the Vec.
