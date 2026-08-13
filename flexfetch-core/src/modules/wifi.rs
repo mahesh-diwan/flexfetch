@@ -49,7 +49,18 @@ fn collect_uncached(ctx: &Context) -> Result<InfoValue> {
                             }
                         }
                     }
-                    // Active link but no iwgetid ssid — fall through to nmcli.
+                    // No iwgetid ssid — try `iw dev <iface> link` (much faster
+                    // than the nmcli fallback: ~3 ms vs ~35 ms).
+                    if let Some((ssid, freq)) = iw_link_ssid(&iface) {
+                        let mut map = HashMap::new();
+                        map.insert("ssid".into(), ssid);
+                        map.insert("signal".into(), format!("{}%", quality_percent(quality)));
+                        if !freq.is_empty() {
+                            map.insert("frequency".into(), freq);
+                        }
+                        return Ok(InfoValue::Map(map));
+                    }
+                    // Active link but no SSID source — fall through to nmcli.
                 } else {
                     // /proc readable but no active link: kernel wifi is known —
                     // report it without paying for an nmcli spawn.
@@ -60,6 +71,41 @@ fn collect_uncached(ctx: &Context) -> Result<InfoValue> {
 
         // Tier 2: fallback to NetworkManager.
         Ok(nmcli_fallback())
+}
+
+/// Read the connected SSID (and frequency) via `iw dev <iface> link` — a
+/// ~3 ms spawn vs ~35 ms for nmcli. Returns `(ssid, freq)` where freq is
+/// "<mhz> MHz" (empty when the link line is absent).
+fn iw_link_ssid(iface: &str) -> Option<(String, String)> {
+    let out = Command::new("iw").args(["dev", iface, "link"]).output().ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    parse_iw_link(&stdout)
+}
+
+/// Parse `iw dev <iface> link` output into (ssid, freq).
+fn parse_iw_link(output: &str) -> Option<(String, String)> {
+    let mut ssid = None;
+    let mut freq = String::new();
+    for line in output.lines() {
+        let t = line.trim();
+        if let Some(v) = t.strip_prefix("SSID: ") {
+            let v = v.trim();
+            if !v.is_empty() {
+                ssid = Some(v.to_string());
+            }
+        } else if let Some(v) = t.strip_prefix("freq: ") {
+            // "2442.0" → "2442 MHz"
+            if let Some(mhz) = v.split('.').next() {
+                if !mhz.is_empty() {
+                    freq = format!("{mhz} MHz");
+                }
+            }
+        }
+    }
+    ssid.map(|s| (s, freq))
 }
 
 fn nmcli_fallback() -> InfoValue {
@@ -188,5 +234,36 @@ mod tests {
         assert_eq!(quality_percent(35), 50);
         assert_eq!(quality_percent(7), 10);
         assert_eq!(quality_percent(0), 0);
+    }
+
+    #[test]
+    fn parses_iw_link_connected() {
+        let out = "Connected to 26:c9:19:9f:b7:c1 (on wlan0)\n\tSSID: Moto G34 5G\n\tfreq: 2442.0\n\tRX: 100 bytes\n";
+        assert_eq!(
+            parse_iw_link(out),
+            Some(("Moto G34 5G".to_string(), "2442 MHz".to_string()))
+        );
+    }
+
+    #[test]
+    fn parses_iw_link_no_freq() {
+        // Some drivers omit the freq line; ssid alone must still parse.
+        let out = "Connected to aa:bb:cc:dd:ee:ff (on wlan0)\n\tSSID: Office\n";
+        assert_eq!(
+            parse_iw_link(out),
+            Some(("Office".to_string(), String::new()))
+        );
+    }
+
+    #[test]
+    fn parses_iw_link_not_connected() {
+        let out = "Not connected.\n";
+        assert_eq!(parse_iw_link(out), None);
+    }
+
+    #[test]
+    fn parses_iw_link_empty_ssid() {
+        let out = "Connected to aa:bb:cc:dd:ee:ff (on wlan0)\n\tSSID: \n";
+        assert_eq!(parse_iw_link(out), None);
     }
 }

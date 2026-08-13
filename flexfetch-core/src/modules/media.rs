@@ -8,7 +8,31 @@ use std::process::Command;
 pub struct MediaModule;
 
 impl Module for MediaModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
+        // Reuse the shared cache (60 s TTL): the now-playing track/status
+        // barely changes between runs, so repeated invocations skip the
+        // dbus-send spawns (~14 ms total).
+        if let Ok(cache) = ctx.cache.lock() {
+            if let Some(cached) = cache.get("media") {
+                if let Ok(value) = serde_json::from_str::<InfoValue>(&cached) {
+                    return Ok(value);
+                }
+            }
+        }
+
+        let result = collect_uncached(ctx);
+        if let Ok(value) = &result {
+            if let Ok(mut cache) = ctx.cache.lock() {
+                if let Ok(json) = serde_json::to_string(value) {
+                    cache.set("media", json);
+                }
+            }
+        }
+        result
+    }
+}
+
+fn collect_uncached(_ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         #[cfg(target_os = "linux")]
@@ -61,7 +85,6 @@ impl Module for MediaModule {
             return Ok(InfoValue::Scalar("no media".into()));
         }
         Ok(InfoValue::Map(map))
-    }
 }
 
 /// MPRIS lookup via the pure-Rust zbus client (feature `music`).

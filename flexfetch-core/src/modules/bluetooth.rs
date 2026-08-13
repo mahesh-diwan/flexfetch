@@ -8,7 +8,31 @@ use std::process::Command;
 pub struct BluetoothModule;
 
 impl Module for BluetoothModule {
-    fn collect(&self, _ctx: &Context) -> Result<InfoValue> {
+    fn collect(&self, ctx: &Context) -> Result<InfoValue> {
+        // Reuse the shared cache (60 s TTL): the adapter/paired-device state
+        // barely changes between runs, so repeated invocations skip the two
+        // bluetoothctl spawns (~15 ms total).
+        if let Ok(cache) = ctx.cache.lock() {
+            if let Some(cached) = cache.get("bluetooth") {
+                if let Ok(value) = serde_json::from_str::<InfoValue>(&cached) {
+                    return Ok(value);
+                }
+            }
+        }
+
+        let result = collect_uncached(ctx);
+        if let Ok(value) = &result {
+            if let Ok(mut cache) = ctx.cache.lock() {
+                if let Ok(json) = serde_json::to_string(value) {
+                    cache.set("bluetooth", json);
+                }
+            }
+        }
+        result
+    }
+}
+
+fn collect_uncached(_ctx: &Context) -> Result<InfoValue> {
         let mut map = HashMap::new();
 
         #[cfg(target_os = "linux")]
@@ -76,5 +100,4 @@ impl Module for BluetoothModule {
             return Ok(InfoValue::Scalar("N/A".into()));
         }
         Ok(InfoValue::Map(map))
-    }
 }
