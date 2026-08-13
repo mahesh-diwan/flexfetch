@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786614294799,
+  "lastUpdate": 1786617722295,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1691,6 +1691,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1710717,
             "range": "± 55852",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "64b0298222ecb0e4035a6e3585c04fccdf6bf418",
+          "message": "fix: security audit workflow — cargo-deny config + crate licensing\n\nThe Security Audit workflow (cargo-deny) was failing on every run with\n\"failed to validate configuration file ./deny.toml\" and, once the config\nwas fixed, on real license/ban errors that had been masked by the broken\nconfig:\n\n- deny.toml: `copyleft = \"deny\"` is a removed key (cargo-deny >= 0.16,\n  PR #611); with licenses version 2 every license not in `allow` is\n  denied by default, so the key was redundant. Also swap the stale\n  `Unicode-DFS-2016` allowance for `Unicode-3.0` (unicode-ident now\n  declares the v3 license), keeping Zlib (foldhash) and BSL-1.0.\n- flexfetch-core/Cargo.toml + flexfetch-cli/Cargo.toml: inherit\n  `license.workspace = true` (the crates were \"unlicensed\" to cargo-deny\n  despite the workspace declaring MIT).\n- flexfetch-cli/Cargo.toml: add a version to the flexfetch-core path\n  dependency — the wildcard requirement failed the bans check.\n\nVerified locally with cargo-deny v0.20.2 (same as the CI action):\nadvisories ok, bans ok, licenses ok, sources ok. Build + 157 tests pass.\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T16:09:24+05:30",
+          "tree_id": "419dd7c8962579d293ed3b52b5b9690593f829e5",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/64b0298222ecb0e4035a6e3585c04fccdf6bf418"
+        },
+        "date": 1786617721775,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2727965,
+            "range": "± 63690",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2666329,
+            "range": "± 46957",
             "unit": "ns/iter"
           }
         ]
