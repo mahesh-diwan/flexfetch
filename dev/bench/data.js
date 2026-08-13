@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786590063483,
+  "lastUpdate": 1786591647541,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1475,6 +1475,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2541877,
             "range": "± 29483",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "9bfbbf43708516d99650d9b8d8d3300c1377dad6",
+          "message": "site: polish pass + hero terminal fetch-cascade animation\n\nTwo impeccable commands in sequence: polish (final quality pass) then animate (motion thesis).\n\nPOLISH:\n- Fixed a real defect: the hero terminal clipped the ASCII logo (420px viewport vs 1071px content — only 20 of ~49 lines visible, cutting the logo mid-art). Set .term-body to 11px/1.55 mono with min/max-height 394/432px so the full 22-line logo + user line always fit; the fold now lands on the \"── System ──\" header, with a 44px bottom-fade hint (pointer-events: none) that there's more output below.\n- Verified via headless browser: logo fully visible, no horizontal overflow at 390px, 0 console errors, all interactions pass.\n\nANIMATE (motion thesis: the hero terminal fetches itself on load):\n- The product is a fetch tool whose hero IS its real output. The focal moment: the ASCII logo and system lines print top-to-bottom in a fast cascade (~0.8s, 16ms/line stagger), echoing \"fetched in milliseconds\" — a bounded one-shot, not a loop.\n- main.js now splits the fetched hero.html into per-line spans (filtered to drop the trailing empty line); CSS .hero-line uses lineIn 0.26s ease with explicit from/to keyframes and base state visible (fill-mode both hides each line only during its stagger delay — fixed a first-pass bug where lines animated 0 -> 0 and never appeared).\n- Reduced-motion: the media query now also zeroes .hero-line animation-delay, so lines appear instantly (verified via emulation: all lines opacity 1, delay 0s).",
+          "timestamp": "2026-08-13T08:54:44+05:30",
+          "tree_id": "32b4281f6a94d9d082f85523b1a09f2da49751bd",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/9bfbbf43708516d99650d9b8d8d3300c1377dad6"
+        },
+        "date": 1786591646841,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2706185,
+            "range": "± 107903",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2704931,
+            "range": "± 34817",
             "unit": "ns/iter"
           }
         ]
