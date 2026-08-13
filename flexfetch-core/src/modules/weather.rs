@@ -121,10 +121,25 @@ fn write_cache(path: &std::path::Path, value: &InfoValue) {
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    // Atomic write: temp file + rename (matches cache.rs).
+    // Atomic write: temp file + rename (matches cache.rs). Restrict perms to
+    // 0o600 like cache.rs — the cache holds location-identifying data (city,
+    // coordinates) that shouldn't be world-readable on shared machines.
     let temp = path.with_extension("json.tmp");
     if let Ok(json) = serde_json::to_string(value) {
-        if std::fs::write(&temp, json).is_ok() {
+        #[cfg(unix)]
+        use std::os::unix::fs::OpenOptionsExt;
+        let mut opts = std::fs::OpenOptions::new();
+        opts.write(true).create(true).truncate(true);
+        #[cfg(unix)]
+        opts.mode(0o600);
+        if opts
+            .open(&temp)
+            .and_then(|mut f| {
+                use std::io::Write;
+                f.write_all(json.as_bytes())
+            })
+            .is_ok()
+        {
             let _ = std::fs::rename(&temp, path);
         }
     }
