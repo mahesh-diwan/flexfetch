@@ -18,8 +18,8 @@ The installer:
 - Detects your architecture (x86_64, aarch64, armv7 on Linux; arm64 and x86_64 on macOS)
 - Downloads the prebuilt binary from the latest release
 - Verifies the SHA-256 checksum of the archive and **aborts on mismatch**
-  (verification needs a `sha256sum`/`shasum` tool; it is skipped with a
-  warning if no checksum tool is available)
+  (verification needs a `sha256sum`/`shasum` tool; without one, the installer
+  refuses to run rather than skipping verification)
 - Installs to `/usr/local/bin/flexfetch`
 
 Prebuilt binaries include the live dashboard, image logos, and the

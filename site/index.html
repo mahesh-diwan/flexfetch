@@ -78,7 +78,7 @@
             <span class="hs"><b data-count="1.75" data-decimals="2" data-suffix=" MB">1.75 MB</b> minimal binary</span>
             <span class="hs"><b data-count="38">38</b> modules</span>
             <span class="hs"><b data-count="527">527</b> logos</span>
-            <span class="hs"><b data-count="0.7" data-decimals="1" data-suffix=" ms">0.7 ms</b> cpu module</span>
+            <span class="hs"><b data-count="0.65" data-decimals="2" data-suffix=" ms">0.65 ms</b> cpu module</span>
           </div>
 
           <div class="social-proof">
@@ -144,7 +144,7 @@
           <span class="stat-note">fastfetch-imported</span>
         </div>
         <div class="stat reveal" style="--i:2">
-          <span class="stat-num" data-count="0.7" data-decimals="1" data-suffix=" ms">0.7 ms</span>
+          <span class="stat-num" data-count="0.65" data-decimals="2" data-suffix=" ms">0.65 ms</span>
           <span class="stat-label">Fastest module</span>
           <span class="stat-note">cpu, read via /proc</span>
         </div>
@@ -180,17 +180,17 @@
             <div class="lat-row">
               <span class="lat-label">all modules</span>
               <span class="lat-track"><i style="--w:1;--d:0s"></i></span>
-              <span class="lat-ms">33 ms</span>
+              <span class="lat-ms">26 ms</span>
             </div>
             <div class="lat-row">
               <span class="lat-label">cpu module</span>
               <span class="lat-track"><i style="--w:.08;--d:.45s"></i></span>
-              <span class="lat-ms">0.7 ms</span>
+              <span class="lat-ms">0.65 ms</span>
             </div>
             <div class="lat-row">
               <span class="lat-label">template render</span>
               <span class="lat-track"><i style="--w:.04;--d:.9s"></i></span>
-              <span class="lat-ms">0.37 ms</span>
+              <span class="lat-ms">0.33 ms</span>
             </div>
           </div>
           <p class="lat-note" aria-hidden="true">cold-run measurements from <code>flexfetch --benchmark</code> (author&rsquo;s machine)</p>
@@ -389,7 +389,7 @@
             Releases ship Linux (musl static, 3 arches) and macOS (arm64 + x86_64) binaries.
             Every release ships SHA-256 checksums and cosign signatures. The installer
             verifies the checksum before unpacking and aborts on a mismatch (verification needs a
-            sha256sum/shasum tool; it's skipped with a warning when none is available).
+            sha256sum/shasum tool; without one, the installer refuses to run).
           </p>
           <ul class="secure-list">
             <li>
@@ -420,7 +420,7 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>copy
               </button>
             </div>
-            <p class="note">Detects your platform, verifies the checksum when a sha256 tool is available, and aborts if it doesn't match.</p>
+            <p class="note">Detects your platform, verifies the SHA-256 checksum, and aborts on any mismatch or missing checksum tool.</p>
           </div>
 
           <div class="inst-card">

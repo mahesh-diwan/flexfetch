@@ -39,15 +39,16 @@ rayon for sequential loops, and the live/completions subcommands.
 
 ## Performance
 
-Measured with `flexfetch --benchmark` on CachyOS, i5-12450H:
+Measured with `flexfetch --benchmark` on CachyOS, i5-12450H (release build;
+values vary run to run):
 
-| Metric            | Value      |
-| ----------------- | ---------- |
-| Module collection | ~32 ms     |
-| Template render   | ~0.35 ms   |
-| Full pipeline     | ~74 ms     |
+| Metric            | Value            |
+| ----------------- | ---------------- |
+| Module collection | ~26 ms (23–28 ms) |
+| Template render   | ~0.33 ms (0.27–0.41 ms) |
+| Full pipeline     | ~130 ms (cold start dominates; ~57 ms warm) |
 
-Individual modules run in microseconds (e.g. `cpu` ~0.7 ms, `os` ~35 µs);
+Individual modules run in microseconds (e.g. `cpu` ~0.65 ms, `os` ~30 µs);
 `--benchmark` prints the full per-module breakdown.
 
 ## Tests
@@ -58,4 +59,4 @@ cargo test --no-default-features               # minimal build tests
 cargo clippy -- -W clippy::all                 # lint
 ```
 
-103 tests across 7 test suites.
+153 tests across 7 test suites.
