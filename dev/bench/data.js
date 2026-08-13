@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786553182005,
+  "lastUpdate": 1786590063483,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1439,6 +1439,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1765121,
             "range": "± 50669",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "8a66021cd8d9582d6711f2e4bbeb4d7459a1090b",
+          "message": "site: fix remaining critique issues — dark OG image, live gauge demo, retire faint tier, self-host docs fonts\n\nSecond critique pass (re-run scored 30/36 with all previous P1/P2 items resolved; this closes the remaining backlog):\n\n- [og.png] Regenerated as a dark 1200x630 blueprint-style card (zinc ground, dot grid, amber ASCII motif, sample terminal output). Includes an explicit \"sample output\" label and deliberately generic values so it can't be mistaken for a fabricated real capture — the hero terminal remains the page's only \"real output\" claim.\n- [main.js] Added a second interactive proof: the Live TUI card's gauge + sparkline now run an organic ticker (random-walk CPU percent, scrolling sparkline) when scrolled into view. Gated on prefers-reduced-motion, pauses offscreen via IntersectionObserver, and skips ticks while the tab is hidden.\n- [style.css] Retired the --faint tier entirely (17 usages folded into --muted #8a8a94; token removed) — one less text tier, everything now AA-clean.\n- [book.css] Docs theme now self-hosts the Geist fonts from site/assets/fonts (two-level relative path from the built theme/ output) instead of Google Fonts, and matches the landing contrast tokens (--muted #8a8a94, --faint #7a7a85). Built docs verified: 2 @font-face, 0 googleapis refs.\n- [.impeccable/critique/ignore.md] Documented the em-dash-overuse finding as a false positive (CLI flags + CSS custom-property syntax in inline styles) so future critique runs stay clean.",
+          "timestamp": "2026-08-13T08:28:26+05:30",
+          "tree_id": "e10e08ba869437174ed50ad8d9883f8360ae9138",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/8a66021cd8d9582d6711f2e4bbeb4d7459a1090b"
+        },
+        "date": 1786590062451,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2538001,
+            "range": "± 24729",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2541877,
+            "range": "± 29483",
             "unit": "ns/iter"
           }
         ]
