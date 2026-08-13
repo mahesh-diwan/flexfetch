@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786593195776,
+  "lastUpdate": 1786611505396,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1547,6 +1547,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1997074,
             "range": "± 45607",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "464243f2526970bdb785c1154f593dd871af5dea",
+          "message": "perf: cache slow modules (wifi/display/packages) to cut startup 45ms → 7ms\n\nDiagnosis (--benchmark): wall time was dominated by module collection —\nwifi spawned nmcli (~35ms), display spawned xrandr (~4.5ms), packages\nread the 69k-entry pacman DB (~5-11ms) on every run, even though their\nvalues barely change. The 60s TTL Cache already existed in Context\n(used by publicip) but these three never touched it.\n\nReuse the established cache pattern: check ctx.cache first, collect +\nstore on miss. First run unchanged; subsequent runs within 60s skip the\nspawns entirely. Verified 45ms → 7ms median warm on the default build.\n\nAlso fix the nondeterministic plain renderer exposed by the cache diff:\nwifi/terminal fell through to a catch-all that pulled arbitrary\nHashMap order (output varied between runs). Added deterministic arms\nmirroring default.tera and sorted keys in the catch-all, with the\nplain-vs-Tera byte-parity test extended to cover both modules.\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T14:25:47+05:30",
+          "tree_id": "1a3be34dc2562f8f3c9c6b0f44fd32789063de42",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/464243f2526970bdb785c1154f593dd871af5dea"
+        },
+        "date": 1786611504704,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2733660,
+            "range": "± 134045",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2708216,
+            "range": "± 169212",
             "unit": "ns/iter"
           }
         ]
