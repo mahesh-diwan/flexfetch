@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786612138199,
+  "lastUpdate": 1786612875068,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1619,6 +1619,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2536789,
             "range": "± 28986",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "b13de4111f9de6d57c9db440aa12a668f97d907d",
+          "message": "feat: configurable cache_ttl + refresh perf docs to measured ms values\n\nAll three followups from the startup audit:\n\n1. cache_ttl config key (default 60s, 0 = always re-collect): added to\n   Config with merge/default handling, wired through Context via a\n   set_ttl on Cache that keeps loaded entries, and applied at the three\n   production load sites (config_load, watch hot-reload, live reload).\n   Verified: ttl=1 expires and re-collects after ~2s; hit runs ~10ms.\n\n2. Docs/site refreshed with the new measured numbers (all ms):\n   warm run ~9ms (6-11), cold run ~14ms (13-16), run_selected ~3ms,\n   template render ~0.5ms, cpu ~1.1ms — replacing the stale 26ms/\n   0.65ms/0.33ms figures from before the caching + iw work.\n\n3. live/watch audit: both already optimal — live samples /proc directly\n   on a 1s tick (never touches cached modules); watch serves static\n   modules from its snapshot and re-collects only dynamic ones (~13ms\n   tick on a 1s cadence). No changes needed; documented.\n\n157/157 tests pass, clippy clean.\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T14:48:28+05:30",
+          "tree_id": "4f3a7c787ec7fe214d6d5c934308b831623f46f2",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/b13de4111f9de6d57c9db440aa12a668f97d907d"
+        },
+        "date": 1786612874596,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2732598,
+            "range": "± 38532",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2749696,
+            "range": "± 36804",
             "unit": "ns/iter"
           }
         ]
