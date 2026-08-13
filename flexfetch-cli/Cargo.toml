@@ -44,7 +44,7 @@ qrcode = { version = "0.14", optional = true }
 # default-features = false drops rqrr's `img` feature (image 0.23, used only
 # for its GrayImage impl) — we feed it luminance via prepare_from_greyscale, so
 # the tree keeps just our single image 0.25 instead of a duplicate pair.
-rqrr = { version = "0.3", default-features = false, optional = true }
+rqrr = { version = "0.10", default-features = false, optional = true }
 zstd = { version = "0.13", optional = true }
 base64 = { version = "0.22", optional = true }
 image = { version = "0.25", optional = true, default-features = false, features = ["png"] }
