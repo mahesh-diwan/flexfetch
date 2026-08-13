@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786591647541,
+  "lastUpdate": 1786593195776,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1511,6 +1511,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2704931,
             "range": "± 34817",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "421da38ef146144579fc1e3384e489632f364696",
+          "message": "fix: correct stale/fabricated claims after full truthfulness audit\n\n- latency bars: all modules 33->26 ms, template render 0.37->0.33 ms, cpu 0.7->0.65 ms (real --benchmark values on author machine)\n\n- checksum behavior: installer refuses to run without a sha256 tool; site + installation.md previously claimed it 'skipped with a warning' (install.sh actually fails closed)\n\n- building.md: benchmark table to real measured ranges (collection 23-28 ms, render 0.27-0.41 ms, full pipeline cold ~130 ms / warm ~57 ms), os ~30 us, cpu ~0.65 ms\n\n- test count 103 -> 153 (cargo test: 8+119+6+6+7+7)\n\n- faq.md: 5th catalog section is Processes, not 'Context & extras'",
+          "timestamp": "2026-08-13T09:20:28+05:30",
+          "tree_id": "aff02a61ea46083ff9700f31f4e7929eee9f0ff5",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/421da38ef146144579fc1e3384e489632f364696"
+        },
+        "date": 1786593195010,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1976666,
+            "range": "± 52751",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1997074,
+            "range": "± 45607",
             "unit": "ns/iter"
           }
         ]
