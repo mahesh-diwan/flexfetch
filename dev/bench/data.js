@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786618349708,
+  "lastUpdate": 1786618763968,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1763,6 +1763,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2940639,
             "range": "± 147266",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "0f0c5ce3ee607e95664e5401b3ab52569276844d",
+          "message": "fix(ci): grant checks:write so security audit's check run succeeds\n\nrustsec/audit-check@v2 creates a GitHub check run to report results; the\nworkflow's permissions block only granted contents/issues, so every run failed\nwith \"Resource not accessible by integration\" after a clean audit. Also skip\nthe audit job on dependabot pushes — their GITHUB_TOKEN is read-only by design\nand can never create check runs (daily schedule + main pushes still cover it).\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T16:26:37+05:30",
+          "tree_id": "4f04503315a3677e9abc58735932513b402f7ed7",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/0f0c5ce3ee607e95664e5401b3ab52569276844d"
+        },
+        "date": 1786618762887,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2557179,
+            "range": "± 26405",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2564596,
+            "range": "± 28384",
             "unit": "ns/iter"
           }
         ]
