@@ -1046,54 +1046,173 @@ h1 .accent {
   60%, 100% { transform: translateX(120%); }
 }
 
-/* gauge + sparkline (card D) */
-.gauge-row {
+/* live TUI dashboard (card D) */
+.live-dash {
   margin-top: 18px;
-  display: flex;
-  align-items: flex-end;
-  gap: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  background: linear-gradient(180deg, #131317, #0d0d10);
+  padding: 10px 12px 12px;
+  position: relative;
 }
-.gauge {
-  width: 74px;
-  height: 74px;
+.live-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.live-dots {
+  display: flex;
+  gap: 4px;
+}
+.live-dots i {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: conic-gradient(var(--accent) calc(var(--p, 64) * 1%), rgba(255, 255, 255, 0.07) 0);
+  background: #ff5f57;
+}
+.live-dots i:nth-child(2) {
+  background: #febc2e;
+}
+.live-dots i:nth-child(3) {
+  background: #28c840;
+}
+.live-title {
+  font: 500 10px var(--font-mono);
+  color: var(--text);
+}
+.live-tick {
+  margin-left: auto;
+  font: 500 9px var(--font-mono);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  animation: livePulse 2.4s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+.live-gauges {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 4px 4px;
+}
+.lg {
+  width: 54px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  position: relative;
+}
+.lg .ring {
+  width: 54px;
+  height: 54px;
+  transform: rotate(-90deg);
+}
+.ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 3.4;
+}
+.ring-fg {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-dasharray: 97.39;
+  stroke-dashoffset: calc(97.39 - 97.39 * var(--p, 0) / 100);
+  transition: stroke-dashoffset 1.2s var(--ease);
+}
+.lg:nth-child(2) .ring-fg {
+  stroke: #00d4ff;
+}
+.lg:nth-child(3) .ring-fg {
+  stroke: #b4befe;
+}
+.lg-num {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
-  position: relative;
-  flex-shrink: 0;
-}
-.gauge::before {
-  content: "";
-  position: absolute;
-  inset: 7px;
-  border-radius: 50%;
-  background: var(--bg-2);
-}
-.gauge span {
-  position: relative;
-  font: 500 13px var(--font-mono);
+  font: 600 12px var(--font-mono);
   color: var(--text-strong);
 }
-.spark {
-  flex: 1;
+.lg-num .pct {
+  font-size: 8px;
+  color: var(--muted);
+  margin-left: 1px;
+}
+.lg-label {
+  font: 500 8px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.live-procs {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+}
+.lp {
+  display: grid;
+  grid-template-columns: 56px 1fr 36px;
+  align-items: center;
+  gap: 8px;
+}
+.lp span {
+  font: 500 9px var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lp i {
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), rgba(232, 145, 58, 0.3));
+  width: calc(var(--w, 0) * 100%);
+}
+.lp b {
+  font: 600 9px var(--font-mono);
+  color: var(--text);
+  text-align: right;
+}
+.live-net {
   display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 60px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
 }
-.spark i {
+.live-net > span {
+  font: 500 9px var(--font-mono);
+  color: var(--muted);
+}
+.live-net svg {
   flex: 1;
-  border-radius: 2px 2px 0 0;
-  background: linear-gradient(180deg, var(--accent), rgba(232, 145, 58, 0.25));
-  transform: scaleY(var(--h, 0.4));
-  transform-origin: bottom;
-  animation: sparkPulse 3s ease-in-out infinite alternate;
-  animation-delay: calc(var(--i, 0) * 0.14s);
+  height: 18px;
+  overflow: visible;
 }
-@keyframes sparkPulse {
-  from { transform: scaleY(calc(var(--h, 0.4) * 0.62)); }
-  to { transform: scaleY(var(--h, 0.4)); }
+.live-net polyline {
+  fill: none;
+  stroke: #00d4ff;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.live-net b {
+  font: 600 9px var(--font-mono);
+  color: #00d4ff;
+  white-space: nowrap;
 }
 
 /* template chips (card E) */
@@ -1641,6 +1760,18 @@ footer {
 }
 
 /* ---------- responsive ---------- */
+/* hero stacks below 1200px so the terminal gets full width: its lines are up
+   to 63ch, and the two-column grid only fits ~64ch at 1200px (less below). */
+@media (max-width: 1199px) and (min-width: 1025px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+  .term-wrap {
+    max-width: 620px;
+  }
+}
+
 @media (max-width: 1024px) {
   .hero-grid {
     grid-template-columns: 1fr;
