@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786612875068,
+  "lastUpdate": 1786614294799,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1655,6 +1655,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2749696,
             "range": "± 36804",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "20c41b8c8bc36300eaadbd7cee39108fcf4221d5",
+          "message": "fix: green CI on Windows — cfg-gate Linux-only helpers, benchmark cache state\n\nCI was red on every commit (all 11 runs failed, pre-existing): the\nWindows job builds with --no-default-features --all-targets and runs\nclippy with -D warnings, and multiple modules reference Linux-only\ncode paths unconditionally.\n\nFixes:\n- wifi.rs: cfg-gate iw_link_ssid/parse_iw_link/parse_wireless/\n  quality_percent to Linux (they were dead code on Windows) and gate\n  the test module to Linux; allow unused ctx on non-Linux.\n- 11 modules (battery, cpucache, cpu, disk, dns, gpu, memory, network,\n  os, resolution, swap): allow unused_variables on collect (ctx is only\n  read in Linux-gated blocks).\n- cpuusage.rs: gate its tests to Linux (they reference the Linux-only\n  since_boot_usage).\n- live.rs: allow dead_code on ProcInfo.cpu_pct for non-Linux builds.\n- cargo fmt applied to the module cache edits from the perf work.\n\nAlso: --benchmark now prints a `cache: warm|cold` line sampled before\ncollection, so the per-module (cold) vs run_selected (warm) split is\nvisible instead of ambiguous.\n\nVerified locally: Linux tests 157/157, clippy 0, fmt clean; Windows\nclippy 0/0 on both crates (the Windows test link step can't run here —\nno Windows linker — but CI has the full toolchain).\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T15:12:25+05:30",
+          "tree_id": "64ec0e69f979ff0c86424c86a87a356e1f6803e2",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/20c41b8c8bc36300eaadbd7cee39108fcf4221d5"
+        },
+        "date": 1786614294061,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1765216,
+            "range": "± 103022",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1710717,
+            "range": "± 55852",
             "unit": "ns/iter"
           }
         ]
