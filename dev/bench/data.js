@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786617722295,
+  "lastUpdate": 1786618349708,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1727,6 +1727,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2666329,
             "range": "± 46957",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "58b2aca2511a65d3099e22e8cad012d3abb2cefe",
+          "message": "fix(security): upgrade rqrr 0.3→0.10 to drop vulnerable lru 0.6.6 (RUSTSEC-2021-0130)\n\ncargo-audit flagged a use-after-free in lru 0.6.6, pulled in transitively by\nrqrr 0.3.2 via the qr feature. rqrr 0.10.1 uses lru 0.16 and keeps the same\nprepare_from_greyscale/detect_grids/decode API, so no code changes were needed.\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T16:19:39+05:30",
+          "tree_id": "b4392d5d6d8cb108e81845e600fa2a2e4a8f4e69",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/58b2aca2511a65d3099e22e8cad012d3abb2cefe"
+        },
+        "date": 1786618349042,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2889858,
+            "range": "± 130959",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2940639,
+            "range": "± 147266",
             "unit": "ns/iter"
           }
         ]
