@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786618763968,
+  "lastUpdate": 1786635224821,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1799,6 +1799,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2564596,
             "range": "± 28384",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "2213b8e6544d7f68c43cb2df163dd03f61e26b45",
+          "message": "fix(security): write weather cache with 0600 perms to match cache.rs\n\nThe nomistakes audit found one real gap: weather.rs wrote its cache\n(temp + rename) with default umask permissions, while cache.rs — the\nestablished pattern — deliberately sets 0o600 on Unix. The weather cache\nholds location-identifying data (city/coordinates) that shouldn't be\nworld-readable on shared machines. Aligned with the cache.rs\nOpenOptions + mode(0o600) pattern; everything else in the audit was\nclean (unwraps on internal invariants only, guarded indexing, no shell\ninjection, PID/hash-suffixed temp files).\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T21:01:19+05:30",
+          "tree_id": "d1073bd3b7cb28abf4ee08c889738d4b84739695",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/2213b8e6544d7f68c43cb2df163dd03f61e26b45"
+        },
+        "date": 1786635223764,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1913540,
+            "range": "± 72492",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1910091,
+            "range": "± 61285",
             "unit": "ns/iter"
           }
         ]
