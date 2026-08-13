@@ -28,6 +28,12 @@ pub struct Config {
 
     #[serde(default)]
     pub modules_config: HashMap<String, ModuleConfig>,
+
+    /// Cache TTL in seconds for slow modules (wifi/display/packages/
+    /// bluetooth/media/publicip). Repeated invocations within the TTL reuse
+    /// the cached value instead of re-spawning the platform tool. Default 60.
+    #[serde(default = "Config::default_cache_ttl")]
+    pub cache_ttl: u64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
@@ -353,6 +359,10 @@ impl Config {
         "default".into()
     }
 
+    pub fn default_cache_ttl() -> u64 {
+        60
+    }
+
     pub fn load(path: Option<&std::path::Path>) -> crate::Result<Self> {
         // Start with defaults
         let mut config = Config::default_for_testing();
@@ -387,6 +397,7 @@ impl Config {
             display: DisplayConfig::default(),
             custom: HashMap::new(),
             modules_config: HashMap::new(),
+            cache_ttl: Config::default_cache_ttl(),
         }
     }
 }
@@ -482,6 +493,11 @@ fn merge_config(base: Config, override_config: Config) -> Config {
             override_config.modules_config
         } else {
             base.modules_config
+        },
+        cache_ttl: if override_config.cache_ttl != Config::default_cache_ttl() {
+            override_config.cache_ttl
+        } else {
+            base.cache_ttl
         },
     }
 }

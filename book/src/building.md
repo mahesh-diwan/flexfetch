@@ -40,16 +40,20 @@ rayon for sequential loops, and the live/completions subcommands.
 ## Performance
 
 Measured with `flexfetch --benchmark` on CachyOS, i5-12450H (release build;
-values vary run to run):
+values vary run to run). Slow modules (wifi, display, packages, bluetooth,
+media, publicip) reuse a 60 s cache, so repeated runs are fastest:
 
 | Metric            | Value            |
 | ----------------- | ---------------- |
-| Module collection | ~26 ms (23–28 ms) |
-| Template render   | ~0.33 ms (0.27–0.41 ms) |
-| Full pipeline     | ~130 ms (cold start dominates; ~57 ms warm) |
+| Full run, warm cache | ~9 ms (6–11 ms) |
+| Full run, cold cache | ~14 ms (13–16 ms) |
+| Module collection (run_selected) | ~3 ms (2.9–4.0 ms) |
+| Template render   | ~0.5 ms (0.47–0.76 ms) |
 
-Individual modules run in microseconds (e.g. `cpu` ~0.65 ms, `os` ~30 µs);
-`--benchmark` prints the full per-module breakdown.
+Individual modules run in microseconds to ~1 ms (e.g. `cpu` ~1.1 ms,
+`os` ~0.05 ms, `wifi` 0.02 ms warm / ~3 ms cold); `--benchmark` prints the
+full per-module breakdown. The `cache_ttl` config key (default 60 s) controls
+how long slow-module results are reused between runs.
 
 ## Tests
 

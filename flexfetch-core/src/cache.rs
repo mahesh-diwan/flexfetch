@@ -35,6 +35,11 @@ impl Cache {
         })
     }
 
+    /// Change the TTL (seconds) without discarding loaded entries.
+    pub fn set_ttl(&mut self, ttl: u64) {
+        self.ttl = ttl;
+    }
+
     pub fn set(&mut self, key: &str, value: String) {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)

@@ -78,7 +78,7 @@
             <span class="hs"><b data-count="1.75" data-decimals="2" data-suffix=" MB">1.75 MB</b> minimal binary</span>
             <span class="hs"><b data-count="38">38</b> modules</span>
             <span class="hs"><b data-count="527">527</b> logos</span>
-            <span class="hs"><b data-count="0.65" data-decimals="2" data-suffix=" ms">0.65 ms</b> cpu module</span>
+            <span class="hs"><b data-count="1.1" data-decimals="1" data-suffix=" ms">1.1 ms</b> cpu module</span>
           </div>
 
           <div class="social-proof">
@@ -144,7 +144,7 @@
           <span class="stat-note">fastfetch-imported</span>
         </div>
         <div class="stat reveal" style="--i:2">
-          <span class="stat-num" data-count="0.65" data-decimals="2" data-suffix=" ms">0.65 ms</span>
+          <span class="stat-num" data-count="1.1" data-decimals="1" data-suffix=" ms">1.1 ms</span>
           <span class="stat-label">Fastest module</span>
           <span class="stat-note">cpu, read via /proc</span>
         </div>
@@ -180,20 +180,20 @@
             <div class="lat-row">
               <span class="lat-label">all modules</span>
               <span class="lat-track"><i style="--w:1;--d:0s"></i></span>
-              <span class="lat-ms">26 ms</span>
+              <span class="lat-ms">9 ms</span>
             </div>
             <div class="lat-row">
               <span class="lat-label">cpu module</span>
-              <span class="lat-track"><i style="--w:.08;--d:.45s"></i></span>
-              <span class="lat-ms">0.65 ms</span>
+              <span class="lat-track"><i style="--w:.12;--d:.45s"></i></span>
+              <span class="lat-ms">1.1 ms</span>
             </div>
             <div class="lat-row">
               <span class="lat-label">template render</span>
-              <span class="lat-track"><i style="--w:.04;--d:.9s"></i></span>
-              <span class="lat-ms">0.33 ms</span>
+              <span class="lat-track"><i style="--w:.05;--d:.9s"></i></span>
+              <span class="lat-ms">0.5 ms</span>
             </div>
           </div>
-          <p class="lat-note" aria-hidden="true">cold-run measurements from <code>flexfetch --benchmark</code> (author&rsquo;s machine)</p>
+          <p class="lat-note" aria-hidden="true">steady-state run (~9 ms; ~14 ms on a cold cache) from <code>flexfetch --benchmark</code> (author&rsquo;s machine)</p>
         </article>
 
         <!-- B · themes -->

@@ -189,15 +189,15 @@ fn sampler_loop(
             let now = file_mtime(path);
             if now != last_mtime {
                 last_mtime = now;
-                let custom = Config::load(Some(path))
-                    .map(|c| c.custom)
-                    .unwrap_or_default();
+                let cfg = Config::load(Some(path)).unwrap_or_else(|_| Config::default_for_testing());
+                let custom = cfg.custom.clone();
                 ctx = Context::new(
                     ctx.config_dir.clone(),
                     ctx.cache_dir.clone(),
                     ctx.debug,
                     custom,
                 );
+                ctx.set_cache_ttl(cfg.cache_ttl);
                 notice = Some("config reloaded".to_string());
             }
         }

@@ -70,6 +70,14 @@ impl Context {
     pub fn is_dir(&self, path: impl AsRef<Path>) -> bool {
         self.fs.is_dir(path.as_ref())
     }
+
+    /// Update the cache TTL (seconds). Used to honor the config's `cache_ttl`
+    /// key instead of the hardcoded 60 s default. Keeps already-loaded data.
+    pub fn set_cache_ttl(&self, ttl_seconds: u64) {
+        if let Ok(mut cache) = self.cache.lock() {
+            cache.set_ttl(ttl_seconds);
+        }
+    }
 }
 
 #[cfg(test)]

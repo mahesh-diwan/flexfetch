@@ -312,6 +312,7 @@ fn main() {
                         cli.debug,
                         config.custom.clone(),
                     );
+                    ctx.set_cache_ttl(config.cache_ttl);
                     modules = resolve_modules(&cli, &config);
                     snapshot.clear();
                     eprintln!("\n[flexfetch] config reloaded\n");

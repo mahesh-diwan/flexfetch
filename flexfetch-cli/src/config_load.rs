@@ -23,6 +23,8 @@ pub fn load(config_path: Option<&std::path::Path>, flash: bool, debug: bool) -> 
         debug,
         config.custom.clone(),
     );
+    // Honor the config's cache_ttl key (default 60 s) for slow modules.
+    ctx.set_cache_ttl(config.cache_ttl);
     LoadedConfig {
         config,
         ctx,

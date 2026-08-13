@@ -10,10 +10,11 @@ flexfetch --gen-config
 
 ### Top-level options
 
-| Option     | Type       | Default                     | Description                                               |
-| ---------- | ---------- | --------------------------- | --------------------------------------------------------- |
-| `modules`  | `[]string` | `["title","separator",...]` | Module list to display                                    |
-| `template` | `string`   | `"default"`                 | Template name (looks in `~/.config/flexfetch/templates/`) |
+| Option       | Type       | Default                     | Description                                               |
+| ------------ | ---------- | --------------------------- | --------------------------------------------------------- |
+| `modules`    | `[]string` | `["title","separator",...]` | Module list to display                                    |
+| `template`   | `string`   | `"default"`                 | Template name (looks in `~/.config/flexfetch/templates/`) |
+| `cache_ttl`  | `integer`  | `60`                        | Seconds to reuse slow-module results (wifi, display, packages, bluetooth, media, publicip) between runs. Set `0` to always re-collect. |
 
 ### `[display]` section
 
