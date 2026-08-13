@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786611505396,
+  "lastUpdate": 1786612138199,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1583,6 +1583,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2708216,
             "range": "± 169212",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "6311ae9aba67df0345c24d0eac13d63c1899fd05",
+          "message": "perf: add `iw` fast path for wifi (35ms→3ms cold) + cache bluetooth/media\n\nContinuing the startup audit: wifi's nmcli fallback was the last big cold\ncost (~35ms every run on systems without iwgetid). `iw dev <iface> link`\nreturns the SSID in ~3ms, so add it as the middle tier (proc → iwgetid →\niw → nmcli) with a parser + 4 unit tests.\n\nAlso apply the established 60s TTL cache to the remaining subprocess\nmodules: bluetooth (2× bluetoothctl, ~15ms) and media (dbus-send,\n~14ms) — both opt-in but paid the spawn cost on every run.\n\nVerified: cold module collection with cache cleared is ~15ms (was ~45ms);\nsteady-state median 8.9ms; cached/uncached output identical; 157/157\ntests pass; clippy clean.\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-13T14:36:19+05:30",
+          "tree_id": "bf2d67daf09dde4f8f57df063bba87ef050258d8",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/6311ae9aba67df0345c24d0eac13d63c1899fd05"
+        },
+        "date": 1786612137743,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2525948,
+            "range": "± 22624",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2536789,
+            "range": "± 28986",
             "unit": "ns/iter"
           }
         ]
