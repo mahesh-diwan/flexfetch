@@ -248,6 +248,10 @@
       navMobile.classList.toggle("open", open);
       hamburger.setAttribute("aria-expanded", String(open));
       document.body.style.overflow = open ? "hidden" : "";
+      if (open) {
+        const target = navMobile.querySelector("a");
+        if (target) target.focus({ preventScroll: true });
+      }
     }
     hamburger.addEventListener("click", () =>
       setMenu(!hamburger.classList.contains("open"))
