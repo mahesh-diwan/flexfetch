@@ -599,14 +599,17 @@ h1 .accent {
 .term-wrap {
   position: relative;
   perspective: 1200px;
+  /* clip the decorative glow so its -10% inset can't push the page wide */
+  overflow: clip;
 }
-.term-frame {
+/* soft amber glow behind the terminal (replaces the old offset frame) */
+.term-wrap::before {
+  content: "";
   position: absolute;
-  inset: 0;
-  transform: translate(16px, 20px);
-  border: 1px solid rgba(232, 145, 58, 0.22);
-  border-radius: calc(var(--radius-l) + 4px);
+  inset: -14% -10%;
   z-index: -1;
+  background: radial-gradient(58% 56% at 50% 42%, rgba(232, 145, 58, 0.14), transparent 72%);
+  filter: blur(26px);
   pointer-events: none;
 }
 
@@ -651,14 +654,75 @@ h1 .accent {
 }
 .term-title {
   margin-left: 10px;
-  font: 11px var(--font-mono);
+  font: 500 11px var(--font-mono);
+  color: var(--text);
+}
+
+/* version + perf badges, right side of the title bar */
+.term-badges {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.term-badge {
+  font: 500 9px var(--font-mono);
+  letter-spacing: 0.03em;
   color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.term-badge.hot {
+  color: var(--accent);
+  border-color: rgba(232, 145, 58, 0.35);
+  background: var(--accent-dim);
+}
+.term-badge.hot i {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 5px;
+  vertical-align: 1px;
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+/* bottom status bar: like a real TUI footer */
+.term-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.025);
+  font: 500 9.5px var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+/* blinking block cursor at the end of the fetch output */
+.hero-cur {
+  display: inline-block;
+  width: 7px;
+  height: 13px;
+  background: var(--accent);
+  vertical-align: -2px;
+  margin-left: 4px;
+  animation: curBlink 1.15s steps(1) infinite;
+}
+@keyframes curBlink {
+  50% {
+    opacity: 0;
+  }
 }
 
 .term-body {
   padding: 18px 20px 20px;
-  min-height: 394px;
-  max-height: 432px;
+  min-height: 362px;
+  max-height: 400px;
   overflow: auto;
   font: 11px/1.55 var(--font-mono);
   white-space: pre;
@@ -668,19 +732,6 @@ h1 .accent {
 .term-body pre {
   font: inherit;
   white-space: pre;
-}
-/* bottom fade — hints the terminal holds more output than the fold shows */
-.term::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 44px;
-  background: linear-gradient(180deg, transparent, #0d0d10 92%);
-  pointer-events: none;
-  opacity: 0.9;
-  z-index: 2;
 }
 /* fetch cascade — each real-output line prints in sequence on load.
    Base state stays visible (opacity 1) so failed scripts / no-@keyframes
@@ -1863,6 +1914,12 @@ footer {
   .card.full {
     grid-column: span 1;
   }
+  /* card 7 is a plain card; the ≤1024 rule gives it span 2, which would
+     create a phantom second column in this 1-column grid and squeeze
+     every card into ~54px-wide columns — reset it here */
+  .card:nth-child(7) {
+    grid-column: span 1;
+  }
   .lat-row {
     grid-template-columns: 72px 1fr 44px;
   }
@@ -1886,14 +1943,59 @@ footer {
   .mods-grid {
     grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
   }
-  .term-frame {
-    display: none;
-  }
   .cmd {
     flex-wrap: wrap;
   }
   .cmd .copy {
     margin-left: auto;
+  }
+}
+
+/* small phones: shrink the terminal text so 60-col output fits without
+   horizontal scroll, and let the status bar wrap gracefully */
+@media (max-width: 480px) {
+  .term-body {
+    padding: 14px 14px 16px;
+    font-size: 9.5px;
+    line-height: 1.5;
+    min-height: 0;
+    max-height: 320px;
+  }
+  .term-bar {
+    padding: 9px 12px;
+  }
+  .term-status {
+    padding: 6px 12px;
+    font-size: 8.5px;
+  }
+  .hero-cur {
+    width: 6px;
+    height: 11px;
+  }
+}
+
+/* narrow phones (< 400px): tighten further so 60-col output fits
+   the ~330px content area without horizontal scroll */
+@media (max-width: 400px) {
+  .term-body {
+    padding: 12px 12px 14px;
+    font-size: 9px;
+  }
+  .term-bar {
+    padding: 8px 10px;
+    gap: 5px;
+  }
+  .term-title {
+    font-size: 10px;
+    margin-left: 8px;
+  }
+  .term-badge {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+  .term-status {
+    padding: 5px 10px;
+    font-size: 8px;
   }
 }
 
