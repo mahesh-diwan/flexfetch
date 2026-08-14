@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786713057655,
+  "lastUpdate": 1786715672007,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1907,6 +1907,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2641726,
             "range": "± 56475",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "9a1ea63651d3941fc160e7d2bc2491d8280d87bf",
+          "message": "fix(site): ellipsize module names so chips never overflow on narrow phones\n\n.mod .mname could not shrink (flex item, no min-width), so a long module\nname + tag pushed content past the cell edge — clipped by .mods-grid's\noverflow:hidden at 320-390px. Add min-width:0 + nowrap + text-overflow:\nellipsis so the name truncates gracefully and the tag stays visible.",
+          "timestamp": "2026-08-14T19:22:05+05:30",
+          "tree_id": "efb561403173bf5632b2739a998328d461750297",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/9a1ea63651d3941fc160e7d2bc2491d8280d87bf"
+        },
+        "date": 1786715671251,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1631169,
+            "range": "± 74279",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1616481,
+            "range": "± 79696",
             "unit": "ns/iter"
           }
         ]
