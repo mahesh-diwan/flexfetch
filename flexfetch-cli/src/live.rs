@@ -15,10 +15,10 @@ use flexfetch_core::{Config, Context, InfoValue, ModuleRegistry};
 use ratatui::backend::Backend;
 use ratatui::layout::Rect;
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Gauge, Paragraph, Sparkline},
+    widgets::{Block, Borders, Paragraph, Sparkline},
     Frame, Terminal,
 };
 use std::collections::{HashMap, VecDeque};
@@ -131,6 +131,8 @@ struct ProcInfo {
     // Only populated/read on Linux (sample_processes is Linux-only); Windows
     // builds never construct a ProcInfo, so silence the dead-code lint there.
     #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+    name: String,
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
     cpu_pct: f64,
 }
 
@@ -143,8 +145,10 @@ struct SystemSnapshot {
     mem_used: String,
     mem_total: String,
     mem_history: VecDeque<u64>,
+    disk_pct: u8,
     processes: Vec<ProcInfo>,
     net_rates: Vec<(String, f64, f64)>,
+    net_history: VecDeque<u64>,
     /// Transient status message (e.g. "config reloaded") shown in the header.
     notice: Option<String>,
 }
@@ -158,8 +162,10 @@ impl Default for SystemSnapshot {
             mem_used: String::new(),
             mem_total: String::new(),
             mem_history: VecDeque::with_capacity(HISTORY),
+            disk_pct: 0,
             processes: Vec::new(),
             net_rates: Vec::new(),
+            net_history: VecDeque::with_capacity(HISTORY),
             notice: None,
         }
     }
@@ -179,6 +185,7 @@ fn sampler_loop(
     let mut proc_total_prev: u64 = 0;
     let mut proc_prev: HashMap<i32, u64> = HashMap::new();
     let mut net_prev: HashMap<String, (u64, u64)> = HashMap::new();
+    let mut net_history: VecDeque<u64> = VecDeque::with_capacity(HISTORY);
     let mut notice: Option<String> = None;
     let cores = logical_cores();
 
@@ -237,6 +244,11 @@ fn sampler_loop(
         }
         push(&mut snap.mem_history, snap.mem_pct as u64);
 
+        // --- Disk usage ---
+        if let Some(pct) = sample_disk(&ctx) {
+            snap.disk_pct = pct;
+        }
+
         // --- Top processes (Linux /proc) ---
         sample_processes(
             &mut snap,
@@ -248,6 +260,12 @@ fn sampler_loop(
 
         // --- Network rates (Linux /sys) ---
         sample_network(&mut snap, &mut net_prev, elapsed);
+        let total_rx: f64 = snap.net_rates.iter().map(|(_, rx, _)| rx).sum();
+        // History lives on the sampler thread (like net_prev) — the snapshot
+        // is rebuilt from scratch each tick, so a per-snapshot deque would
+        // never accumulate more than one sample.
+        push(&mut net_history, total_rx as u64);
+        snap.net_history = net_history.clone();
 
         // Non-blocking push: bounded(1) try_send never blocks the sampler. If
         // the renderer is slow, the newest sample is skipped (crossbeam never
@@ -284,6 +302,7 @@ fn sample_processes(
                 let name = std::fs::read_to_string(base.join("comm"))
                     .map(|s| s.trim().to_string())
                     .unwrap_or_default();
+                let short_name = name.rsplit('/').next().unwrap_or(&name).to_string();
                 let stat = std::fs::read_to_string(base.join("stat")).unwrap_or_default();
                 // Format: "pid (comm) state ppid ... utime stime ...". comm may
                 // contain spaces/parens, so split after the LAST ')'.
@@ -308,7 +327,10 @@ fn sample_processes(
                         if name.is_empty() || name == "kthreadd" {
                             continue;
                         }
-                        procs.push(ProcInfo { cpu_pct });
+                        procs.push(ProcInfo {
+                            name: short_name.clone(),
+                            cpu_pct,
+                        });
                     }
                 }
             }
@@ -395,126 +417,153 @@ impl App {
     fn draw(&self, frame: &mut Frame) {
         let snap = &self.snapshot;
         let area = frame.area();
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Length(1), // header
-                Constraint::Length(1), // CPU gauge
-                Constraint::Length(1), // Memory gauge
-                Constraint::Length(4), // network sparkline
-                Constraint::Length(1), // footer
-            ])
-            .split(area);
 
-        // Header bar
-        let mut spans = vec![Span::styled(
-            " flexfetch --live ",
-            Style::default()
-                .fg(Color::Black)
-                .bg(Color::Cyan)
-                .add_modifier(Modifier::BOLD),
-        )];
+        // Window chrome: traffic-light dots + title on the left, tick + quit
+        // hint on the right (mirrors the site's live-dash mockup).
+        let dots = Line::from(vec![
+            Span::styled(" ● ", Style::default().fg(Color::Red)),
+            Span::styled("● ", Style::default().fg(Color::Yellow)),
+            Span::styled("● ", Style::default().fg(Color::Green)),
+            Span::styled(
+                "flexfetch --live",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]);
+        let mut right = vec![Span::styled("1s ", Style::default().fg(Color::DarkGray))];
         if let Some(notice) = &snap.notice {
-            spans.push(Span::styled(
-                format!("  {notice}  "),
+            right.push(Span::styled(
+                format!("· {notice} "),
                 Style::default().fg(Color::Yellow),
             ));
         }
         if self.slow_frames > 0 {
-            spans.push(Span::styled(
-                format!("  [{} slow frames]  ", self.slow_frames),
+            right.push(Span::styled(
+                format!("· {} slow ", self.slow_frames),
                 Style::default().fg(Color::DarkGray),
             ));
         }
-        spans.push(Span::styled(
-            "  [q] quit  [space] refresh  ",
+        right.push(Span::styled(
+            "[q] quit",
             Style::default().fg(Color::DarkGray),
         ));
-        let header = Line::from(spans);
-        frame.render_widget(Paragraph::new(header), chunks[0]);
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray))
+            .title_top(dots.left_aligned())
+            .title_top(Line::from(right).right_aligned());
+        let inner = block.inner(area);
+        frame.render_widget(block, area);
 
-        // CPU gauge (flat, no border)
-        let cpu_line = Line::from(vec![
-            Span::styled(
-                "  CPU   ",
-                Style::default()
-                    .fg(Color::White)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::styled(
-                format!("{:>5.1}%  ", snap.cpu_pct),
-                Style::default().fg(Color::White),
-            ),
-        ]);
-        frame.render_widget(Paragraph::new(cpu_line), chunks[1]);
+        // Inner layout: gauges / processes / network
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(4), // three ring gauges
+                Constraint::Length(1), // process header
+                Constraint::Length(3), // top processes
+                Constraint::Min(3),    // network sparkline + rates
+            ])
+            .split(inner);
 
-        let cpu_gauge = Gauge::default()
-            .gauge_style(Style::default().fg(gauge_color(snap.cpu_pct)))
-            .ratio(snap.cpu_pct.clamp(0.0, 100.0) / 100.0);
-        frame.render_widget(
-            cpu_gauge,
-            Rect::new(
-                chunks[1].x + 14,
-                chunks[1].y,
-                chunks[1].width.saturating_sub(16),
-                1,
+        // --- Ring gauges row: CPU / Memory / Disk ---
+        let gauge_row = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+            ])
+            .split(chunks[0]);
+        let rings = [
+            ("cpu", snap.cpu_pct, gauge_color(snap.cpu_pct)),
+            (
+                "memory",
+                snap.mem_pct as f64,
+                gauge_color(snap.mem_pct as f64),
             ),
-        );
-
-        // Memory gauge (flat, no border)
-        let mem_line = Line::from(vec![
-            Span::styled(
-                "  Memory",
-                Style::default()
-                    .fg(Color::White)
-                    .add_modifier(Modifier::BOLD),
+            (
+                "disk",
+                snap.disk_pct as f64,
+                gauge_color(snap.disk_pct as f64),
             ),
-            Span::styled(
-                format!("{:>5.1}%  ", snap.mem_pct as f64),
-                Style::default().fg(Color::White),
-            ),
-        ]);
-        frame.render_widget(Paragraph::new(mem_line), chunks[2]);
-
-        let mem_gauge = Gauge::default()
-            .gauge_style(Style::default().fg(gauge_color(snap.mem_pct as f64)))
-            .ratio(snap.mem_pct as f64 / 100.0);
-        frame.render_widget(
-            mem_gauge,
-            Rect::new(
-                chunks[2].x + 14,
-                chunks[2].y,
-                chunks[2].width.saturating_sub(16),
-                1,
-            ),
-        );
-
-        // Network sparkline
-        let net_data: Vec<u64> = snap.net_rates.iter().map(|(_, rx, _)| *rx as u64).collect();
-        if !net_data.is_empty() {
-            let spark = Sparkline::default()
-                .data(&net_data)
-                .max(10_000_000) // 10 MB/s max
-                .style(Style::default().fg(Color::Cyan));
-            frame.render_widget(spark, chunks[3]);
+        ];
+        for (i, (label, pct, color)) in rings.iter().enumerate() {
+            let lines = ring_lines(label, *pct, *color);
+            let para = Paragraph::new(lines).alignment(Alignment::Center);
+            frame.render_widget(para, gauge_row[i]);
         }
 
-        // Footer: net rates + quit hint
-        let total_rx: u64 = snap.net_rates.iter().map(|(_, rx, _)| *rx as u64).sum();
-        let total_tx: u64 = snap.net_rates.iter().map(|(_, _, tx)| *tx as u64).sum();
-        let footer = Line::from(vec![
-            Span::styled(
-                format!(
-                    "  net ↓ {} ↑ {}  ",
-                    fmt_rate(total_rx as f64),
-                    fmt_rate(total_tx as f64)
-                ),
+        // --- Process header ---
+        frame.render_widget(
+            Paragraph::new(Line::from(vec![Span::styled(
+                "processes",
                 Style::default().fg(Color::DarkGray),
+            )])),
+            chunks[1],
+        );
+
+        // --- Top processes: name + bar + pct ---
+        let proc_lines: Vec<Line> = snap
+            .processes
+            .iter()
+            .take(3)
+            .map(|p| {
+                let width = chunks[2].width.saturating_sub(22).max(4) as usize;
+                let filled = ((p.cpu_pct.clamp(0.0, 100.0) / 100.0) * width as f64) as usize;
+                let bar: String = "█".repeat(filled) + &"░".repeat(width.saturating_sub(filled));
+                Line::from(vec![
+                    Span::styled(
+                        format!("{:<16}", truncate(&p.name, 16)),
+                        Style::default().fg(Color::White),
+                    ),
+                    Span::styled(bar, Style::default().fg(gauge_color(p.cpu_pct))),
+                    Span::styled(
+                        format!(" {:>4.0}%", p.cpu_pct),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                ])
+            })
+            .collect();
+        let empty: Vec<Line> = (0..3usize.saturating_sub(proc_lines.len()))
+            .map(|_| Line::from(""))
+            .collect();
+        let all_proc: Vec<Line> = proc_lines.into_iter().chain(empty).collect();
+        frame.render_widget(Paragraph::new(all_proc), chunks[2]);
+
+        // --- Network: rates + sparkline ---
+        let total_rx: f64 = snap.net_rates.iter().map(|(_, rx, _)| rx).sum();
+        let total_tx: f64 = snap.net_rates.iter().map(|(_, _, tx)| tx).sum();
+        let net_line = Line::from(vec![
+            Span::styled("network", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                format!("  ↓ {}  ↑ {}", fmt_rate(total_rx), fmt_rate(total_tx)),
+                Style::default().fg(Color::Cyan),
             ),
-            Span::raw(" ".repeat(area.width.saturating_sub(40) as usize)),
-            Span::styled("press q to quit  ", Style::default().fg(Color::DarkGray)),
         ]);
-        frame.render_widget(Paragraph::new(footer), chunks[4]);
+        frame.render_widget(Paragraph::new(net_line), chunks[3]);
+
+        if !snap.net_history.is_empty() {
+            let hist: Vec<u64> = snap.net_history.iter().copied().collect();
+            // Dynamic scale: peak of the visible window (floored at 1 KB/s so
+            // near-idle traffic still draws a visible bump) instead of a fixed
+            // 10 MB/s ceiling that flattens real-world rates to one row.
+            let peak = hist.iter().copied().max().unwrap_or(1024).max(1024);
+            let spark = Sparkline::default()
+                .data(hist)
+                .max(peak)
+                .style(Style::default().fg(Color::Cyan));
+            frame.render_widget(
+                spark,
+                Rect::new(
+                    chunks[3].x,
+                    chunks[3].y + 1,
+                    chunks[3].width,
+                    chunks[3].height.saturating_sub(1),
+                ),
+            );
+        }
     }
 }
 
@@ -599,6 +648,20 @@ fn sample_memory(ctx: &Context) -> Option<(u8, String, String)> {
     }
 }
 
+/// Root-filesystem usage percent via the disk module (reuses the same registry
+/// path as memory; no extra /proc parsing in the hot path).
+fn sample_disk(ctx: &Context) -> Option<u8> {
+    match ModuleRegistry::get().run_individual("disk", ctx)? {
+        InfoValue::List(entries) => {
+            // The disk module emits "mount: total / used pct%" lines, root first.
+            let line = entries.first()?;
+            let pct = line.rsplit(' ').next()?.trim_end_matches('%');
+            pct.parse().ok()
+        }
+        _ => None,
+    }
+}
+
 fn gauge_color(pct: f64) -> Color {
     if pct >= 85.0 {
         Color::Red
@@ -606,6 +669,71 @@ fn gauge_color(pct: f64) -> Color {
         Color::Yellow
     } else {
         Color::Green
+    }
+}
+/// A compact 4-row "ring" gauge — the terminal analogue of the site mockup's
+/// ring gauges. A 16-cell ring (7 top arc ▄, 2 sides █, 7 bottom arc ▀) fills
+/// clockwise in the gauge color as pct rises; dim cells show the unfilled arc.
+/// All three rows are 9 cells wide so the ring stays symmetric when centered.
+///
+/// ```text
+///  ▄▄▄▄▄▄▄
+/// █  37%  █
+///  ▀▀▀▀▀▀▀
+///    cpu
+/// ```
+fn ring_lines(label: &str, pct: f64, color: Color) -> Vec<Line<'static>> {
+    let label = label.to_string();
+    let total = 16usize; // 7 top + 1 right + 7 bottom + 1 left
+    let filled = ((pct.clamp(0.0, 100.0) / 100.0) * total as f64).round() as usize;
+    let dim = Style::default().fg(Color::DarkGray);
+    let acc = Style::default().fg(color).add_modifier(Modifier::BOLD);
+
+    // Clockwise from top-left: top arc 0-6, right side 7, bottom arc 8-14, left side 15.
+    let cell = |i: usize, ch: char| -> Span<'static> {
+        if i < filled {
+            Span::styled(ch.to_string(), acc)
+        } else {
+            Span::styled(ch.to_string(), dim)
+        }
+    };
+
+    let top: Vec<Span> = (0..7usize).map(|i| cell(i, '▄')).collect();
+    let bottom: Vec<Span> = (8..15usize).map(|i| cell(i, '▀')).collect();
+
+    let mut line1 = vec![Span::raw(" ")];
+    line1.extend(top);
+    line1.push(Span::raw(" "));
+    // pct centered in the 7-cell inner gap (so 25% and 100% both fit).
+    let pct_txt = format!("{:^7}", format!("{:.0}%", pct));
+    let line2 = vec![
+        cell(15, '█'),
+        Span::styled(
+            pct_txt,
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ),
+        cell(7, '█'),
+    ];
+    let mut line3 = vec![Span::raw(" ")];
+    line3.extend(bottom);
+    line3.push(Span::raw(" "));
+
+    vec![
+        Line::from(line1),
+        Line::from(line2),
+        Line::from(line3),
+        Line::from(Span::styled(label, Style::default().fg(Color::DarkGray))),
+    ]
+}
+
+fn truncate(s: &str, max: usize) -> String {
+    if s.chars().count() <= max {
+        s.to_string()
+    } else {
+        let cut: String = s.chars().take(max.saturating_sub(1)).collect();
+        format!("{cut}…")
     }
 }
 
