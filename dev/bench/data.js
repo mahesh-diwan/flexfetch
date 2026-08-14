@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786636786052,
+  "lastUpdate": 1786713057655,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1871,6 +1871,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2625073,
             "range": "± 59415",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "7308495458e30d24b284aefac1209b1083c0fba2",
+          "message": "fix(site): mobile responsiveness — phantom bento column, page-level scroll\n\n- .card:nth-child(7) keeps grid-column: span 2 from the ≤1024 block in the\n  1-column ≤768 layout, creating a phantom implicit column that squeezed\n  every bento card into ~54px-wide columns (1525px-tall cards) on phones.\n  Reset it to span 1 at ≤768 — verified single-column stacked layout.\n- .term-wrap::before glow (inset -10%) escaped the relative parent and\n  pushed the page wide at ≤480px; clip it with overflow: clip.\n- ≤400px media step (9px mono, tighter chrome) so 60-col hero output fits\n  the ~330px content area; trimmed Kernel/Memory/Disk values.\n- Hero presentation: ghost offset frame → soft clipped amber glow,\n  version/perf badges in the title bar, bottom status bar, blinking cursor,\n  fixed-width logo column so all key/value colons align.\n- Verified 320→1440px: no page-level horizontal scroll, bento 1-col on\n  mobile / 2-col ≤1024 / 3-col desktop, terminal fits exactly ≥390px.",
+          "timestamp": "2026-08-14T18:38:16+05:30",
+          "tree_id": "d64bfb6acbd77ec937881e1f475c2028b459796e",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/7308495458e30d24b284aefac1209b1083c0fba2"
+        },
+        "date": 1786713057111,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2746258,
+            "range": "± 89348",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2641726,
+            "range": "± 56475",
             "unit": "ns/iter"
           }
         ]
