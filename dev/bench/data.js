@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786716250548,
+  "lastUpdate": 1786717732085,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1979,6 +1979,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2584966,
             "range": "± 51966",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "b3d9012458d3ff11a1df0d1cf2f44ff0240bd65a",
+          "message": "refactor: extract render_diff/render_prompt into render_output, benchmark into bench.rs\n\nmain.rs drops to pure orchestration: render/diff/prompt/export now live in\nrender_output.rs and the benchmark loop in bench.rs, each behind a small\ninterface. Also collapse the five identical single-info export arms in\nrender() into one shared shape.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\nSigned-off-by: Mahesh Diwan <diwanmahesh11@gmail.com>",
+          "timestamp": "2026-08-14T19:53:57+05:30",
+          "tree_id": "16001cb90e815b412a3d059fb5c49d5f144a9644",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/b3d9012458d3ff11a1df0d1cf2f44ff0240bd65a"
+        },
+        "date": 1786717731517,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2696311,
+            "range": "± 30096",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2700032,
+            "range": "± 37806",
             "unit": "ns/iter"
           }
         ]
