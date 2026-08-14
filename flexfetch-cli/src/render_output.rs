@@ -14,26 +14,22 @@ pub fn render(info: &SystemInfo, config: &Config, cli: &Cli, ssh: bool) {
             Ok(md) => print!("{md}"),
             Err(e) => eprintln!("export error: {e}"),
         },
-        "ansible" => match flexfetch_core::export::export_ansible(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "terraform" => match flexfetch_core::export::export_terraform(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "csv" => match flexfetch_core::export::export_csv(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "prometheus" => match flexfetch_core::export::export_prometheus(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "github" => match flexfetch_core::export::export_github(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
+        // The single-info text exporters all share one shape: build the
+        // string from the info, then print it (or report the error once).
+        "ansible" | "terraform" | "csv" | "prometheus" | "github" => {
+            let exporter: fn(&SystemInfo) -> flexfetch_core::Result<String> =
+                match cli.format.as_str() {
+                    "ansible" => flexfetch_core::export::export_ansible,
+                    "terraform" => flexfetch_core::export::export_terraform,
+                    "csv" => flexfetch_core::export::export_csv,
+                    "prometheus" => flexfetch_core::export::export_prometheus,
+                    _ => flexfetch_core::export::export_github,
+                };
+            match exporter(info) {
+                Ok(s) => print!("{s}"),
+                Err(e) => eprintln!("export error: {e}"),
+            }
+        }
         _ => {
             // --ssh targets render through the full template engine even on
             // --flash (render_info legacy behavior — no flash fast-path).
