@@ -1469,6 +1469,10 @@ h1 .accent {
 }
 .mod .mname {
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .mod .mname::before {
   content: "▸";
