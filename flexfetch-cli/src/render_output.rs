@@ -1,5 +1,6 @@
 use flexfetch_cli::Cli;
-use flexfetch_core::{Config, SystemInfo, TeraEngine};
+use flexfetch_core::{Config, Context, InfoValue, ModuleRegistry, SystemInfo, TeraEngine};
+use std::collections::HashMap;
 
 /// Render output in the requested format (`--format text|json|markdown|...`).
 pub fn render(info: &SystemInfo, config: &Config, cli: &Cli, ssh: bool) {
@@ -55,6 +56,85 @@ pub fn render(info: &SystemInfo, config: &Config, cli: &Cli, ssh: bool) {
                 Err(e) => eprintln!("template error: {e}"),
             }
         }
+    }
+}
+
+/// Render a 3-column side-by-side diff table (`--diff`). Rows are aligned by
+/// module name; differing values are highlighted (red for A, green for B).
+pub fn diff(a: &SystemInfo, b: &SystemInfo, name_a: &str, name_b: &str) {
+    let a_map: HashMap<&str, &InfoValue> = a.entries.iter().map(|(n, v)| (*n, v)).collect();
+    let b_map: HashMap<&str, &InfoValue> = b.entries.iter().map(|(n, v)| (*n, v)).collect();
+
+    // Union of module names, preserving A's order then any B-only modules.
+    let mut names: Vec<&str> = a.entries.iter().map(|(n, _)| *n).collect();
+    for (n, _) in &b.entries {
+        if !names.contains(n) {
+            names.push(n);
+        }
+    }
+
+    let w = 12usize;
+    println!("\x1b[1;36m{name_a:<20}\x1b[0m vs \x1b[1;36m{name_b:<20}\x1b[0m");
+    println!("{:<w$} | {:<24} | {:<24}", "Property", name_a, name_b);
+    println!("{:-<1$}", "", w + 2 + 26 + 26);
+
+    for name in names {
+        let va = a_map.get(name).map(|v| v.summary()).unwrap_or_default();
+        let vb = b_map.get(name).map(|v| v.summary()).unwrap_or_default();
+        let (ca, cb) = if va != vb {
+            ("\x1b[31m", "\x1b[32m")
+        } else {
+            ("", "")
+        };
+        println!(
+            "{:<w$} | {ca}{:<24}\x1b[0m | {cb}{:<24}\x1b[0m",
+            name, va, vb
+        );
+    }
+}
+
+/// Build the single-line prompt string (`--prompt`), e.g.
+/// `cachyos | CPU 12% | RAM 3.2G/15.3G`.
+pub fn prompt(ctx: &Context, modules: &[String]) -> String {
+    let registry = ModuleRegistry::get();
+    let mut parts: Vec<String> = Vec::new();
+
+    // OS: distro name/logo-ish hint
+    if modules.iter().any(|m| m == "os") {
+        if let Some(InfoValue::Map(m)) = registry.run_individual("os", ctx) {
+            let name = m
+                .get("pretty_name")
+                .or_else(|| m.get("name"))
+                .cloned()
+                .unwrap_or_default();
+            if !name.is_empty() {
+                parts.push(name.to_lowercase());
+            }
+        }
+    }
+    // CPU usage
+    if modules.iter().any(|m| m == "cpuusage") {
+        if let Some(InfoValue::Scalar(s)) = registry.run_individual("cpuusage", ctx) {
+            if s != "unknown" {
+                parts.push(format!("CPU {s}"));
+            }
+        }
+    }
+    // Memory
+    if modules.iter().any(|m| m == "memory") {
+        if let Some(InfoValue::Map(m)) = registry.run_individual("memory", ctx) {
+            let used = m.get("used").cloned().unwrap_or_default();
+            let total = m.get("total").cloned().unwrap_or_default();
+            if !used.is_empty() && !total.is_empty() {
+                parts.push(format!("RAM {used}/{total}"));
+            }
+        }
+    }
+
+    if parts.is_empty() {
+        String::new()
+    } else {
+        parts.join(" | ")
     }
 }
 

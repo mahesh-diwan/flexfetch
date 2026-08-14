@@ -1,13 +1,13 @@
 use clap::Parser;
 use flexfetch_cli::Cli;
 use flexfetch_core::{
-    get_cache_dir, presets, Config, Context, InfoValue, ModuleRegistry, SystemInfo, TeraEngine,
+    get_cache_dir, presets, Config, Context, ModuleRegistry, SystemInfo, TeraEngine,
 };
-use std::collections::HashMap;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::time::Duration;
 
+mod bench;
 mod cli_dispatch;
 mod config_load;
 mod registry_resolve;
@@ -236,7 +236,7 @@ fn main() {
         let a = resolve_diff_target(&cli.diff[0], &modules, &ctx, registry, template_content);
         let b = resolve_diff_target(&cli.diff[1], &modules, &ctx, registry, template_content);
         match (a, b) {
-            (Ok(ia), Ok(ib)) => render_diff(&ia, &ib, &cli.diff[0], &cli.diff[1]),
+            (Ok(ia), Ok(ib)) => render_output::diff(&ia, &ib, &cli.diff[0], &cli.diff[1]),
             (Err(e), _) | (_, Err(e)) => eprintln!("diff error: {e}"),
         }
         return;
@@ -244,7 +244,7 @@ fn main() {
 
     // --prompt: single-line, ANSI-free prompt string
     if cli.prompt {
-        println!("{}", render_prompt(&ctx, &modules));
+        println!("{}", render_output::prompt(&ctx, &modules));
         return;
     }
 
@@ -259,7 +259,7 @@ fn main() {
     }
 
     if cli.benchmark.is_some() {
-        benchmark(
+        bench::run(
             &modules,
             &ctx,
             registry,
@@ -419,192 +419,6 @@ fn resolve_diff_target(
         .pop()
         .map(|(_, r)| r)
         .unwrap_or_else(|| Err(format!("no result from {target}")))
-}
-
-/// Render a 3-column side-by-side diff table (Phase 4.9). Rows are aligned by
-/// module name; differing values are highlighted (red for A, green for B).
-fn render_diff(a: &SystemInfo, b: &SystemInfo, name_a: &str, name_b: &str) {
-    let a_map: HashMap<&str, &InfoValue> = a.entries.iter().map(|(n, v)| (*n, v)).collect();
-    let b_map: HashMap<&str, &InfoValue> = b.entries.iter().map(|(n, v)| (*n, v)).collect();
-
-    // Union of module names, preserving A's order then any B-only modules.
-    let mut names: Vec<&str> = a.entries.iter().map(|(n, _)| *n).collect();
-    for (n, _) in &b.entries {
-        if !names.contains(n) {
-            names.push(n);
-        }
-    }
-
-    let w = 12usize;
-    println!("\x1b[1;36m{name_a:<20}\x1b[0m vs \x1b[1;36m{name_b:<20}\x1b[0m");
-    println!("{:<w$} | {:<24} | {:<24}", "Property", name_a, name_b);
-    println!("{:-<1$}", "", w + 2 + 26 + 26);
-
-    for name in names {
-        let va = a_map.get(name).map(|v| v.summary()).unwrap_or_default();
-        let vb = b_map.get(name).map(|v| v.summary()).unwrap_or_default();
-        let (ca, cb) = if va != vb {
-            ("\x1b[31m", "\x1b[32m")
-        } else {
-            ("", "")
-        };
-        println!(
-            "{:<w$} | {ca}{:<24}\x1b[0m | {cb}{:<24}\x1b[0m",
-            name, va, vb
-        );
-    }
-}
-
-fn render_prompt(ctx: &Context, modules: &[String]) -> String {
-    let registry = ModuleRegistry::get();
-    let mut parts: Vec<String> = Vec::new();
-
-    // OS: distro name/logo-ish hint
-    if modules.iter().any(|m| m == "os") {
-        if let Some(InfoValue::Map(m)) = registry.run_individual("os", ctx) {
-            let name = m
-                .get("pretty_name")
-                .or_else(|| m.get("name"))
-                .cloned()
-                .unwrap_or_default();
-            if !name.is_empty() {
-                parts.push(name.to_lowercase());
-            }
-        }
-    }
-    // CPU usage
-    if modules.iter().any(|m| m == "cpuusage") {
-        if let Some(InfoValue::Scalar(s)) = registry.run_individual("cpuusage", ctx) {
-            if s != "unknown" {
-                parts.push(format!("CPU {s}"));
-            }
-        }
-    }
-    // Memory
-    if modules.iter().any(|m| m == "memory") {
-        if let Some(InfoValue::Map(m)) = registry.run_individual("memory", ctx) {
-            let used = m.get("used").cloned().unwrap_or_default();
-            let total = m.get("total").cloned().unwrap_or_default();
-            if !used.is_empty() && !total.is_empty() {
-                parts.push(format!("RAM {used}/{total}"));
-            }
-        }
-    }
-
-    if parts.is_empty() {
-        String::new()
-    } else {
-        parts.join(" | ")
-    }
-}
-
-fn benchmark(
-    modules: &[String],
-    ctx: &Context,
-    registry: &'static ModuleRegistry,
-    template_content: &str,
-    config: &Config,
-    cli: &Cli,
-    t_cold_start: std::time::Instant,
-) {
-    let iterations = cli.benchmark.unwrap_or(1).max(1);
-    let t0 = std::time::Instant::now();
-
-    // Cache state sampled BEFORE collection: the per-module loop below
-    // populates the cache, so checking afterwards would always say "warm".
-    let cached = ctx
-        .cache
-        .lock()
-        .map(|c| c.get("wifi").is_some())
-        .unwrap_or(false);
-
-    // Per-module timing (single iteration, existing behavior)
-    let mut timings = Vec::new();
-    for name in modules {
-        if name == "title" || name == "separator" {
-            continue;
-        }
-        let t = std::time::Instant::now();
-        let _ = registry.run_individual(name, ctx);
-        timings.push((name.clone(), t.elapsed()));
-    }
-    timings.sort_by_key(|&(_, dur)| std::cmp::Reverse(dur));
-
-    // Micro-benchmark: run the full selected pipeline N times. Keep the last
-    // `info` around so the single-iteration branch can render it directly
-    // instead of running `run_selected` a second time.
-    let mut run_selected_times = Vec::new();
-    let mut render_times = Vec::new();
-    let mut last_info = None;
-    for _ in 0..iterations {
-        let t = std::time::Instant::now();
-        let info = registry.run_selected(modules, ctx, template_content);
-        run_selected_times.push(t.elapsed());
-        let engine = TeraEngine::new_default();
-        let t = std::time::Instant::now();
-        let _ = engine.render(&info, config);
-        render_times.push(t.elapsed());
-        last_info = Some(info);
-    }
-
-    eprintln!(
-        "--- flexfetch benchmark ({iterations} iteration{}) ---",
-        if iterations == 1 { "" } else { "s" }
-    );
-    eprintln!(
-        "  cache:           {} (per-module timings are cold; run_selected is warm)",
-        if cached { "warm" } else { "cold" }
-    );
-    eprintln!("  cold start:      {:?}", t_cold_start.elapsed());
-    eprintln!("  setup:           {:?}", t0.elapsed());
-    for (name, dur) in &timings {
-        eprintln!("  {name:15} {dur:?}");
-    }
-    if iterations > 1 {
-        let avg = |v: &[std::time::Duration]| -> std::time::Duration {
-            let sum: std::time::Duration = v.iter().sum();
-            sum / iterations as u32
-        };
-        let min = |v: &[std::time::Duration]| -> std::time::Duration {
-            *v.iter().min().unwrap_or(&std::time::Duration::ZERO)
-        };
-        eprintln!(
-            "  run_selected:    avg {:?} (min {:?})",
-            avg(&run_selected_times),
-            min(&run_selected_times)
-        );
-        eprintln!(
-            "  template render: avg {:?} (min {:?})",
-            avg(&render_times),
-            min(&render_times)
-        );
-        eprintln!("  total:           {:?}", t0.elapsed());
-    } else {
-        let engine = TeraEngine::new_default();
-        let t = std::time::Instant::now();
-        if let Some(info) = &last_info {
-            let _ = engine.render(info, config);
-        }
-        eprintln!("  run_selected:    {:?}", run_selected_times[0]);
-        eprintln!("  template render: {:?}", t.elapsed());
-        eprintln!("  total:           {:?}", t0.elapsed());
-    }
-    eprintln!("---");
-
-    if let Some(ref format) = cli.export {
-        let info =
-            last_info.unwrap_or_else(|| registry.run_selected(modules, ctx, template_content));
-        render_output::export(&info, config, format, cli.output.as_deref());
-        return;
-    }
-    if cli.format == "json" {
-        let info =
-            last_info.unwrap_or_else(|| registry.run_selected(modules, ctx, template_content));
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&info.to_json()).unwrap_or_else(|_| "{}".into())
-        );
-    }
 }
 
 pub(crate) fn list_presets() {
