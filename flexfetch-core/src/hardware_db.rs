@@ -32,7 +32,7 @@ fn seed_db() -> &'static HashMap<String, String> {
 /// no auth). Override with `FLEXFETCH_HWDB_URL` (e.g. a GitHub Pages mirror).
 fn remote_url() -> String {
     std::env::var("FLEXFETCH_HWDB_URL").unwrap_or_else(|_| {
-        "https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/packaging/hardware-db/hardware.json".to_string()
+        "https://raw.githubusercontent.com/mahesh-diwan/flexfetch/main/flexfetch-core/data/hardware.json".to_string()
     })
 }
 
