@@ -313,7 +313,7 @@ fn main() {
                         config.custom.clone(),
                     );
                     ctx.set_cache_ttl(config.cache_ttl);
-                    modules = resolve_modules(&cli, &config);
+                    modules = registry_resolve::resolve(&cli, &config);
                     snapshot.clear();
                     eprintln!("\n[flexfetch] config reloaded\n");
                 }
@@ -330,77 +330,6 @@ fn main() {
     }
 
     render_output::render(&info, &config, &cli, false);
-}
-
-/// Resolve the module list from CLI flags/presets/config (shared by the main
-/// path and watch-mode config hot-reload).
-pub(crate) fn resolve_modules(cli: &Cli, config: &Config) -> Vec<String> {
-    // Phase 8.8 --demo: every built-in module in a showcase order.
-    if cli.demo {
-        return vec![
-            "title".into(),
-            "separator".into(),
-            "os".into(),
-            "host".into(),
-            "kernel".into(),
-            "uptime".into(),
-            "packages".into(),
-            "shell".into(),
-            "terminal".into(),
-            "de".into(),
-            "wm".into(),
-            "cpu".into(),
-            "cpucache".into(),
-            "cpuusage".into(),
-            "gpu".into(),
-            "memory".into(),
-            "swap".into(),
-            "disk".into(),
-            "network".into(),
-            "resolution".into(),
-            "display".into(),
-            "battery".into(),
-            "temperature".into(),
-            "processes".into(),
-            "dns".into(),
-            "colors".into(),
-            // Deliberately excluded for determinism/speed: publicip (network
-            // round-trip), wifi (nmcli), bluetooth (2× bluetoothctl spawn).
-        ];
-    }
-    // --flash: the fast path always runs the lean fixed module set, ignoring
-    // config.modules and the --minimal/--full/--preset/--modules switches
-    // (everything baked in, nothing user-configurable). --demo above wins.
-    if cli.flash {
-        return presets::module_group("flash");
-    }
-    let mut modules: Vec<String> = if cli.minimal {
-        presets::module_group("minimal")
-    } else if cli.full {
-        presets::module_group("full")
-    } else if cli.dev {
-        presets::module_group("dev")
-    } else if let Some(ref preset_name) = cli.preset {
-        load_preset(preset_name)
-    } else if let Some(ref m) = cli.modules {
-        m.split(':').map(|s| s.to_string()).collect()
-    } else {
-        config.modules.clone()
-    };
-
-    // --smart: append $PWD context modules (git, project, container/venv/SSH)
-    if cli.smart {
-        for name in ["git", "project", "context"] {
-            if !modules.iter().any(|m| m == name) {
-                modules.push(name.to_string());
-            }
-        }
-    }
-    // --health: append the system health module
-    if cli.health && !modules.iter().any(|m| m == "health") {
-        modules.push("health".to_string());
-    }
-    modules
 }
 
 /// Apply display overrides from CLI flags (+ pipe mode) onto a loaded config.
@@ -665,7 +594,7 @@ fn benchmark(
     if let Some(ref format) = cli.export {
         let info =
             last_info.unwrap_or_else(|| registry.run_selected(modules, ctx, template_content));
-        handle_export(&info, config, format, cli.output.as_deref());
+        render_output::export(&info, config, format, cli.output.as_deref());
         return;
     }
     if cli.format == "json" {
@@ -676,160 +605,6 @@ fn benchmark(
             serde_json::to_string_pretty(&info.to_json()).unwrap_or_else(|_| "{}".into())
         );
     }
-}
-
-pub(crate) fn render_output(
-    info: &flexfetch_core::SystemInfo,
-    config: &Config,
-    cli: &Cli,
-    ssh: bool,
-) {
-    match cli.format.as_str() {
-        "json" => {
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&info.to_json()).unwrap_or_else(|_| "{}".into())
-            );
-        }
-        "markdown" | "md" if !ssh => match flexfetch_core::export::export_markdown(info, config) {
-            Ok(md) => print!("{md}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "ansible" => match flexfetch_core::export::export_ansible(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "terraform" => match flexfetch_core::export::export_terraform(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "csv" => match flexfetch_core::export::export_csv(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "prometheus" => match flexfetch_core::export::export_prometheus(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "github" => match flexfetch_core::export::export_github(info) {
-            Ok(s) => print!("{s}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        _ => {
-            // --ssh targets render through the full template engine even on
-            // --flash (render_info legacy behavior — no flash fast-path).
-            if !ssh && cli.flash && !cli.demo {
-                println!("{}", flexfetch_core::template::render_flash(info));
-                return;
-            }
-            let engine = TeraEngine::new_default();
-            match engine.render(info, config) {
-                Ok(output) => {
-                    let out = if config.display.frame != "none" {
-                        let theme = flexfetch_core::theme::resolve(config);
-                        flexfetch_core::template::frame_wrap(
-                            &output,
-                            &config.display.frame,
-                            &theme.section,
-                        )
-                    } else {
-                        output
-                    };
-                    println!("{out}");
-                }
-                Err(e) => eprintln!("template error: {e}"),
-            }
-        }
-    }
-}
-
-pub(crate) fn handle_export(
-    info: &flexfetch_core::SystemInfo,
-    config: &Config,
-    format: &str,
-    output: Option<&std::path::Path>,
-) -> bool {
-    let path = output.unwrap_or_else(|| match format {
-        "svg" => std::path::Path::new("flexfetch.svg"),
-        "html" => std::path::Path::new("flexfetch.html"),
-        "png" => std::path::Path::new("flexfetch.png"),
-        "markdown" | "md" => std::path::Path::new("flexfetch.md"),
-        _ => std::path::Path::new("flexfetch.out"),
-    });
-    match format {
-        "svg" => match flexfetch_core::export::export_svg(info, config) {
-            Ok(svg) => {
-                if let Err(e) = std::fs::write(path, &svg) {
-                    eprintln!("write error: {e}");
-                } else {
-                    println!("wrote {path:?}");
-                }
-            }
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "html" => match flexfetch_core::export::export_html(info, config) {
-            Ok(html) => {
-                if let Err(e) = std::fs::write(path, &html) {
-                    eprintln!("write error: {e}");
-                } else {
-                    println!("wrote {path:?}");
-                }
-            }
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "png" => match flexfetch_core::export::export_png(info, config, path) {
-            Ok(()) => println!("wrote {path:?}"),
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        "markdown" | "md" => match flexfetch_core::export::export_markdown(info, config) {
-            Ok(md) => {
-                if let Err(e) = std::fs::write(path, &md) {
-                    eprintln!("write error: {e}");
-                } else {
-                    println!("wrote {path:?}");
-                }
-            }
-            Err(e) => eprintln!("export error: {e}"),
-        },
-        _ => {
-            eprintln!("unknown export format: {format} (use svg, html, png, markdown)");
-            return false;
-        }
-    }
-    true
-}
-
-fn load_preset(name: &str) -> Vec<String> {
-    // Reject path traversal before touching the filesystem: a preset name must
-    // be a bare file stem ("neofetch", "minimal"), never a path. A hostile
-    // `--preset ../../etc/x` would otherwise read arbitrary TOML files.
-    if name.is_empty() || name.contains(['/', '\\']) || name.starts_with('.') || name.contains("..")
-    {
-        eprintln!("preset '{name}' not found, using default modules");
-        return Config::default_modules();
-    }
-
-    // Check built-in presets first (via core)
-    if presets::builtin_presets().contains_key(name) {
-        return presets::load_preset(name);
-    }
-
-    // Check user presets (~/.config/flexfetch/presets/<name>.toml)
-    let presets_dir = tools::config_dir().join("presets");
-    let preset_path = presets_dir.join(format!("{name}.toml"));
-    if let Ok(content) = std::fs::read_to_string(&preset_path) {
-        if let Ok(doc) = toml::from_str::<toml::Value>(&content) {
-            if let Some(arr) = doc.get("modules").and_then(|v| v.as_array()) {
-                return arr
-                    .iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect();
-            }
-        }
-    }
-
-    eprintln!("preset '{name}' not found, using default modules");
-    Config::default_modules()
 }
 
 pub(crate) fn list_presets() {
@@ -933,38 +708,4 @@ pub(crate) fn list_modules() {
         }
     }
     println!("\nLayout directives (template-only): title, separator");
-}
-
-#[cfg(test)]
-mod tests {
-    use super::load_preset;
-
-    #[test]
-    fn preset_traversal_names_are_rejected() {
-        // Must fall back to defaults without touching the filesystem.
-        for evil in [
-            "../etc/shadow",
-            "/etc/passwd",
-            "../../x",
-            ".hidden",
-            "a..b",
-            "",
-            "..\\win",
-        ] {
-            let m = load_preset(evil);
-            assert!(
-                !m.is_empty(),
-                "preset {evil:?} should fall back to defaults, not read a file"
-            );
-        }
-    }
-
-    #[test]
-    fn preset_clean_names_work() {
-        // Valid names resolve through the builtin catalog (or warn + default).
-        let m = load_preset("neofetch");
-        assert!(!m.is_empty());
-        let m = load_preset("minimal");
-        assert!(!m.is_empty());
-    }
 }
