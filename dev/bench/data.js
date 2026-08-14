@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786715672007,
+  "lastUpdate": 1786716250548,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -1943,6 +1943,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1616481,
             "range": "± 79696",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "8ac55c54ceb2f79e3105403903a3b6ccd925d076",
+          "message": "fix(site): a11y — main landmark, skip-link target, mobile menu focus\n\n- Wrap page content in <main id=\"main\"> (hero through CTA; footer stays\n  outside) so screen-reader users can jump to content; skip-link now\n  points at #main instead of #features.\n- Hamburger: add type=\"button\" (correct default for a non-form button).\n- Mobile menu: move focus to the first menu link when it opens, so\n  keyboard/screen-reader users land inside the menu (Escape already\n  closed it and restored focus to the hamburger).\n- Verified: landmark structure, aria-expanded toggling, focus in/out,\n  and unchanged layout at 320/390/1280 (bento columns, hero height,\n  zero page scroll).",
+          "timestamp": "2026-08-14T19:31:30+05:30",
+          "tree_id": "836377f0a8f8b94d98a438c76e78b4bcb3d5225f",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/8ac55c54ceb2f79e3105403903a3b6ccd925d076"
+        },
+        "date": 1786716249536,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2593921,
+            "range": "± 45222",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2584966,
+            "range": "± 51966",
             "unit": "ns/iter"
           }
         ]
