@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786717732085,
+  "lastUpdate": 1786796066160,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2015,6 +2015,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2700032,
             "range": "± 37806",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "dc9913f66c45c766b3fa6c622fe71c8a9ac5fe9e",
+          "message": "fix(site): real hero logo + colors, trim module grid, rework install, fix card demos\n\n- Hero terminal now shows the real fastfetch diamond logo and the real\n  16-block colors module, extracted from the tool's actual output (the old\n  hand-drawn diamond and palette chars matched nothing).\n- Marquee and module chips listed only 25 of 38 modules and the duplicate\n  loop copy was visible under prefers-reduced-motion; both now carry the\n  full set and the second copy hides when animation is off.\n- Module grid trimmed: 18 notable modules shown by default, the rest hidden\n  but searchable, with a Show-all toggle.\n- Install section reorganized: tightened copy, sudo requirement, new\n  self-update + verify card.\n- ASCII-image card shows the real colored diamond; Share & compare card now\n  has a mini QR + diff demo instead of two dots.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-15T17:40:47+05:30",
+          "tree_id": "99ecc4522f7a492792fcc0fd17f8c353589f0487",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/dc9913f66c45c766b3fa6c622fe71c8a9ac5fe9e"
+        },
+        "date": 1786796065262,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2782656,
+            "range": "± 37180",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2703048,
+            "range": "± 68497",
             "unit": "ns/iter"
           }
         ]
