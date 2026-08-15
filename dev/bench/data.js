@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786796066160,
+  "lastUpdate": 1786796475232,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2051,6 +2051,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2703048,
             "range": "± 68497",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "04fcc828473e5beddeab8475aee5fa096e4a953a",
+          "message": "test: cover user-template loading (-t my_template) with unit tests\n\nrenders_user_template_from_config_dir proves the documented workflow now\nworks (config.template != \"default\" loads templates/<name>.tera from the\nconfig dir and interpolates), and missing_user_template_errors_loudly pins\nthe fail-loudly behavior that replaced the old silent default render.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-15T17:48:40+05:30",
+          "tree_id": "4104efb1cab6dec67c1c0dda33ecbd8cafd87bc7",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/04fcc828473e5beddeab8475aee5fa096e4a953a"
+        },
+        "date": 1786796474105,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2287721,
+            "range": "± 48497",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2326286,
+            "range": "± 41486",
             "unit": "ns/iter"
           }
         ]
