@@ -1806,4 +1806,90 @@ mod tests {
         );
         Ok(())
     }
+
+    /// Temp config dir that drops its templates dir on scope exit.
+    struct TempConfigDir(std::path::PathBuf);
+    impl TempConfigDir {
+        fn new() -> Self {
+            let dir = std::env::temp_dir().join(format!(
+                "flexfetch-tpl-test-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_nanos())
+                    .unwrap_or(0)
+            ));
+            std::fs::create_dir_all(dir.join("templates")).unwrap();
+            TempConfigDir(dir)
+        }
+        fn templates_dir(&self) -> std::path::PathBuf {
+            self.0.join("templates")
+        }
+    }
+    impl Drop for TempConfigDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    /// `config.template != "default"` must load `<config_dir>/templates/<name>.tera`
+    /// from disk and render it — the `flexfetch -t my_template` workflow.
+    #[cfg(feature = "tera")]
+    #[test]
+    fn renders_user_template_from_config_dir() -> crate::Result<()> {
+        let dir = TempConfigDir::new();
+        std::fs::write(
+            dir.templates_dir().join("mine.tera"),
+            "custom-header\n{% if os.pretty_name %}{{ os.pretty_name }}{% else %}none{% endif %}\n",
+        )
+        .unwrap();
+
+        let mut info = SystemInfo::new();
+        info.add(
+            "os",
+            InfoValue::Map({
+                let mut m = std::collections::HashMap::new();
+                m.insert("pretty_name".to_string(), "TemplateOS 9.9".to_string());
+                m
+            }),
+        );
+        let mut config = Config::default_for_testing();
+        config.template = "mine".to_string();
+
+        let engine = TeraEngine {
+            template_name: "mine".to_string(),
+            config_dir: dir.0.clone(),
+        };
+        let out = engine.render(&info, &config)?;
+        assert!(
+            out.contains("custom-header"),
+            "user template body should be rendered, got: {out:?}"
+        );
+        assert!(
+            out.contains("TemplateOS 9.9"),
+            "template variable should interpolate, got: {out:?}"
+        );
+        Ok(())
+    }
+
+    /// A named template that doesn't exist on disk must fail loudly with a
+    /// path-annotated error (previously `-t whatever` silently rendered the
+    /// default template).
+    #[cfg(feature = "tera")]
+    #[test]
+    fn missing_user_template_errors_loudly() {
+        let dir = TempConfigDir::new();
+        let mut config = Config::default_for_testing();
+        config.template = "nope".to_string();
+        let engine = TeraEngine {
+            template_name: "nope".to_string(),
+            config_dir: dir.0.clone(),
+        };
+        let err = engine.render(&SystemInfo::new(), &config).unwrap_err();
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("nope") && msg.contains("templates"),
+            "error should name the missing template and its dir, got: {msg}"
+        );
+    }
 }
