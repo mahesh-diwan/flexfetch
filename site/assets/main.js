@@ -276,8 +276,27 @@
     const mods = modGrid.querySelectorAll(".mod");
     const moduleCount = [...mods].filter((m) => m.dataset.tag !== "layout").length;
     if (searchCount) searchCount.textContent = moduleCount + " modules";
+    // The grid shows a trimmed set by default; searching or expanding
+    // reveals every module (all stay in the DOM so search can find them).
+    const modsAllBtn = document.getElementById("mods-all");
+    const syncModsAll = () => {
+      if (!modsAllBtn) return;
+      const expanded = modGrid.classList.contains("show-all");
+      modsAllBtn.setAttribute("aria-expanded", String(expanded));
+      modsAllBtn.childNodes[0].textContent = expanded
+        ? "Show fewer"
+        : "Show all 38 modules";
+    };
+    if (modsAllBtn) {
+      modsAllBtn.addEventListener("click", () => {
+        modGrid.classList.toggle("show-all");
+        syncModsAll();
+      });
+    }
     searchInput.addEventListener("input", () => {
       const q = searchInput.value.toLowerCase().trim();
+      modGrid.classList.toggle("filtered", q !== "");
+      syncModsAll();
       let shown = 0;
       mods.forEach((m) => {
         const name = (m.dataset.name || "").toLowerCase();

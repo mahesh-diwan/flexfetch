@@ -1073,6 +1073,76 @@ h1 .accent {
   50% { box-shadow: 0 0 0 4px rgba(232, 145, 58, 0.16); transform: scale(1.12); }
 }
 
+/* share & compare demo (card G) */
+.share-demo {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: start;
+}
+.diffmini {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  font: 10.5px/1.6 var(--font-mono);
+  min-width: 0;
+}
+.diffmini-row {
+  display: grid;
+  grid-template-columns: 58px 1fr 1fr;
+  gap: 8px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.diffmini-row:last-child {
+  border-bottom: 0;
+}
+.diffmini-row.d {
+  background: rgba(255, 170, 60, 0.07);
+}
+.diffmini-row.d .dm-a {
+  color: #ff9e64;
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 158, 100, 0.55);
+}
+.diffmini-row.d .dm-b {
+  color: #9ece6a;
+}
+.dm-key {
+  color: var(--muted);
+  opacity: 0.7;
+}
+.dm-a,
+.dm-b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qr-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.qr-mini pre {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  font: 10px/1.15 var(--font-mono);
+  color: var(--text-strong);
+  letter-spacing: 0;
+  background: rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+.qr-cap {
+  font: 11px var(--font-mono);
+  color: var(--muted);
+  opacity: 0.7;
+}
+
 /* mini logo (card C) */
 .mini-logo {
   margin-top: 16px;
@@ -1493,6 +1563,38 @@ h1 .accent {
 }
 .mod.hidden {
   display: none;
+}
+
+/* Trim: the secondary modules stay in the DOM (searchable) but are hidden
+   until the user searches or expands. Search toggles .filtered on the grid;
+   the Show-all button toggles .show-all. */
+.mods-grid:not(.filtered):not(.show-all) .mod.minor {
+  display: none;
+}
+
+.mods-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  padding: 8px 14px;
+  font: 12px var(--font-mono);
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.mods-all:hover {
+  color: var(--text-strong);
+  border-color: var(--border-strong);
+}
+.mods-all svg {
+  transition: transform 0.25s var(--ease);
+}
+.mods-all[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 
 .mods-empty {
@@ -2029,6 +2131,13 @@ footer {
   .marquee-track,
   .chips {
     animation: none;
+  }
+  /* With the loop animation off, the duplicate copy used for the seamless
+     scroll would sit visibly side by side — drop it. nth-of-type counts
+     elements only (nth-child is thrown off by whitespace text nodes). */
+  .marquee-item:nth-of-type(2),
+  .chips > span:nth-of-type(n + 39) {
+    display: none;
   }
   .term-body .fade-in .hero-line {
     animation-delay: 0ms !important;
