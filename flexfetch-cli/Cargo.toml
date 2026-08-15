@@ -60,7 +60,7 @@ clap_mangen = "0.2"
 proptest = "1"
 
 [features]
-default = ["live", "image-logos", "tera", "parallel", "completions"]
+default = ["live", "image-logos", "tera", "parallel", "completions", "qr"]
 live = ["dep:ratatui", "dep:crossterm", "dep:crossbeam-channel"]
 # Image logos (sixel/block) + PNG export need the `image` crate; the minimal
 # `--no-default-features` build drops it entirely (see ROADMAP 0.2 remaining diet work).
@@ -73,9 +73,11 @@ tera = ["flexfetch-core/tera"]
 parallel = ["flexfetch-core/parallel"]
 # `completions <shell>` subcommand (clap_complete)
 completions = ["dep:clap_complete"]
-# QR config sharing (Phase 4.11): `--qr` / `--import-qr`. Opt-in — zstd-sys is a
-# C dep, so it stays out of the pure-Rust musl release pipeline and the minimal
-# binary (see the dep comment above; `music` is likewise opt-in).
+# QR config sharing (Phase 4.11): `--qr` / `--import-qr`. In the default set so
+# the advertised flag works out of the box; the musl release pipeline builds with
+# explicit `--no-default-features --features live,image-logos,completions,parallel`
+# so zstd-sys never enters the release binary (see the dep comment above; `music`
+# is likewise opt-in).
 qr = ["dep:qrcode", "dep:rqrr", "dep:zstd", "dep:image", "dep:base64"]
 # Phase 5.4 wallpaper auto-theming (`--auto-theme`): dominant colors from the
 # wallpaper become the theme. Opt-in (adds the image jpeg decoder).

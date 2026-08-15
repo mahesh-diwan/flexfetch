@@ -76,6 +76,18 @@ echo "== export flags =="
 check 0 --export svg --minimal
 check 0 --export html --minimal
 check 0 --export markdown --minimal
+# Regression: PNG export used to exit 0 without writing a file when the
+# --output path lacked a .png extension (image crate infers format from the
+# extension; we now pass the format explicitly).
+rm -f /tmp/flexfetch-smoke-export.png
+if "$BIN" --export png --minimal --output /tmp/flexfetch-smoke-export.png >/dev/null 2>&1 \
+    && [ -s /tmp/flexfetch-smoke-export.png ]; then
+    pass "--export png --output (no .png extension) writes a file"
+else
+    FAILURES=$((FAILURES + 1))
+    echo "  FAIL: --export png --output (no .png extension) wrote no file"
+fi
+rm -f /tmp/flexfetch-smoke-export.png
 
 echo "== compare + perf =="
 check 0 --diff local local

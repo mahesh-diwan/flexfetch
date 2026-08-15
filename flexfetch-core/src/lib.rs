@@ -24,7 +24,7 @@ pub mod win;
 pub mod modules;
 pub mod presets;
 
-pub use cache::get_cache_dir;
+pub use cache::{get_cache_dir, get_config_dir};
 pub use config::Config;
 pub use context::Context;
 pub use error::{Error, Result};

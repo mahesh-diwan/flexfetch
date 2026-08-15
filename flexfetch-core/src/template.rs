@@ -1,5 +1,7 @@
 use std::cmp;
 use std::io::IsTerminal;
+#[cfg(feature = "tera")]
+use std::path::PathBuf;
 
 #[cfg(feature = "tera")]
 use std::sync::OnceLock;
@@ -298,8 +300,15 @@ fn battery_glyph(percent: u8, charging: bool) -> String {
 /// `TeraEngine` clones the result; tests can call it directly.
 #[cfg(feature = "tera")]
 fn compile_template(template_str: &str) -> Result<Tera, tera::Error> {
+    compile_named_template("default", template_str)
+}
+
+/// Compile a template registered under an arbitrary name (used for user
+/// templates loaded from the config dir — `flexfetch -t my_template`).
+#[cfg(feature = "tera")]
+fn compile_named_template(name: &str, template_str: &str) -> Result<Tera, tera::Error> {
     let mut tera = Tera::default();
-    tera.add_raw_template("default", template_str)?;
+    tera.add_raw_template(name, template_str)?;
     tera.register_filter("palette_display", palette_display_filter);
     tera.register_filter("progress_bar", progress_bar_filter);
     tera.register_filter("pad", pad_filter);
@@ -469,6 +478,10 @@ fn render_ascii_logo(os_id: &str, height: usize, gradient_colors: &[[u8; 3]]) ->
 pub struct TeraEngine {
     #[cfg(feature = "tera")]
     template_name: String,
+    /// Where `templates/<name>.tera` user templates live (resolved the same
+    /// way as the CLI: `$XDG_CONFIG_HOME/flexfetch` or `~/.config/flexfetch`).
+    #[cfg(feature = "tera")]
+    config_dir: PathBuf,
 }
 
 impl TeraEngine {
@@ -477,6 +490,7 @@ impl TeraEngine {
         {
             TeraEngine {
                 template_name: "default".to_string(),
+                config_dir: crate::get_config_dir(),
             }
         }
         #[cfg(not(feature = "tera"))]
@@ -948,9 +962,30 @@ impl TeraEngine {
             }
         }
 
-        let raw = get_tera()
-            .render(&self.template_name, &ctx)
-            .map_err(|e| crate::Error::Template(format!("{:?}", e)))?;
+        // `config.template` names the template: "default" is the baked-in one,
+        // anything else loads `templates/<name>.tera` from the config dir
+        // (`flexfetch -t my_template` / `template = "my_template"` in config).
+        let name = config.template.as_str();
+        let raw = if name == "default" {
+            get_tera()
+                .render(&self.template_name, &ctx)
+                .map_err(|e| crate::Error::Template(format!("{:?}", e)))?
+        } else {
+            let path = self
+                .config_dir
+                .join("templates")
+                .join(format!("{name}.tera"));
+            let content = std::fs::read_to_string(&path).map_err(|e| {
+                crate::Error::Template(format!(
+                    "template '{name}' not found at {} ({e}); drop a `{name}.tera` into the templates dir or use the default",
+                    path.display()
+                ))
+            })?;
+            let tera = compile_named_template(name, &content)
+                .map_err(|e| crate::Error::Template(format!("{name}: {e:?}")))?;
+            tera.render(name, &ctx)
+                .map_err(|e| crate::Error::Template(format!("{:?}", e)))?
+        };
         Ok(raw)
     }
 }

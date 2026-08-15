@@ -90,3 +90,15 @@ pub fn get_cache_dir() -> PathBuf {
         })
         .join("flexfetch")
 }
+
+/// `~/.config/flexfetch` (or `$XDG_CONFIG_HOME/flexfetch`) — where
+/// `config.toml`, `templates/*.tera`, and logo/image assets live.
+pub fn get_config_dir() -> PathBuf {
+    std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
+            PathBuf::from(home).join(".config")
+        })
+        .join("flexfetch")
+}

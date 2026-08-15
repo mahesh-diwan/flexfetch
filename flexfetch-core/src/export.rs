@@ -316,7 +316,10 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
         cy += char_h;
     }
 
-    img.save(path)
+    // Pass the format explicitly: `save()` infers it from the file extension,
+    // so `--export png --output /tmp/out` (no .png) silently failed with
+    // "image format could not be determined".
+    img.save_with_format(path, ::image::ImageFormat::Png)
         .map_err(|e| crate::Error::Template(format!("png save: {e}")))
 }
 

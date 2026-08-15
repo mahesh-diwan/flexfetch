@@ -113,7 +113,7 @@ fn main() {
     // `mut`: watch mode rebuilds config on hot-reload. `--flash` skips the
     // config file entirely — baked-in defaults only (no file IO on the fast
     // path is the whole point).
-    let loaded = config_load::load(config_path, cli.flash, cli.debug);
+    let loaded = config_load::load(config_path, cli.flash, cli.debug, cli.template.as_deref());
     let mut config = loaded.config;
     let mut ctx = loaded.ctx;
     let config_dir = loaded.config_dir;
@@ -305,6 +305,9 @@ fn main() {
                     last_mtime = now;
                     config =
                         Config::load(config_path).unwrap_or_else(|_| Config::default_for_testing());
+                    if let Some(t) = cli.template.as_deref() {
+                        config.template = t.to_string();
+                    }
                     apply_cli_overrides(&cli, &mut config, pipe_mode);
                     ctx = Context::new(
                         config_dir.clone(),
