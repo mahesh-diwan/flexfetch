@@ -73,9 +73,12 @@ check 0 --box-style rounded
 check 0 --frame double
 
 echo "== export flags =="
-check 0 --export svg --minimal
-check 0 --export html --minimal
-check 0 --export markdown --minimal
+# Explicit --output paths: without them the export lands in the repo root
+# (flexfetch.svg / flexfetch.html / flexfetch.md) and pollutes the tree.
+check 0 --export svg --minimal --output /tmp/flexfetch-smoke-export.svg
+check 0 --export html --minimal --output /tmp/flexfetch-smoke-export.html
+check 0 --export markdown --minimal --output /tmp/flexfetch-smoke-export.md
+rm -f /tmp/flexfetch-smoke-export.svg /tmp/flexfetch-smoke-export.html /tmp/flexfetch-smoke-export.md
 # Regression: PNG export used to exit 0 without writing a file when the
 # --output path lacked a .png extension (image crate infers format from the
 # extension; we now pass the format explicitly).
@@ -91,8 +94,26 @@ rm -f /tmp/flexfetch-smoke-export.png
 
 echo "== compare + perf =="
 check 0 --diff local local
-check 0 --benchmark --minimal
 check 0 --smart --minimal
+
+# Benchmark reporting contract: the headline must be the real parallel path
+# ("real path: collect ... + render ..."), and per-module timings must be
+# labeled informational so nobody mistakes the sequential sum for startup time.
+BENCH_OUT=$("$BIN" --benchmark --minimal 2>&1 || true)
+if echo "$BENCH_OUT" | grep -q "real path:.*collect.*+ render"; then
+    pass "--benchmark reports the real parallel path"
+else
+    FAILURES=$((FAILURES + 1))
+    echo "  FAIL: --benchmark missing 'real path: collect + render' headline"
+    echo "$BENCH_OUT" | head -8 | sed 's/^/  /'
+fi
+if echo "$BENCH_OUT" | grep -q "per-module (cold, sequential, informational)"; then
+    pass "--benchmark labels per-module timings as informational"
+else
+    FAILURES=$((FAILURES + 1))
+    echo "  FAIL: --benchmark missing the informational per-module label"
+fi
+rm -f /tmp/flexfetch-smoke-bench.out
 
 echo "== feature-gated =="
 check 0 --qr --minimal

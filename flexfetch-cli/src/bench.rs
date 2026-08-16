@@ -2,8 +2,15 @@ use flexfetch_cli::Cli;
 use flexfetch_core::{Config, Context, ModuleRegistry, TeraEngine};
 use std::time::Instant;
 
-/// Micro-benchmark (`--benchmark` / `--benchmark N`): per-module timing, then
-/// N full-pipeline iterations reporting min/avg/total.
+/// Micro-benchmark (`--benchmark` / `--benchmark N`).
+///
+/// Reports, in order:
+/// 1. the **real path** — one parallel `run_selected` + render, measured before
+///    the sequential loop below populates the cache, so the headline equals
+///    what a stopwatch on a normal `flexfetch` invocation shows;
+/// 2. per-module timings (cold, sequential — informational, for finding slow
+///    collectors);
+/// 3. N full-pipeline warm iterations reporting min/avg.
 pub fn run(
     modules: &[String],
     ctx: &Context,
@@ -16,15 +23,27 @@ pub fn run(
     let iterations = cli.benchmark.unwrap_or(1).max(1);
     let t0 = Instant::now();
 
-    // Cache state sampled BEFORE collection: the per-module loop below
-    // populates the cache, so checking afterwards would always say "warm".
+    // Cache state sampled BEFORE any collection: the real-path run and the
+    // per-module loop below populate the cache, so checking afterwards would
+    // always say "warm".
     let cached = ctx
         .cache
         .lock()
         .map(|c| c.get("wifi").is_some())
         .unwrap_or(false);
 
-    // Per-module timing (single iteration, existing behavior)
+    // Real path: exactly what a normal invocation does — one parallel collect
+    // plus one render — timed from process entry so `cold start` is honest.
+    let t = Instant::now();
+    let info = registry.run_selected(modules, ctx, template_content);
+    let real_collect = t.elapsed();
+    let engine = TeraEngine::new_default();
+    let t = Instant::now();
+    let _ = engine.render(&info, config);
+    let real_render = t.elapsed();
+    let real_total = t_cold_start.elapsed();
+
+    // Per-module timing (cold, sequential — informational only).
     let mut timings = Vec::new();
     for name in modules {
         if name == "title" || name == "separator" {
@@ -36,7 +55,7 @@ pub fn run(
     }
     timings.sort_by_key(|&(_, dur)| std::cmp::Reverse(dur));
 
-    // Micro-benchmark: run the full selected pipeline N times. Keep the last
+    // Warm pipeline: run the full selected pipeline N times, keeping the last
     // `info` around so the single-iteration branch can render it directly
     // instead of running `run_selected` a second time.
     let mut run_selected_times = Vec::new();
@@ -58,13 +77,20 @@ pub fn run(
         if iterations == 1 { "" } else { "s" }
     );
     eprintln!(
-        "  cache:           {} (per-module timings are cold; run_selected is warm)",
+        "  cache:           {} (checked before any collection)",
         if cached { "warm" } else { "cold" }
     );
-    eprintln!("  cold start:      {:?}", t_cold_start.elapsed());
-    eprintln!("  setup:           {:?}", t0.elapsed());
+    eprintln!(
+        "  real path:       collect {:?} + render {:?}",
+        real_collect, real_render
+    );
+    eprintln!(
+        "  cold start:      {:?} (process entry -> first render)",
+        real_total
+    );
+    eprintln!("  per-module (cold, sequential, informational):");
     for (name, dur) in &timings {
-        eprintln!("  {name:15} {dur:?}");
+        eprintln!("    {name:15} {dur:?}");
     }
     if iterations > 1 {
         let avg = |v: &[std::time::Duration]| -> std::time::Duration {
@@ -86,13 +112,8 @@ pub fn run(
         );
         eprintln!("  total:           {:?}", t0.elapsed());
     } else {
-        let engine = TeraEngine::new_default();
-        let t = Instant::now();
-        if let Some(info) = &last_info {
-            let _ = engine.render(info, config);
-        }
         eprintln!("  run_selected:    {:?}", run_selected_times[0]);
-        eprintln!("  template render: {:?}", t.elapsed());
+        eprintln!("  template render: {:?}", render_times[0]);
         eprintln!("  total:           {:?}", t0.elapsed());
     }
     eprintln!("---");

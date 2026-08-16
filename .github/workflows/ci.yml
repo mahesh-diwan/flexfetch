@@ -9,6 +9,9 @@ on:
       - "deny.toml"
       - "templates/**"
       - "completions/**"
+      - "install.sh"
+      - "uninstall.sh"
+      - "scripts/flag-smoke.sh"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
@@ -18,6 +21,9 @@ on:
       - "deny.toml"
       - "templates/**"
       - "completions/**"
+      - "install.sh"
+      - "uninstall.sh"
+      - "scripts/flag-smoke.sh"
       - ".github/workflows/ci.yml"
 
 concurrency:
@@ -126,3 +132,35 @@ jobs:
           components: clippy
       - run: cargo test -p flexfetch-cli --features qr
       - run: cargo clippy -p flexfetch-cli --features qr --all-targets -- -D warnings
+
+  installer:
+    name: installer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: bash -n install.sh
+      - name: shellcheck (if available)
+        run: |
+          if command -v shellcheck >/dev/null 2>&1; then
+            shellcheck install.sh
+          else
+            echo "shellcheck not installed — skipping"
+          fi
+      - name: --help exits 0
+        run: bash install.sh --help >/dev/null
+      - name: unknown flag exits 2
+        run: |
+          bash install.sh --definitely-not-a-flag >/dev/null 2>&1
+          test $? -eq 2
+      - name: --dry-run with pinned tag (no network, no writes)
+        run: |
+          before=$(find . -newer install.sh | wc -l)
+          bash install.sh --dry-run --version v0.0.0 >/dev/null
+          after=$(find . -newer install.sh | wc -l)
+          test "$before" -eq "$after"
+      - name: --check exit-code contract (pinned tag, no network)
+        run: |
+          # flexfetch not on PATH in CI -> "not installed" = exit 2
+          bash install.sh --check --version v0.0.0 >/dev/null 2>&1
+          test $? -eq 2
