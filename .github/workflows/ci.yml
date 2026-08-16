@@ -151,8 +151,15 @@ jobs:
         run: bash install.sh --help >/dev/null
       - name: unknown flag exits 2
         run: |
+          # The install script exits 2 on an unknown flag; capture the status
+          # explicitly — under the runner's `bash -e` a bare failing command
+          # would kill the step before `test` runs.
+          set +e
           bash install.sh --definitely-not-a-flag >/dev/null 2>&1
-          test $? -eq 2
+          status=$?
+          set -e
+          echo "unknown-flag exit: $status"
+          test $status -eq 2
       - name: --dry-run with pinned tag (no network, no writes)
         run: |
           before=$(find . -newer install.sh | wc -l)
@@ -162,5 +169,9 @@ jobs:
       - name: --check exit-code contract (pinned tag, no network)
         run: |
           # flexfetch not on PATH in CI -> "not installed" = exit 2
+          set +e
           bash install.sh --check --version v0.0.0 >/dev/null 2>&1
-          test $? -eq 2
+          status=$?
+          set -e
+          echo "--check exit: $status"
+          test $status -eq 2
