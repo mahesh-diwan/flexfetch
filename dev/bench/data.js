@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786885097032,
+  "lastUpdate": 1786885841188,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2231,6 +2231,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2097948,
             "range": "± 15190",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "d45b12e41ec1e8a8f505e97e40e1bd6a2281fe32",
+          "message": "fix(ci): installer job — capture exit codes under runner's bash -e\n\nThe \"unknown flag exits 2\" and \"--check\" steps ran the install script\nas a bare command; under GitHub's `bash -e` the step died with the\nscript's exit code before `test $? -eq 2` could run. Wrap the checks in\nset +e / set -e and capture the status explicitly.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>\n\nSigned-off-by: Mahesh Diwan <diwanmahesh11@gmail.com>",
+          "timestamp": "2026-08-16T18:37:45+05:30",
+          "tree_id": "7b2da362da9326231959019a2243e5af2f46eb4c",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/d45b12e41ec1e8a8f505e97e40e1bd6a2281fe32"
+        },
+        "date": 1786885840385,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2774692,
+            "range": "± 24807",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2749492,
+            "range": "± 23267",
             "unit": "ns/iter"
           }
         ]
