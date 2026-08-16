@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786885841188,
+  "lastUpdate": 1786892491145,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2267,6 +2267,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2749492,
             "range": "± 23267",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "0d169bf3234c23763344abbe785783e05f4f2e30",
+          "message": "fix(ci): cache target dir + timeout on windows job to de-flake OOMs\n\nThe windows job recompiled everything from scratch every run (registry\ncache only, no target cache): 40-60 min of cold compilation on shared\nwindows runners, which repeatedly died with OOM / STATUS_STACK_BUFFER_\nOVERRUN / runner-shutdown — a flake that predates the recent module work\n(the same failure appears on Aug 13-15 runs). Caching `target` keyed on\nCargo.lock + rustc hash cuts rebuilds to minutes, and the 60-min timeout\nbounds a hung run instead of burning an hour.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-16T20:28:30+05:30",
+          "tree_id": "937a299099ba31c19fb2df000599200b532e4a3e",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/0d169bf3234c23763344abbe785783e05f4f2e30"
+        },
+        "date": 1786892490013,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2644190,
+            "range": "± 23985",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2639118,
+            "range": "± 25896",
             "unit": "ns/iter"
           }
         ]
