@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786796475232,
+  "lastUpdate": 1786875829446,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2087,6 +2087,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2326286,
             "range": "± 41486",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "293535e1c84217148b5e36e8561afd759a8e4393",
+          "message": "feat: honest --benchmark, lazy cache, install.sh flags — installer & speed plan\n\nImplements docs/plan-installer-and-speed.md:\n- bench: report the real parallel path (collect + render) as the headline;\n  per-module timings are now labeled cold/sequential/informational, so the\n  benchmark matches the stopwatch instead of the sequential sum\n- cache: load flexfetch-cache.json lazily on first get/set (zero file IO when\n  no cached module is selected); fix timestamp underflow on future entries;\n  unique pid-suffixed temp file so concurrent processes don't clobber writes\n- install.sh: --help/--dry-run/--version <tag>/--dir/--check/--no-confirm/\n  --quiet flags with zero-prompt defaults; fail-fast dependency pre-check;\n  cleanup trap kills spinner + tmpdir on Ctrl-C; validate --version tags and\n  --dir paths at the boundary (no URL/shell injection)\n- flag-smoke.sh: assert the benchmark reporting contract; write export checks\n  to /tmp so the repo tree stays clean\n- ci: installer smoke job (syntax, shellcheck, flag exit codes, dry-run)\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-16T15:49:49+05:30",
+          "tree_id": "9b547f20021d4c29eb6ddf5f6b959d288e9eac44",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/293535e1c84217148b5e36e8561afd759a8e4393"
+        },
+        "date": 1786875828980,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2566540,
+            "range": "± 46806",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2568006,
+            "range": "± 27772",
             "unit": "ns/iter"
           }
         ]
