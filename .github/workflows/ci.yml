@@ -77,17 +77,25 @@ jobs:
   windows:
     name: windows
     runs-on: windows-latest
+    # Cold windows builds take 40-60 min and repeatedly OOM'd on shared
+    # runners; the target cache below makes rebuilds take minutes, so the
+    # job finishes long before runner resource pressure builds up.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        id: rust-toolchain
+        with:
+          components: clippy
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-${{ steps.rust-toolchain.outputs.rustc_hash }}
+          restore-keys: |
+            cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Test (core + cli, release feature set)
         run: |
           cargo test -p flexfetch-core --no-default-features
