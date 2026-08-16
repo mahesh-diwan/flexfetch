@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786882606386,
+  "lastUpdate": 1786885097032,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2195,6 +2195,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2651360,
             "range": "± 35936",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "7ed391301e7a6158d13084c60032983e4c6648d2",
+          "message": "fix(ci): shellcheck SC2015 — explicit if for binary backup in install_to\n\nCI's shellcheck (newer than the local 0.11.0) flags the\n`[ -f ... ] && cp ... || true` backup line as SC2015 (\"A && B || C is\nnot if-then-else; C may run when A is true\"). Rewrote as an explicit\n`if` with the same best-effort semantics — never fail the install over\na failed backup.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>\n\nSigned-off-by: Mahesh Diwan <diwanmahesh11@gmail.com>",
+          "timestamp": "2026-08-16T18:25:57+05:30",
+          "tree_id": "cec8d93fe54a37a9c8190017da74b687758fcb70",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/7ed391301e7a6158d13084c60032983e4c6648d2"
+        },
+        "date": 1786885095961,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2119723,
+            "range": "± 23206",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2097948,
+            "range": "± 15190",
             "unit": "ns/iter"
           }
         ]
