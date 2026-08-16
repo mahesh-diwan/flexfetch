@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786875829446,
+  "lastUpdate": 1786877775029,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2123,6 +2123,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2568006,
             "range": "± 27772",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "d4ab66940f5ea96747e9af0ca8800bd7e635a6f0",
+          "message": "fix(site): close marquee wrapper, dedupe modules button, fix mobile term overflow, true binary claim\n\n- close the .marquee div so aria-hidden and overflow:hidden stop wrapping the\n  stats/features/modules/install sections (marquee box was 6578px tall)\n- remove the duplicate \"Show all 38 modules\" button (invalid duplicate id;\n  JS bound only the first)\n- narrow-phone term font 9px -> 8px so the full 69-col hero output fits\n  without the 29px horizontal scroll\n- \"1.75 MB\" -> \"1.7 MB\" (minimal binary measures 1.69 MB; matches PRODUCT.md)\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>\n\nSigned-off-by: Mahesh Diwan <diwanmahesh11@gmail.com>",
+          "timestamp": "2026-08-16T16:23:21+05:30",
+          "tree_id": "3390488a4f50cc1fab126ad49c7df18276c89fa2",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/d4ab66940f5ea96747e9af0ca8800bd7e635a6f0"
+        },
+        "date": 1786877774038,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2734923,
+            "range": "± 98663",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2736228,
+            "range": "± 121975",
             "unit": "ns/iter"
           }
         ]
