@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786892491145,
+  "lastUpdate": 1786895254146,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2303,6 +2303,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2639118,
             "range": "± 25896",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "9085efca40eb84900ae51b167df052b04125e600",
+          "message": "fix: bump version to 1.0.1 (matches latest release) + honor --quiet contract\n\nThe v1.0.1 release was cut without a version bump, so the released binary\nself-reported 0.32.0 and install.sh --check could never report \"up to\ndate\". Bump the workspace version (both crates, dep spec, Cargo.lock) to\n1.0.1 and update the site hero badge; --check now converges.\n\nAlso make --quiet honor its documented contract (only errors + the final\n\"installed\" line): banner and step progress bars are suppressed.\n\nAnd add a rustc-only restore-key to the windows cargo cache so a\nCargo.lock change no longer forces a full cold rebuild.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-16T21:14:39+05:30",
+          "tree_id": "86c4547e374ab9532f8fd3029704dac038637b36",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/9085efca40eb84900ae51b167df052b04125e600"
+        },
+        "date": 1786895253104,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2036935,
+            "range": "± 46656",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2016684,
+            "range": "± 40274",
             "unit": "ns/iter"
           }
         ]
