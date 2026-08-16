@@ -475,7 +475,10 @@ TARGET=""
 install_to() {
 	local dir="$1"
 	mkdir -p "$dir" 2>/dev/null || return 1
-	[ -f "$dir/$BIN" ] && cp "$dir/$BIN" "$dir/$BIN.bak.$(date +%s)" 2>/dev/null || true
+	# Back up an existing binary (best-effort — never fail the install over it).
+	if [ -f "$dir/$BIN" ]; then
+		cp "$dir/$BIN" "$dir/$BIN.bak.$(date +%s)" 2>/dev/null || true
+	fi
 	mv "$TMPDIR/$BIN" "$dir/$BIN" 2>/dev/null || return 1
 	TARGET="$dir/$BIN"
 }
