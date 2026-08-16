@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- 12 new modules (38 → 50 total): `datetime`, `loadavg`, `keyboard`,
+  `editor`, `initsystem`, `version`, `bios`, `board`, `chassis`,
+  `brightness`, `tpm`, `localip` — all zero-subprocess (read `/proc`, `/sys`,
+  DMI, or env directly), matching fastfetch/neofetch parity for the common
+  system-info set.
+
 ## [0.30.1] - 2026-08-10
 
 ### Fixed

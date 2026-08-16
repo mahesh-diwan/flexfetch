@@ -25,6 +25,15 @@
 {%- if locale %}
 {{ key_color_locale | default(value=theme_keys) }}{{ icon_locale }}{{ "Locale" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_locale | default(value=theme_values) }}{{ locale.lang | default(value="") }}{% if locale.encoding %} ({{ locale.encoding }}){% endif %}{{ theme_reset }}
 {%- endif %}
+{%- if datetime %}
+{{ key_color_datetime | default(value=theme_keys) }}{{ icon_datetime | default(value="󰥔 ") }}{{ "Date/Time" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_datetime | default(value=theme_values) }}{{ datetime }}{{ theme_reset }}
+{%- endif %}
+{%- if loadavg and loadavg != "unknown" %}
+{{ key_color_loadavg | default(value=theme_keys) }}{{ icon_loadavg | default(value="󰓅 ") }}{{ "Load Avg" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_loadavg | default(value=theme_values) }}{{ loadavg }}{{ theme_reset }}
+{%- endif %}
+{%- if keyboard and keyboard != "unknown" %}
+{{ key_color_keyboard | default(value=theme_keys) }}{{ icon_keyboard | default(value="󰌌 ") }}{{ "Keyboard" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_keyboard | default(value=theme_values) }}{{ keyboard }}{{ theme_reset }}
+{%- endif %}
 
 {%- if show_section_software %}
 {{ theme_section }}── Software ──{{ theme_reset }}
@@ -34,6 +43,15 @@
 {%- endif %}
 {%- if shell and shell != "unknown" %}
 {{ key_color_shell | default(value=theme_keys) }}{{ icon_shell | default(value="󰆍 ") }}{{ "Shell" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_shell | default(value=theme_values) }}{{ shell }}{{ theme_reset }}
+{%- endif %}
+{%- if editor and editor != "unknown" %}
+{{ key_color_editor | default(value=theme_keys) }}{{ icon_editor | default(value="󰎞 ") }}{{ "Editor" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_editor | default(value=theme_values) }}{{ editor }}{{ theme_reset }}
+{%- endif %}
+{%- if initsystem and initsystem != "unknown" %}
+{{ key_color_initsystem | default(value=theme_keys) }}{{ icon_initsystem | default(value="󰓐 ") }}{{ "Init" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_initsystem | default(value=theme_values) }}{{ initsystem }}{{ theme_reset }}
+{%- endif %}
+{%- if version %}
+{{ key_color_version | default(value=theme_keys) }}{{ icon_version | default(value="󰃃 ") }}{{ "Version" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_version | default(value=theme_values) }}{{ version }}{{ theme_reset }}
 {%- endif %}
 {%- if terminal and terminal.image_protocols %}
 {{ key_color_terminal | default(value=theme_keys) }}{{ icon_terminal | default(value="󰆍 ") }}{{ "Terminal" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_terminal | default(value=theme_values) }}{{ terminal.name }}{% if terminal.font %} | {{ terminal.font }}{% endif %}{% if terminal.truecolor %} | truecolor{% endif %}{% if terminal.image_protocols %} | {{ terminal.image_protocols }}{% endif %}{{ theme_reset }}
@@ -79,6 +97,21 @@
 
 {%- if show_section_hardware %}
 {{ theme_section }}── Hardware ──{{ theme_reset }}
+{%- endif %}
+{%- if bios and bios != "unknown" %}
+{{ key_color_bios | default(value=theme_keys) }}{{ icon_bios | default(value="󰏓 ") }}{{ "BIOS" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_bios | default(value=theme_values) }}{{ bios }}{{ theme_reset }}
+{%- endif %}
+{%- if board and board != "unknown" %}
+{{ key_color_board | default(value=theme_keys) }}{{ icon_board | default(value="󰋩 ") }}{{ "Board" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_board | default(value=theme_values) }}{{ board }}{{ theme_reset }}
+{%- endif %}
+{%- if chassis and chassis != "unknown" %}
+{{ key_color_chassis | default(value=theme_keys) }}{{ icon_chassis | default(value="󰑜 ") }}{{ "Chassis" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_chassis | default(value=theme_values) }}{{ chassis }}{{ theme_reset }}
+{%- endif %}
+{%- if brightness and brightness != "unknown" %}
+{{ key_color_brightness | default(value=theme_keys) }}{{ icon_brightness | default(value="󰌶 ") }}{{ "Brightness" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_brightness | default(value=theme_values) }}{{ brightness }}{{ theme_reset }}
+{%- endif %}
+{%- if tpm and tpm != "unknown" %}
+{{ key_color_tpm | default(value=theme_keys) }}{{ icon_tpm | default(value="󰌐 ") }}{{ "TPM" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_tpm | default(value=theme_values) }}{{ tpm }}{{ theme_reset }}
 {%- endif %}
 {%- if cpu %}
 {{ key_color_cpu | default(value=theme_keys) }}{{ icon_cpu }}{{ "CPU" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_cpu | default(value=theme_values) }}{{ cpu.model }} ({{ cpu.cores }} cores) @ {{ cpu.freq_mhz }} MHz{% if cpu.temp %} | {{ cpu.temp }}{% endif %}{{ theme_reset }}
@@ -140,6 +173,9 @@
 {%- endif %}
 {%- if wifi and wifi.ssid %}
 {{ key_color_wifi | default(value=theme_keys) }}{{ icon_network | default(value="󰤨 ") }}{{ "WiFi" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_wifi | default(value=theme_values) }}{{ wifi.ssid }}{% if wifi.signal %} {{ wifi.signal }}{% endif %}{% if wifi.frequency %} {{ wifi.frequency }}{% endif %}{% if wifi.security %} [{{ wifi.security }}]{% endif %}{{ theme_reset }}
+{%- endif %}
+{%- if localip and localip != "unknown" %}
+{{ key_color_localip | default(value=theme_keys) }}{{ icon_localip | default(value="󰩟 ") }}{{ "Local IP" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_localip | default(value=theme_values) }}{{ localip }}{{ theme_reset }}
 {%- endif %}
 {%- if publicip and publicip != "unknown" %}
 {{ key_color_publicip | default(value=theme_keys) }}{{ icon_network | default(value="󰖟 ") }}{{ "Public IP" | pad(width=display_key_width) }}{{ theme_sep }}{{ display_separator }}{{ val_color_publicip | default(value=theme_values) }}{% if osc8_support %}{{ publicip | osc8(url="https://ipinfo.io/" ~ publicip) }}{% else %}{{ publicip }}{% endif %}{{ theme_reset }}

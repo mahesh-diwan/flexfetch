@@ -122,6 +122,27 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         label: "Locale",
         builder: || Box::new(crate::modules::locale::LocaleModule),
     },
+    ModuleEntry {
+        name: "datetime",
+        section: Some("System"),
+        is_static: false,
+        label: "Date/Time",
+        builder: || Box::new(crate::modules::datetime::DatetimeModule),
+    },
+    ModuleEntry {
+        name: "loadavg",
+        section: Some("System"),
+        is_static: false,
+        label: "Load Avg",
+        builder: || Box::new(crate::modules::loadavg::LoadavgModule),
+    },
+    ModuleEntry {
+        name: "keyboard",
+        section: Some("System"),
+        is_static: true,
+        label: "Keyboard",
+        builder: || Box::new(crate::modules::keyboard::KeyboardModule),
+    },
     // Software
     ModuleEntry {
         name: "packages",
@@ -136,6 +157,27 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         is_static: true,
         label: "Shell",
         builder: || Box::new(crate::modules::shell::ShellModule),
+    },
+    ModuleEntry {
+        name: "editor",
+        section: Some("Software"),
+        is_static: true,
+        label: "Editor",
+        builder: || Box::new(crate::modules::editor::EditorModule),
+    },
+    ModuleEntry {
+        name: "initsystem",
+        section: Some("Software"),
+        is_static: true,
+        label: "Init",
+        builder: || Box::new(crate::modules::initsystem::InitsystemModule),
+    },
+    ModuleEntry {
+        name: "version",
+        section: Some("Software"),
+        is_static: true,
+        label: "Version",
+        builder: || Box::new(crate::modules::version::VersionModule),
     },
     ModuleEntry {
         name: "terminal",
@@ -215,6 +257,41 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         builder: || Box::new(crate::modules::fsdeep::FsDeepModule),
     },
     // Hardware
+    ModuleEntry {
+        name: "bios",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "BIOS",
+        builder: || Box::new(crate::modules::bios::BiosModule),
+    },
+    ModuleEntry {
+        name: "board",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "Board",
+        builder: || Box::new(crate::modules::board::BoardModule),
+    },
+    ModuleEntry {
+        name: "chassis",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "Chassis",
+        builder: || Box::new(crate::modules::chassis::ChassisModule),
+    },
+    ModuleEntry {
+        name: "brightness",
+        section: Some("Hardware"),
+        is_static: false,
+        label: "Brightness",
+        builder: || Box::new(crate::modules::brightness::BrightnessModule),
+    },
+    ModuleEntry {
+        name: "tpm",
+        section: Some("Hardware"),
+        is_static: true,
+        label: "TPM",
+        builder: || Box::new(crate::modules::tpm::TpmModule),
+    },
     ModuleEntry {
         name: "cpu",
         section: Some("Hardware"),
@@ -313,6 +390,13 @@ pub const MODULE_CATALOG: &[ModuleEntry] = &[
         is_static: true,
         label: "WiFi",
         builder: || Box::new(crate::modules::wifi::WifiModule),
+    },
+    ModuleEntry {
+        name: "localip",
+        section: Some("Network"),
+        is_static: true,
+        label: "Local IP",
+        builder: || Box::new(crate::modules::localip::LocalipModule),
     },
     ModuleEntry {
         name: "publicip",

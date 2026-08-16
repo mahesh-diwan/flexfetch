@@ -116,12 +116,11 @@ if [ -t 1 ]; then
 	GREEN=$'\033[32m'
 	YELLOW=$'\033[33m'
 	CYAN=$'\033[36m'
-	WHITE=$'\033[37m'
 	RESET=$'\033[0m'
 	BAR_DONE=$'\033[32m━\033[0m'
 	BAR_TODO=$'\033[2m━\033[0m'
 else
-	BOLD="" DIM="" RED="" GREEN="" YELLOW="" CYAN="" WHITE="" RESET=""
+	BOLD="" DIM="" RED="" GREEN="" YELLOW="" CYAN="" RESET=""
 	BAR_DONE="=" BAR_TODO="-"
 fi
 
@@ -129,7 +128,7 @@ fi
 banner() {
 	printf '\n'
 	printf '  %s%s.flexfetch%s\n' "$CYAN" "$BOLD" "$RESET"
-	printf '  %s%s━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━%s\n' "$DIM" "$RESET"
+	printf '  %s━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━%s\n' "$DIM" "$RESET"
 	printf '\n'
 }
 
@@ -501,6 +500,9 @@ ok "installed to $TARGET"
 if [ "$TARGET" = "$LOCAL_DIR/$BIN" ] && ! echo ":$PATH:" | grep -q ":${LOCAL_DIR}:"; then
 	echo ""
 	info "add $LOCAL_DIR to your PATH:"
+	# shellcheck disable=SC2016
+	# The literal \$PATH above is intentional: this is a copy-paste hint, and
+	# the user's shell must expand $PATH when they run it.
 	printf '    %sexport PATH="\$PATH:%s"%s\n' "$YELLOW" "$LOCAL_DIR" "$RESET"
 fi
 

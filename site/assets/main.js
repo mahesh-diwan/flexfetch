@@ -285,7 +285,7 @@
       modsAllBtn.setAttribute("aria-expanded", String(expanded));
       modsAllBtn.childNodes[0].textContent = expanded
         ? "Show fewer"
-        : "Show all 38 modules";
+        : "Show all " + moduleCount + " modules";
     };
     if (modsAllBtn) {
       modsAllBtn.addEventListener("click", () => {

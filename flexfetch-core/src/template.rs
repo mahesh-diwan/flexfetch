@@ -652,6 +652,18 @@ impl TeraEngine {
             ("project", serde_json::Value::Object(serde_json::Map::new())),
             ("context", serde_json::Value::Object(serde_json::Map::new())),
             ("health", serde_json::Value::Object(serde_json::Map::new())),
+            ("datetime", serde_json::Value::String(String::new())),
+            ("loadavg", serde_json::Value::String(String::new())),
+            ("keyboard", serde_json::Value::String(String::new())),
+            ("editor", serde_json::Value::String(String::new())),
+            ("initsystem", serde_json::Value::String(String::new())),
+            ("version", serde_json::Value::String(String::new())),
+            ("bios", serde_json::Value::String(String::new())),
+            ("board", serde_json::Value::String(String::new())),
+            ("chassis", serde_json::Value::String(String::new())),
+            ("brightness", serde_json::Value::String(String::new())),
+            ("tpm", serde_json::Value::String(String::new())),
+            ("localip", serde_json::Value::String(String::new())),
         ];
         for (module, placeholder) in all_modules {
             if !info.entries.iter().any(|(k, _)| *k == module) {
@@ -1284,6 +1296,18 @@ fn icon_for(name: &str, config: &crate::Config) -> String {
         "weather" => "󰖕 ".into(),
         "bluetooth" => "󰂯 ".into(),
         "media" => "󰎆 ".into(),
+        "datetime" => "󰥔 ".into(),
+        "loadavg" => "󰓅 ".into(),
+        "keyboard" => "󰌌 ".into(),
+        "editor" => "󰎞 ".into(),
+        "initsystem" => "󰓐 ".into(),
+        "version" => "󰃃 ".into(),
+        "bios" => "󰏓 ".into(),
+        "board" => "󰋩 ".into(),
+        "chassis" => "󰑜 ".into(),
+        "brightness" => "󰌶 ".into(),
+        "tpm" => "󰌐 ".into(),
+        "localip" => d.icon_network.clone(),
         _ => String::new(),
     }
 }
@@ -1807,8 +1831,13 @@ mod tests {
         Ok(())
     }
 
-    /// Temp config dir that drops its templates dir on scope exit.
+    /// Temp config dir that drops its templates dir on scope exit. Only used
+    /// by the tera-gated user-template tests, so gate it too (a
+    /// `--no-default-features` test build would otherwise flag it as dead
+    /// code under `-D warnings`).
+    #[cfg(feature = "tera")]
     struct TempConfigDir(std::path::PathBuf);
+    #[cfg(feature = "tera")]
     impl TempConfigDir {
         fn new() -> Self {
             let dir = std::env::temp_dir().join(format!(
@@ -1826,6 +1855,7 @@ mod tests {
             self.0.join("templates")
         }
     }
+    #[cfg(feature = "tera")]
     impl Drop for TempConfigDir {
         fn drop(&mut self) {
             let _ = std::fs::remove_dir_all(&self.0);

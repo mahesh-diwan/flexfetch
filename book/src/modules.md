@@ -12,11 +12,19 @@ full set; `-m "a:b:c"` or `modules = [...]` in config selects them.
 | `kernel` | Kernel release                  | Yes     |
 | `uptime` | How long the system has been up | No      |
 | `locale` | Language / locale settings      | Yes     |
+| `datetime` | Current date and time        | No      |
+| `loadavg`  | 1/5/15-minute load average   | No      |
+| `keyboard` | Keyboard layout (XKB)        | Yes     |
 
 ## Hardware
 
 | Module        | Shows                             | Static? |
 | ------------- | --------------------------------- | ------- |
+| `bios`        | BIOS vendor + version (DMI)       | Yes     |
+| `board`       | Motherboard vendor + name (DMI)   | Yes     |
+| `chassis`     | Chassis type (DMI)                | Yes     |
+| `brightness`  | Backlight brightness %            | No      |
+| `tpm`         | TPM presence + version            | Yes     |
 | `cpu`         | Model, cores, frequency           | Yes     |
 | `cpucache`    | L1d/L1i/L2/L3 cache sizes         | Yes     |
 | `cpuusage`    | Current CPU usage %               | No      |
@@ -35,6 +43,7 @@ full set; `-m "a:b:c"` or `modules = [...]` in config selects them.
 | Module      | Shows                                                | Static? |
 | ----------- | ---------------------------------------------------- | ------- |
 | `network`   | Interface addresses + speeds                         | No      |
+| `localip`   | Local interface addresses                           | Yes     |
 | `wifi`      | Wireless SSID / signal                               | Yes     |
 | `publicip`  | Public IP (via curl)                                 | Yes     |
 | `bluetooth` | Paired devices                                       | Yes     |
@@ -47,6 +56,9 @@ full set; `-m "a:b:c"` or `modules = [...]` in config selects them.
 | ----------- | ---------------------------------------------------------- | ------- |
 | `packages`  | Installed packages (apt/rpm/pacman/flatpak/snap breakdown) | Yes     |
 | `shell`     | User's shell                                               | Yes     |
+| `editor`    | Default editor (`$VISUAL`/`$EDITOR`)                       | Yes     |
+| `initsystem`| Init system (systemd/OpenRC/…)                             | Yes     |
+| `version`   | flexfetch version                                          | Yes     |
 | `terminal`  | Terminal emulator                                          | Yes     |
 | `de`        | Desktop environment                                        | Yes     |
 | `wm`        | Window manager                                             | Yes     |
@@ -83,5 +95,5 @@ These are template-only and are skipped by the plain renderer.
 mode (their values don't change mid-session). **Dynamic modules** are
 re-collected every tick in watch/live mode.
 
-Dynamic: `uptime`, `cpuusage`, `memory`, `swap`, `disk`, `battery`,
-`network`, `media`, `processes`, `custom`.
+Dynamic: `uptime`, `datetime`, `loadavg`, `cpuusage`, `memory`, `swap`,
+`disk`, `battery`, `brightness`, `network`, `media`, `processes`, `custom`.
