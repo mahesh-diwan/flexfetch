@@ -2080,12 +2080,12 @@ footer {
   }
 }
 
-/* narrow phones (< 400px): tighten further so 60-col output fits
-   the ~330px content area without horizontal scroll */
+/* narrow phones (< 400px): tighten further so the full 69-col hero output
+   fits the ~330px content area without horizontal scroll */
 @media (max-width: 400px) {
   .term-body {
     padding: 12px 12px 14px;
-    font-size: 9px;
+    font-size: 8px;
   }
   .term-bar {
     padding: 8px 10px;
