@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786877775029,
+  "lastUpdate": 1786882606386,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2159,6 +2159,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2736228,
             "range": "± 121975",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "a62b1513f903f8404e37a83a63ac80e725b14a44",
+          "message": "feat: 12 new fastfetch-parity modules (38→50) + fix CI failures\n\nModules added (all zero-subprocess — read /proc, /sys, DMI, or env):\n- System: datetime (chrono-free exact civil-date math), loadavg, keyboard\n- Software: editor ($VISUAL/$EDITOR), initsystem, version\n- Hardware: bios, board, chassis (DMI + SMBIOS chassis codec),\n  brightness (backlight %), tpm\n- Network: localip (one getifaddrs call, compact primary-IPs view)\n\nRegistered everywhere via MODULE_CATALOG (single source of truth):\ncatalog drives --list-modules, section headers, plain-renderer alignment,\nand template grouping; also added wizard toggles, --demo showcase,\ndefault.tera rows + plain-renderer icons, docs, CHANGELOG, and the site\n(marquee chips, +12 grid cards, all \"38 modules\" claims → 50).\n\nCI fixes (both jobs failed on the previous push):\n- installer: shellcheck exit 1 — removed unused WHITE var, fixed banner\n  printf arg count (3 specifiers vs 2 args), suppressed intentional\n  literal-\\$PATH hint (SC2016)\n- minimal-build: TempConfigDir test helper was tera-gated at usage but\n  not definition, so --no-default-features test builds flagged it as\n  dead code under -D warnings; gated struct + impls\n\nVerified: 192/192 tests pass, clippy/fmt clean (default + no-default-\nfeatures), flag-smoke green, real output shows all 12 modules in both\nTera and plain renderers, site renders 50 modules with no dup ids.\n\nSigned-off-by: Mahesh Diwan <maheshdiwan@proton.me>\n\nGenerated with Codebuff 🤖\nCo-Authored-By: Codebuff <noreply@codebuff.com>\n\nSigned-off-by: Mahesh Diwan <diwanmahesh11@gmail.com>",
+          "timestamp": "2026-08-16T17:43:51+05:30",
+          "tree_id": "dc994b7b2fe4ba1c5d5403d28be527b57359ad97",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/a62b1513f903f8404e37a83a63ac80e725b14a44"
+        },
+        "date": 1786882605399,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2636102,
+            "range": "± 23468",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2651360,
+            "range": "± 35936",
             "unit": "ns/iter"
           }
         ]
