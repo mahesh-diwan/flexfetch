@@ -126,6 +126,8 @@ fi
 
 # ─── UI helpers ───────────────────────────────────────────────────────────────
 banner() {
+	# --quiet contract: only errors and the final "installed" line.
+	[ "$QUIET" -eq 1 ] && return
 	printf '\n'
 	printf '  %s%s.flexfetch%s\n' "$CYAN" "$BOLD" "$RESET"
 	printf '  %s━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━ ━%s\n' "$DIM" "$RESET"
@@ -133,6 +135,8 @@ banner() {
 }
 
 progress() {
+	# --quiet contract: only errors and the final "installed" line.
+	[ "$QUIET" -eq 1 ] && return
 	local step=$1 total=$2 label=$3
 	local done_count=$((step * 30 / total))
 	local todo_count=$((30 - done_count))

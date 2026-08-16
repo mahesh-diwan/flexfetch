@@ -12,6 +12,15 @@ All notable changes to this project will be documented in this file.
   DMI, or env directly), matching fastfetch/neofetch parity for the common
   system-info set.
 
+### Fixed
+
+- Version now self-reports `1.0.1`, matching the latest release tag — the
+  v1.0.1 release was cut without a version bump, so `install.sh --check`
+  could never report "up to date" for release installs.
+- `install.sh --quiet` now honors its documented contract (only errors and
+  the final "installed" line): the banner and step progress bars are
+  suppressed.
+
 ## [0.30.1] - 2026-08-10
 
 ### Fixed

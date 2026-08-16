@@ -96,6 +96,7 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-${{ steps.rust-toolchain.outputs.rustc_hash }}
           restore-keys: |
             cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+            cargo-${{ runner.os }}-${{ steps.rust-toolchain.outputs.rustc_hash }}
       - name: Test (core + cli, release feature set)
         run: |
           cargo test -p flexfetch-core --no-default-features

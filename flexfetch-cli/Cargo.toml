@@ -16,7 +16,7 @@ harness = false
 [dependencies]
 # Lua is opt-in via the `lua` feature so `--no-default-features` yields a minimal binary
 # (this matches the documented build: `cargo build --release --no-default-features`).
-flexfetch-core = { version = "0.32", path = "../flexfetch-core", default-features = false }
+flexfetch-core = { version = "1.0", path = "../flexfetch-core", default-features = false }
 clap = { version = "4", default-features = false, features = ["std", "color", "help", "usage", "error-context", "derive"] }
 serde_json = "1"
 toml = "0.8"

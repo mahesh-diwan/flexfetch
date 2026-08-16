@@ -988,7 +988,7 @@ dependencies = [
 
 [[package]]
 name = "flexfetch-cli"
-version = "0.32.0"
+version = "1.0.1"
 dependencies = [
  "base64 0.22.1",
  "clap",
@@ -1011,7 +1011,7 @@ dependencies = [
 
 [[package]]
 name = "flexfetch-core"
-version = "0.32.0"
+version = "1.0.1"
 dependencies = [
  "base64 0.21.7",
  "image",
