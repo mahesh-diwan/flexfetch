@@ -54,10 +54,10 @@
   if (finePointer && !prefersReduced) {
     const trail = document.createElement("div");
     trail.style.cssText = 
-      "position:fixed;width:8px;height:8px;border-radius:50%;" +
-      "background:rgba(232,145,58,0.35);pointer-events:none;z-index:999;" +
-      "transform:translate(-50%,-50%);transition:opacity 0.3s;opacity:0;" +
-      "mix-blend-mode:screen;will-change:transform;";
+      "position:fixed;width:6px;height:6px;border-radius:50%;" +
+      "background:rgba(232,145,58,0.2);pointer-events:none;z-index:999;" +
+      "transform:translate(-50%,-50%);transition:opacity 0.4s;opacity:0;" +
+      "mix-blend-mode:screen;will-change:transform;filter:blur(1px);";
     document.body.appendChild(trail);
     let trailRaf = null;
     document.addEventListener("pointermove", (e) => {

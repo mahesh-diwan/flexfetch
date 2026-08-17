@@ -31,9 +31,9 @@
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
 
-  --text: #a1a1aa;
+  --text: #b4b4bc;
   --text-strong: #f4f4f5;
-  --muted: #8a8a94;
+  --muted: #9a9aa4;
 
   --accent: #e8913a;
   --accent-strong: #f2a45c;
@@ -305,8 +305,9 @@ a:hover {
 }
 
 .btn-sm {
-  padding: 8px 14px;
+  padding: 10px 16px;
   font-size: 12px;
+  min-height: 40px;
 }
 
 /* ---------- hamburger / mobile menu ---------- */
@@ -319,8 +320,8 @@ a:hover {
   padding: 10px;
   flex-direction: column;
   gap: 4px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
 }
@@ -448,7 +449,7 @@ a:hover {
 h1 {
   font-family: var(--font-sans);
   font-size: clamp(38px, 5vw, 60px);
-  line-height: 1.04;
+  line-height: 1.1;
   letter-spacing: -0.035em;
   font-weight: 600;
   color: var(--text-strong);
@@ -517,7 +518,7 @@ h1 .accent {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 100px;
-  padding: 7px 12px;
+  padding: 10px 14px;
   cursor: pointer;
   transform: translate(var(--mx, 0), var(--my, 0));
   transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease), transform 0.25s var(--ease);
@@ -584,6 +585,7 @@ h1 .accent {
   gap: 8px 16px;
   font: 12px var(--font-mono);
   color: var(--muted);
+  line-height: 1.5;
 }
 .social-proof a {
   color: var(--muted);
@@ -826,7 +828,7 @@ h1 .accent {
   display: inline-flex;
   align-items: center;
   gap: 2.6rem;
-  font: 12px var(--font-mono);
+  font: 13px var(--font-mono);
   color: var(--muted);
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -899,6 +901,9 @@ h1 .accent {
 .stat:first-child {
   border-left: none;
 }
+.stats::before {
+  display: none;
+}
 .stat:hover {
   background: rgba(255, 255, 255, 0.015);
 }
@@ -927,7 +932,7 @@ h1 .accent {
 .bento {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 18px;
 }
 .card {
   position: relative;
@@ -1517,7 +1522,7 @@ h1 .accent {
 .mods-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-  gap: 1px;
+  gap: 3px;
   background: var(--border);
   border: 1px solid var(--border);
   border-radius: var(--radius-l);
@@ -1622,7 +1627,7 @@ h1 .accent {
 /* ---------- install ---------- */
 .inst-grid {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-columns: 1fr 1.05fr;
   gap: 64px;
   align-items: start;
 }
@@ -1750,7 +1755,7 @@ h1 .accent {
   background:
     radial-gradient(720px 320px at 70% 0%, rgba(232, 145, 58, 0.08), transparent 70%),
     var(--bg-2);
-  padding: 110px 0;
+  padding: 80px 0;
   position: relative;
   overflow: hidden;
 }
@@ -1786,7 +1791,7 @@ footer {
 }
 .foot-grid {
   display: grid;
-  grid-template-columns: 1.2fr 2fr;
+  grid-template-columns: 1fr 1.8fr;
   gap: 48px;
   margin-bottom: 48px;
 }
@@ -2085,7 +2090,7 @@ footer {
 @media (max-width: 400px) {
   .term-body {
     padding: 12px 12px 14px;
-    font-size: 8px;
+    font-size: 9px;
   }
   .term-bar {
     padding: 8px 10px;
@@ -2112,6 +2117,16 @@ footer {
   .nav-links a,
   .nav-mobile a {
     min-height: 44px;
+    min-width: 44px;
+  }
+  .btn {
+    padding: 14px 20px;
+  }
+  .btn-sm {
+    padding: 12px 18px;
+  }
+  .copy {
+    padding: 12px 16px;
   }
 }
 
@@ -2190,7 +2205,7 @@ footer {
   background: linear-gradient(90deg, transparent, rgba(232, 145, 58, 0.25), transparent);
   z-index: 5;
   pointer-events: none;
-  animation: termScan 4s ease-in-out infinite;
+  animation: termScan 6s ease-in-out infinite;
 }
 @keyframes termScan {
   0% { top: 48px; opacity: 0; }
