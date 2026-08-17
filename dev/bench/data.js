@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786972649722,
+  "lastUpdate": 1786973412981,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2375,6 +2375,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1932826,
             "range": "± 86447",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "dfbf791a771cef0957369c16cfad2131dc94a3d4",
+          "message": "fix(site): resolve GSAP/CSS animation conflict — elements no longer stuck invisible\n\nGSAP from() was setting inline opacity:0 on elements before ScrollTrigger\nfired, which overrode CSS .reveal.in { opacity:1 }. Elements below the\nfold stayed permanently hidden.\n\nFix:\n- Use fromTo() with immediateRender:false so elements stay visible\n  (natural CSS state) until ScrollTrigger fires\n- Add clearProps:\"all\" so inline styles are removed after animation,\n  letting CSS cascade take back control\n- Add .gsap-ready class to GSAP-animated elements so CSS .reveal\n  hiding rule skips them\n- Skip .in class for .gsap-ready elements in IntersectionObserver\n\nVerified: 7/7 cards visible, 4/4 stats visible, 0 inline styles remaining.\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-17T18:57:27+05:30",
+          "tree_id": "4ab39ae0480864504348398e000a60a6b2aef669",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/dfbf791a771cef0957369c16cfad2131dc94a3d4"
+        },
+        "date": 1786973412110,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1782340,
+            "range": "± 55039",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1798509,
+            "range": "± 48595",
             "unit": "ns/iter"
           }
         ]
