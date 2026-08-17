@@ -32,7 +32,7 @@
     });
   }
 
-  /* ---------- spotlight cards ---------- */
+  /* ---------- spotlight cards (cursor glow) ---------- */
   document.querySelectorAll(".spot").forEach((card) => {
     card.addEventListener("pointermove", (e) => {
       const r = card.getBoundingClientRect();
@@ -40,6 +40,36 @@
       card.style.setProperty("--my", e.clientY - r.top + "px");
     });
   });
+
+  /* ---------- module grid: cursor spotlight ---------- */
+  document.querySelectorAll(".mod").forEach((m) => {
+    m.addEventListener("pointermove", (e) => {
+      const r = m.getBoundingClientRect();
+      m.style.setProperty("--mx", e.clientX - r.left + "px");
+      m.style.setProperty("--my", e.clientY - r.top + "px");
+    });
+  });
+
+  /* ---------- cursor trail (subtle amber dot) ---------- */
+  if (finePointer && !prefersReduced) {
+    const trail = document.createElement("div");
+    trail.style.cssText = 
+      "position:fixed;width:8px;height:8px;border-radius:50%;" +
+      "background:rgba(232,145,58,0.35);pointer-events:none;z-index:999;" +
+      "transform:translate(-50%,-50%);transition:opacity 0.3s;opacity:0;" +
+      "mix-blend-mode:screen;will-change:transform;";
+    document.body.appendChild(trail);
+    let trailRaf = null;
+    document.addEventListener("pointermove", (e) => {
+      if (trailRaf) return;
+      trailRaf = requestAnimationFrame(() => {
+        trail.style.transform = "translate(" + (e.clientX - 4) + "px," + (e.clientY - 4) + "px)";
+        trail.style.opacity = "1";
+        trailRaf = null;
+      });
+    });
+    document.addEventListener("pointerleave", () => { trail.style.opacity = "0"; });
+  }
 
   /* ---------- hero terminal tilt (transform only) ---------- */
   const termWrap = document.querySelector(".term-wrap");
@@ -67,7 +97,7 @@
     termWrap.addEventListener("pointerleave", leave);
   }
 
-  /* ---------- reveal on scroll (stagger via --i) ---------- */
+  /* ---------- reveal on scroll (stagger via --i, enhanced) ---------- */
   const revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
@@ -79,11 +109,30 @@
           }
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.08, rootMargin: "0px 0px -60px 0px" }
     );
     revealEls.forEach((el) => io.observe(el));
   } else {
     revealEls.forEach((el) => el.classList.add("in"));
+  }
+
+  /* ---------- parallax: move orbs with scroll ---------- */
+  if (!prefersReduced) {
+    const orbs = document.querySelectorAll(".hero-orb");
+    if (orbs.length) {
+      let parallaxRaf = null;
+      window.addEventListener("scroll", () => {
+        if (parallaxRaf) return;
+        parallaxRaf = requestAnimationFrame(() => {
+          const y = window.scrollY;
+          orbs.forEach((orb, i) => {
+            const speed = 0.03 + i * 0.015;
+            orb.style.transform = "translateY(" + (y * speed) + "px)";
+          });
+          parallaxRaf = null;
+        });
+      }, { passive: true });
+    }
   }
 
   /* ---------- toast ---------- */
@@ -188,27 +237,30 @@
 
     const loadHero = () => {
       if (loaded) return;
-      fetch("assets/hero.html")
-        .then((r) => (r.ok ? r.text() : Promise.reject(new Error("http " + r.status))))
-        .then((html) => {
-          if (!html || !html.trim()) throw new Error("empty render");
-          loaded = true;
-          const wrap = document.createElement("div");
-          wrap.className = "fade-in";
-          // split the real output into lines and stagger each line's print-in,
-          // like watching flexfetch fetch your system (one-shot, ~0.8s total)
-          wrap.innerHTML = html
-            .split("\n")
-            .filter(Boolean)
-            .map((line, i) => '<span class="hero-line" style="--n:' + i + '">' + line + "</span>")
-            .join("");
-          heroTerm.innerHTML = "";
-          heroTerm.appendChild(wrap);
-        })
-        .catch(() => {
-          if (skel) skel.remove();
-          if (err) err.classList.add("show");
-        });
+      // brief delay so the skeleton shimmer is visible before content replaces it
+      setTimeout(() => {
+        fetch("assets/hero.html")
+          .then((r) => (r.ok ? r.text() : Promise.reject(new Error("http " + r.status))))
+          .then((html) => {
+            if (!html || !html.trim()) throw new Error("empty render");
+            loaded = true;
+            const wrap = document.createElement("div");
+            wrap.className = "fade-in";
+            // split the real output into lines and stagger each line's print-in,
+            // like watching flexfetch fetch your system (one-shot, ~0.8s total)
+            wrap.innerHTML = html
+              .split("\n")
+              .filter(Boolean)
+              .map((line, i) => '<span class="hero-line" style="--n:' + i + '">' + line + "</span>")
+              .join("");
+            heroTerm.innerHTML = "";
+            heroTerm.appendChild(wrap);
+          })
+          .catch(() => {
+            if (skel) skel.remove();
+            if (err) err.classList.add("show");
+          });
+      }, 400);
     };
     if (retry) retry.addEventListener("click", loadHero);
     loadHero();
@@ -216,7 +268,13 @@
 
   /* ---------- nav state ---------- */
   const nav = document.getElementById("nav");
-  const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 8);
+  const onScroll = () => {
+    const scrolled = window.scrollY > 8;
+    nav.classList.toggle("scrolled", scrolled);
+    // tighten backdrop when scrolled past hero
+    nav.style.setProperty("--nav-blur", scrolled ? "24px" : "18px");
+    nav.style.setProperty("--nav-saturate", scrolled ? "160%" : "140%");
+  };
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 

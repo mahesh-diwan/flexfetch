@@ -17,6 +17,8 @@
   <link rel="preload" href="assets/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
@@ -53,6 +55,11 @@
 
   <!-- ============ HERO ============ -->
   <header class="hero" id="top">
+    <div class="hero-orbs" aria-hidden="true">
+      <div class="hero-orb"></div>
+      <div class="hero-orb"></div>
+      <div class="hero-orb"></div>
+    </div>
     <div class="container">
       <div class="hero-grid">
         <div class="hero-text reveal in" style="--i:0">
@@ -108,6 +115,7 @@
                 <span class="term-badge hot"><i></i>9 ms</span>
               </span>
             </div>
+            <div class="term-scan" aria-hidden="true"></div>
             <div class="term-body" id="hero-terminal">
               <div class="skel" aria-hidden="true">
                 <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -597,5 +605,6 @@
   </button>
 
   <script src="assets/main.js"></script>
+  <script src="assets/scroll.js" defer></script>
 </body>
 </html>
