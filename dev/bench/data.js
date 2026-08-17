@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786973412981,
+  "lastUpdate": 1786974778009,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2411,6 +2411,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 1798509,
             "range": "± 48595",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "6178a9f2e8e2c5fb5d0f645e1018a022e116db8f",
+          "message": "fix(site): address impeccable critique — contrast, touch targets, spacing, typography\n\nCritical fixes:\n- Body text contrast: #a1a1aa → #b4b4bc (8.5:1 ratio, was 6.8:1)\n- Muted text contrast: #8a8a94 → #9a9aa4 (6.5:1 ratio, was 5.5:1)\n- h1 line-height: 1.04 → 1.1 (prevents ascender/descender collision)\n- Touch targets: hamburger 40→44px, copy buttons 31→44px height,\n  btn-sm min-height 40px, all coarse-pointer targets min 44×44px\n\nSignificant fixes:\n- Bento grid gap: 14px → 18px (better breathing room)\n- Module grid gap: 1px → 3px (less visual noise)\n- Install section columns: 0.9fr/1.1fr → 1fr/1.05fr (balanced)\n- CTA padding: 110px → 80px (less disconnected)\n- Footer columns: 1.2fr/2fr → 1fr/1.8fr (better balance)\n\nMinor fixes:\n- Stats section: added \"// by the numbers\" eyebrow label\n- Social proof: rephrased for clarity\n- Marquee font: 12px → 13px (more legible)\n- Terminal font floor: 8px → 9px on small phones\n- Scan line frequency: 4s → 6s (less distracting)\n- Cursor trail: smaller (6px), subtler (0.2 opacity, blur)\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-17T19:20:13+05:30",
+          "tree_id": "5f26be18c3843b1e73b6f4c6d91fe47b79b345c1",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/6178a9f2e8e2c5fb5d0f645e1018a022e116db8f"
+        },
+        "date": 1786974776892,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2221226,
+            "range": "± 26036",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2238986,
+            "range": "± 22573",
             "unit": "ns/iter"
           }
         ]
