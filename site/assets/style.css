@@ -1903,7 +1903,7 @@ footer {
 
 /* ---------- reveal (stagger via --i; hidden only when JS is on) ---------- */
 /* specificity: .js .reveal (0,2,0) — .reveal.in later in source wins on equal specificity */
-.js .reveal {
+.js .reveal:not(.gsap-ready) {
   opacity: 0;
   transform: translateY(26px);
   transition:
@@ -1911,7 +1911,7 @@ footer {
     transform 0.7s var(--ease);
   transition-delay: calc(var(--i, 0) * 70ms);
 }
-.reveal.in {
+.reveal.in:not(.gsap-ready) {
   opacity: 1;
   transform: none;
 }

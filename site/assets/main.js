@@ -98,7 +98,8 @@
   }
 
   /* ---------- reveal on scroll (stagger via --i, enhanced) ---------- */
-  const revealEls = document.querySelectorAll(".reveal");
+  /* Elements with .gsap-ready are handled by GSAP — skip adding .in */
+  const revealEls = document.querySelectorAll(".reveal:not(.gsap-ready)");
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
