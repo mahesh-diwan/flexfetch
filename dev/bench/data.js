@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786895254146,
+  "lastUpdate": 1786972649722,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2339,6 +2339,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2016684,
             "range": "± 40274",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "efcafc907e1ecf45a82789045ecf1483d675823b",
+          "message": "feat(site): add GSAP ScrollTrigger choreography and creative web enhancements\n\nAdd scroll-driven animations, ambient hero effects, and interactive polish:\n\n- Hero: floating gradient orbs with parallax, scan line, glow ring, dot grid\n- Feature cards: staggered GSAP entrance, spotlight glow, scan line on hover\n- Stats: slide-up reveal with GSAP, hover glow pulse\n- Modules: cursor spotlight on grid rows\n- Install: staggered slide-in cards, step numbers\n- CTA: animated gradient accent line, scale-up heading\n- Footer: fade-in, brand underline animation\n- Cursor: subtle amber trail with mix-blend-mode\n- Marquee: gradient fade edges, speed linked to scroll position\n- Nav: tighter backdrop on scroll\n- GSAP CDN (3.12.5) + ScrollTrigger + scroll.js (10 instances)\n- All animations respect prefers-reduced-motion\n\n🤖 Generated with Codebuff\nCo-Authored-By: Codebuff <noreply@codebuff.com>",
+          "timestamp": "2026-08-17T18:44:33+05:30",
+          "tree_id": "7d69bc3fe6888cb07cdb2a937b2c677005a510ba",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/efcafc907e1ecf45a82789045ecf1483d675823b"
+        },
+        "date": 1786972648842,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1912653,
+            "range": "± 42964",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1932826,
+            "range": "± 86447",
             "unit": "ns/iter"
           }
         ]
