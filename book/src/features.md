@@ -133,6 +133,17 @@ Validate terminal, color, config, and collectors:
 flexfetch --doctor
 ```
 
+## QR Sharing
+
+Generate a QR code of your config to share, and scan one to import it:
+
+```bash
+flexfetch --qr            # render config as a terminal QR code
+flexfetch --import-qr img.png   # import a scanned config
+```
+
+Opt-in: build with `--features qr`.
+
 ## Self-update
 
 Check the latest GitHub release and re-run the install script:

@@ -55,7 +55,7 @@ image = { version = "0.25", optional = true, default-features = false, features 
 criterion = "0.5"
 
 [features]
-default = ["live", "image-logos", "tera", "parallel", "completions", "qr"]
+default = ["live", "image-logos", "tera", "parallel", "completions"]
 live = ["dep:ratatui", "dep:crossterm", "dep:crossbeam-channel"]
 # Image logos (sixel/block) + PNG export need the `image` crate; the minimal
 # `--no-default-features` build drops it entirely (see ROADMAP 0.2 remaining diet work).

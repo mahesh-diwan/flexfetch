@@ -43,7 +43,7 @@ flexfetch --theme catppuccin  # switch theme
 - **527 ASCII logos** — auto-detected per distro
 - **Live dashboard** — real-time CPU, memory, network, top processes
 - **Diff mode** — compare system state between two points in time
-- **QR sharing** — generate a QR code of your fetch for easy sharing
+- **QR sharing** — generate a QR code of your fetch for easy sharing (opt-in: build with `--features qr`)
 - **SSH remote fetch** — fetch info from remote hosts in parallel
 - **Flash mode** — fastest one-shot fetch with no config file
 - **Custom modules** — define info sources inline in config (shell commands)
