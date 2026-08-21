@@ -1,6 +1,8 @@
 use base64::Engine as _;
+use std::collections::hash_map::DefaultHasher;
 use std::env;
 use std::fs;
+use std::hash::{Hash, Hasher};
 use std::path::Path;
 
 use crate::logo::{detect, render};
@@ -90,13 +92,26 @@ impl ImageLogo {
     pub fn render(&self, protocol: ImageProtocol, mode: LogoMode) -> String {
         // Resolve the actual path
         let resolved_path = Self::resolve_path(&self.path);
-        let image_data = match fs::read(&resolved_path) {
-            Ok(data) => data,
-            Err(_) => return String::new(),
+        // Base64 payload is only needed by iterm2; kitty reads the file
+        // directly and sixel/block decode from the path — keep it lazy.
+        let encoded = || {
+            let image_data = fs::read(&resolved_path).unwrap_or_default();
+            base64::engine::general_purpose::STANDARD.encode(&image_data)
         };
 
-        let encoded = base64::engine::general_purpose::STANDARD.encode(&image_data);
-
+        // Expensive renders (image decode + resize + encode) are cached on
+        // disk keyed by (path, mtime, size, protocol, mode) — fastfetch-style.
+        // Kitty goes direct (terminal reads the file itself), so it needs no
+        // cache; iterm2 is a plain base64 wrap.
+        let cache_key = |kind: &str| {
+            Self::render_cache_key(
+                &resolved_path,
+                kind,
+                self.width,
+                self.height,
+                matches!(mode, LogoMode::Image),
+            )
+        };
         match mode {
             LogoMode::Auto => {
                 match protocol {
@@ -114,29 +129,41 @@ impl ImageLogo {
                         let rendered = render(logo, lines.len());
                         rendered.join("\n")
                     }
-                    ImageProtocol::Sixel => {
+                    ImageProtocol::Sixel => Self::cached_ansi(&cache_key("sixel"), || {
                         Self::render_sixel_protocol(&resolved_path, self.width, self.height)
-                    }
-                    ImageProtocol::Block => {
+                    }),
+                    ImageProtocol::Block => Self::cached_ansi(&cache_key("block"), || {
                         Self::render_block_fallback(&resolved_path, self.width, self.height)
-                    }
+                    }),
                     _ => {
                         // Use image protocol
-                        Self::render_with_protocol(&encoded, self.width, self.height, protocol)
+                        Self::render_with_protocol(
+                            &encoded(),
+                            &resolved_path,
+                            self.width,
+                            self.height,
+                            protocol,
+                        )
                     }
                 }
             }
             LogoMode::Image => {
                 match protocol {
-                    ImageProtocol::Sixel => {
+                    ImageProtocol::Sixel => Self::cached_ansi(&cache_key("sixel"), || {
                         Self::render_sixel_protocol(&resolved_path, self.width, self.height)
-                    }
-                    ImageProtocol::Block => {
+                    }),
+                    ImageProtocol::Block => Self::cached_ansi(&cache_key("block"), || {
                         Self::render_block_fallback(&resolved_path, self.width, self.height)
-                    }
+                    }),
                     _ => {
                         // Force image protocol
-                        Self::render_with_protocol(&encoded, self.width, self.height, protocol)
+                        Self::render_with_protocol(
+                            &encoded(),
+                            &resolved_path,
+                            self.width,
+                            self.height,
+                            protocol,
+                        )
                     }
                 }
             }
@@ -145,48 +172,76 @@ impl ImageLogo {
 
     fn render_with_protocol(
         encoded: &str,
+        resolved_path: &str,
         width: Option<u32>,
         height: Option<u32>,
         protocol: ImageProtocol,
     ) -> String {
         match protocol {
-            ImageProtocol::Kitty => Self::render_kitty_protocol(encoded, width, height),
+            // kitty-direct: hand the terminal the file path — it reads the
+            // image itself (`t=f`), no base64 payload, no chunking.
+            ImageProtocol::Kitty => Self::render_kitty_protocol(resolved_path, width, height),
             ImageProtocol::Iterm2 => Self::render_iterm2_protocol(encoded, width, height),
             _ => String::new(),
         }
     }
 
-    fn render_kitty_protocol(encoded: &str, width: Option<u32>, height: Option<u32>) -> String {
-        // Kitty graphics protocol: https://sw.kovidgoyal.net/kitty/graphics-protocol/
-        let mut payload = String::from("f=100,t=f,a=T,i=1");
-        if let Some(w) = width {
-            payload.push_str(&format!(",s={}", w));
-        }
-        if let Some(h) = height {
-            payload.push_str(&format!(",v={}", h));
-        }
-
-        let mut cmd = String::new();
-        if encoded.len() <= 4096 {
-            // Small image: single transmission
-            cmd.push_str(&format!("\x1b_G{};{}\x1b\\", payload, encoded));
-        } else {
-            // Large image: chunked transmission
-            let mut first = true;
-            for chunk in encoded.as_bytes().chunks(4096) {
-                let chunk_str = std::str::from_utf8(chunk).unwrap_or("");
-                if first {
-                    cmd.push_str(&format!("\x1b_G{},m=1;{}\x1b\\", payload, chunk_str));
-                    first = false;
-                } else {
-                    cmd.push_str(&format!("\x1b_Gm=1;{}\x1b\\", chunk_str));
+    fn render_cache_key(
+        path: &str,
+        kind: &str,
+        width: Option<u32>,
+        height: Option<u32>,
+        force_image: bool,
+    ) -> String {
+        let mut hasher = DefaultHasher::new();
+        path.hash(&mut hasher);
+        kind.hash(&mut hasher);
+        width.hash(&mut hasher);
+        height.hash(&mut hasher);
+        force_image.hash(&mut hasher);
+        if let Ok(meta) = fs::metadata(path) {
+            if let Ok(mtime) = meta.modified() {
+                if let Ok(secs) = mtime.duration_since(std::time::UNIX_EPOCH) {
+                    secs.as_nanos().hash(&mut hasher);
                 }
             }
-            // Signal end of image data
-            cmd.push_str("\x1b_Gm=0;\x1b\\");
         }
+        format!("{:016x}", hasher.finish())
+    }
 
-        cmd
+    /// Disk cache for rendered ANSI image logos under
+    /// `<cache>/flexfetch/image-logos/<key>.txt`. A cache hit skips the PNG
+    /// decode/resize/encode entirely (~10-50 ms per logo on first run).
+    fn cached_ansi(key: &str, produce: impl FnOnce() -> String) -> String {
+        let dir = crate::cache::get_cache_dir().join("image-logos");
+        let file = dir.join(format!("{key}.txt"));
+        if let Ok(cached) = fs::read_to_string(&file) {
+            return cached;
+        }
+        let rendered = produce();
+        if !rendered.is_empty() {
+            let _ = fs::create_dir_all(&dir);
+            let tmp = dir.join(format!(".{}.tmp.{}", key, std::process::id()));
+            if fs::write(&tmp, &rendered).is_ok() {
+                let _ = fs::rename(&tmp, &file);
+            }
+        }
+        rendered
+    }
+
+    fn render_kitty_protocol(path: &str, width: Option<u32>, height: Option<u32>) -> String {
+        // Kitty graphics protocol, direct-file transmission:
+        // https://sw.kovidgoyal.net/kitty/graphics-protocol/
+        // `a=T` action=transmit-and-display, `f=100` PNG, `t=f` the payload
+        // is a local file path the terminal reads itself.
+        let mut payload = String::from("a=T,f=100,t=f,q=2");
+        if let Some(w) = width {
+            payload.push_str(&format!(",s={w}"));
+        }
+        if let Some(h) = height {
+            payload.push_str(&format!(",v={h}"));
+        }
+        format!("\x1b_G{};{}\x1b\\", payload, path)
     }
 
     #[cfg(feature = "image-logos")]
@@ -456,4 +511,45 @@ pub fn get_module_logo_path(module: &str) -> Option<String> {
         _ => return None,
     };
     Some(format!("{}/{}.png", base, name))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("ff-imglogo-{tag}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn kitty_direct_sends_file_path_not_base64() {
+        let dir = temp_dir("kitty");
+        let png = dir.join("t.png");
+        // 8 KB of non-base64-safe bytes would show up if the payload were
+        // base64 data; a path payload contains the file name instead.
+        fs::write(&png, vec![0xffu8; 8192]).unwrap();
+        let logo = ImageLogo::new(png.to_string_lossy().to_string()).with_size(15, 8);
+        let out = logo.render(ImageProtocol::Kitty, LogoMode::Image);
+        assert!(out.starts_with("\x1b_Ga=T,f=100,t=f,q=2,s=15,v=8;"), "{out:?}");
+        assert!(out.ends_with("\x1b\\"));
+        assert!(out.contains("t.png"), "payload must be the file path: {out:?}");
+        assert!(!out.contains("////"), "no base64 blob expected: {out:?}");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn cached_ansi_roundtrip() {
+        let key = format!("test-{}", std::process::id());
+        let rendered = ImageLogo::cached_ansi(&key, || "ANSI".to_string());
+        assert_eq!(rendered, "ANSI");
+        // Second call must hit the cache (producer panics if invoked).
+        let hit = std::panic::catch_unwind(|| {
+            ImageLogo::cached_ansi(&key, || panic!("cache miss"))
+        })
+        .unwrap();
+        assert_eq!(hit, "ANSI");
+    }
 }
