@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787307210703,
+  "lastUpdate": 1787308157853,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2483,6 +2483,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2762473,
             "range": "± 34976",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "9dd7368cea6edc9a7a3ad889ea9edbfd2d715812",
+          "message": "docs: 2026 landscape research — fastfetch/neofetch deep study, feature proposals, size+speed roadmap",
+          "timestamp": "2026-08-21T15:56:05+05:30",
+          "tree_id": "1b43a17eaebdb9b14fc57527a3b2e996de0383c8",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/9dd7368cea6edc9a7a3ad889ea9edbfd2d715812"
+        },
+        "date": 1787308157360,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2582668,
+            "range": "± 21097",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2561306,
+            "range": "± 26197",
             "unit": "ns/iter"
           }
         ]
