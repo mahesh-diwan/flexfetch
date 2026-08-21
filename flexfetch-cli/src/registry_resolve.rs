@@ -1,5 +1,5 @@
 use flexfetch_cli::Cli;
-use flexfetch_core::{presets, Config, ModuleRegistry};
+use flexfetch_core::{presets, Config};
 
 /// Resolve the module list from CLI flags/presets/config.
 pub fn resolve(cli: &Cli, config: &Config) -> Vec<String> {
@@ -81,11 +81,6 @@ pub fn resolve(cli: &Cli, config: &Config) -> Vec<String> {
         modules.push("health".to_string());
     }
     modules
-}
-
-/// Get the static module registry.
-pub fn registry() -> &'static ModuleRegistry {
-    ModuleRegistry::get()
 }
 
 /// Load a preset by name: built-in presets first, then user presets

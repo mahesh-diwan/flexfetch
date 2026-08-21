@@ -42,14 +42,6 @@ pub struct ModuleConfig {
     pub color_values: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
-pub enum LogoMode {
-    #[default]
-    Ascii,
-    Block,
-    Image,
-}
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DisplayConfig {
     #[serde(default = "DisplayConfig::default_separator")]
@@ -78,9 +70,6 @@ pub struct DisplayConfig {
 
     #[serde(default)]
     pub gradient_colors: Option<Vec<String>>,
-
-    #[serde(default)]
-    pub logo_mode: LogoMode,
 
     #[serde(default = "DisplayConfig::default_gradient_title")]
     pub gradient_title: bool,
@@ -169,7 +158,6 @@ impl DisplayConfig {
             color_sep: override_config.color_sep.or(base.color_sep),
             gradient: override_config.gradient || base.gradient,
             gradient_colors: override_config.gradient_colors.or(base.gradient_colors),
-            logo_mode: override_config.logo_mode,
             gradient_title: override_config.gradient_title,
             progress_bars: override_config.progress_bars,
             box_style: override_config.box_style,
@@ -295,7 +283,6 @@ impl Default for DisplayConfig {
             color_sep: None,
             gradient: false,
             gradient_colors: None,
-            logo_mode: LogoMode::default(),
             gradient_title: Self::default_gradient_title(),
             progress_bars: Self::default_progress_bars(),
             box_style: Self::default_box_style(),
@@ -436,15 +423,9 @@ pub fn migrate_config(raw: &str) -> crate::Result<String> {
     };
 
     match version {
-        // v1 is the current schema — nothing to do.
-        v if v == CURRENT_SCHEMA => Ok(raw.to_string()),
-        v if v < CURRENT_SCHEMA => {
-            // Migration ladder: when a v2 schema exists, add `migrate_v1_to_v2`
-            // here and bump CURRENT_SCHEMA. For now v1 is current, so this arm
-            // is unreachable; it exists so the ladder has a home.
-            let _ = v;
-            Ok(raw.to_string())
-        }
+        // v1 is the current schema — nothing to do. When a v2 schema exists,
+        // add a `migrate_v1_to_v2` arm here and bump CURRENT_SCHEMA.
+        v if v <= CURRENT_SCHEMA => Ok(raw.to_string()),
         v => Err(crate::Error::Config(format!(
             "config schema version {v} is newer than this flexfetch supports ({CURRENT_SCHEMA}); \
              upgrade flexfetch or run `flexfetch --gen-config` to see the current format"

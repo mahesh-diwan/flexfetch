@@ -130,17 +130,24 @@ fn osc8_filter(
     )))
 }
 
-/// Phase 7.7: Nerd Font heuristic — env-gated (no subprocess), non-blocking.
-/// Terminals we know ship with a Nerd Font out of the box get icons; others
-/// fall back to plain-text keys so rows never show tofu boxes. Only used by
-/// the tera-backed renderer, so gate it to keep the minimal build lean.
+/// Env-gated terminal capability heuristic (no subprocess, non-blocking).
+/// Matches TERM_PROGRAM/TERM against a known-terminal list. Only used by the
+/// tera-backed renderer, so gate it to keep the minimal build lean.
 #[cfg(feature = "tera")]
-fn detect_nerd_font() -> bool {
+fn terminal_matches(known: &[&str]) -> bool {
     let tp = std::env::var("TERM_PROGRAM")
         .unwrap_or_default()
         .to_lowercase();
     let term = std::env::var("TERM").unwrap_or_default().to_lowercase();
-    let known = [
+    known.iter().any(|k| tp.contains(k) || term.contains(k))
+}
+
+/// Phase 7.7: Nerd Font heuristic — terminals we know ship with a Nerd Font
+/// out of the box get icons; others fall back to plain-text keys so rows
+/// never show tofu boxes.
+#[cfg(feature = "tera")]
+fn detect_nerd_font() -> bool {
+    terminal_matches(&[
         "kitty",
         "wezterm",
         "foot",
@@ -155,22 +162,15 @@ fn detect_nerd_font() -> bool {
         "hyper",
         "tabby",
         "mintty",
-        "rio",
         "tmux",
-    ];
-    known.iter().any(|k| tp.contains(k) || term.contains(k))
+    ])
 }
 
 /// Phase 7.7: OSC-8 hyperlink support — same env heuristic as the terminal
-/// module's `hyperlinks` flag, kept in sync (no subprocess, non-blocking).
-/// Only used by the tera-backed renderer, so gate it for the minimal build.
+/// module's `hyperlinks` flag, kept in sync.
 #[cfg(feature = "tera")]
 fn detect_osc8() -> bool {
-    let tp = std::env::var("TERM_PROGRAM")
-        .unwrap_or_default()
-        .to_lowercase();
-    let term = std::env::var("TERM").unwrap_or_default().to_lowercase();
-    [
+    terminal_matches(&[
         "kitty",
         "wezterm",
         "foot",
@@ -180,9 +180,7 @@ fn detect_osc8() -> bool {
         "ghostty",
         "vscode",
         "tmux",
-    ]
-    .iter()
-    .any(|h| tp.contains(h) || term.contains(h))
+    ])
 }
 
 /// Pad a string to a fixed visible width (left-aligned, spaces appended).
@@ -327,39 +325,6 @@ fn get_tera() -> &'static Tera {
     })
 }
 
-/// Group info entries by their MODULE_CATALOG section. Entries whose module
-/// has no section (or isn't in the catalog) are placed in a trailing
-/// `""`-keyed bucket. The order within each group follows the original
-/// entry order; the group order follows MODULE_CATALOG section order.
-#[allow(dead_code)]
-fn group_sections(
-    entries: &[(String, InfoValue)],
-    _config: &crate::Config,
-) -> Vec<(String, Vec<(String, InfoValue)>)> {
-    use std::collections::HashMap;
-
-    let mut section_order: Vec<&str> = Vec::new();
-    let mut buckets: HashMap<&str, Vec<(String, InfoValue)>> = HashMap::new();
-
-    for (name, value) in entries {
-        let section = crate::find_module(name)
-            .and_then(|m| m.section)
-            .unwrap_or("");
-        if !section_order.contains(&section) {
-            section_order.push(section);
-        }
-        buckets
-            .entry(section)
-            .or_default()
-            .push((name.clone(), value.clone()));
-    }
-
-    section_order
-        .into_iter()
-        .filter_map(|s| buckets.remove(s).map(|v| (s.to_string(), v)))
-        .collect()
-}
-
 /// Return entries ordered by MODULE_CATALOG position with canonical key names.
 /// This ensures consistent column alignment regardless of the order modules
 /// were collected. Entries not in the catalog are appended at the end.
@@ -466,6 +431,21 @@ fn render_logo(
 }
 
 /// Render the ASCII art logo with optional gradient coloring.
+/// Extract the distro id (`os` module's `id` field) from collected entries.
+fn os_id_of(info: &SystemInfo) -> String {
+    info.entries
+        .iter()
+        .find(|(n, _)| *n == "os")
+        .and_then(|(_, v)| {
+            if let InfoValue::Map(m) = v {
+                m.get("id").cloned()
+            } else {
+                None
+            }
+        })
+        .unwrap_or_default()
+}
+
 fn render_ascii_logo(os_id: &str, height: usize, gradient_colors: &[[u8; 3]]) -> Vec<String> {
     let ascii = crate::logo::detect(os_id);
     if !gradient_colors.is_empty() {
@@ -533,18 +513,7 @@ impl TeraEngine {
             Vec::new()
         };
         let info_lines: Vec<&str> = raw.lines().collect();
-        let os_id = info
-            .entries
-            .iter()
-            .find(|(n, _)| *n == "os")
-            .and_then(|(_, v)| {
-                if let InfoValue::Map(m) = v {
-                    m.get("id").cloned()
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_default();
+        let os_id = os_id_of(info);
 
         let rendered = render_logo(&os_id, info_lines.len(), &grad_stops).unwrap_or_default();
         // ponytail: render_logo already returns None for narrow terminals,
@@ -605,70 +574,47 @@ impl TeraEngine {
             ctx.insert(*name, &json_val);
         }
 
-        // Add structured placeholders for all modules to avoid Tera "missing variable" errors
-        // when modules are not selected but referenced in template conditionals.
-        // Use empty objects/arrays/strings that are falsy in Tera conditionals.
-        let all_modules = [
-            ("title", serde_json::Value::String(String::new())),
-            ("os", serde_json::Value::Object(serde_json::Map::new())),
-            ("host", serde_json::Value::String(String::new())),
-            ("kernel", serde_json::Value::String(String::new())),
-            ("uptime", serde_json::Value::String(String::new())),
-            ("locale", serde_json::Value::Object(serde_json::Map::new())),
-            (
-                "packages",
-                serde_json::Value::Object(serde_json::Map::new()),
-            ),
-            ("shell", serde_json::Value::String(String::new())),
-            (
-                "terminal",
-                serde_json::Value::Object(serde_json::Map::new()),
-            ),
-            ("de", serde_json::Value::String(String::new())),
-            ("wm", serde_json::Value::Object(serde_json::Map::new())),
-            ("cpu", serde_json::Value::Object(serde_json::Map::new())),
-            (
-                "cpucache",
-                serde_json::Value::Object(serde_json::Map::new()),
-            ),
-            ("cpuusage", serde_json::Value::String(String::new())),
-            ("memory", serde_json::Value::Object(serde_json::Map::new())),
-            ("gpu", serde_json::Value::Array(vec![])),
-            ("disk", serde_json::Value::Array(vec![])),
-            ("network", serde_json::Value::Array(vec![])),
-            ("battery", serde_json::Value::Object(serde_json::Map::new())),
-            ("processes", serde_json::Value::String(String::new())),
-            (
-                "temperature",
-                serde_json::Value::Object(serde_json::Map::new()),
-            ),
-            ("resolution", serde_json::Value::String(String::new())),
-            ("display", serde_json::Value::String(String::new())),
-            ("colors", serde_json::Value::Array(vec![])),
-            ("custom", serde_json::Value::Array(vec![])),
-            ("publicip", serde_json::Value::String(String::new())),
-            ("wifi", serde_json::Value::Object(serde_json::Map::new())),
-            ("git", serde_json::Value::Object(serde_json::Map::new())),
-            ("project", serde_json::Value::Object(serde_json::Map::new())),
-            ("context", serde_json::Value::Object(serde_json::Map::new())),
-            ("health", serde_json::Value::Object(serde_json::Map::new())),
-            ("datetime", serde_json::Value::String(String::new())),
-            ("loadavg", serde_json::Value::String(String::new())),
-            ("keyboard", serde_json::Value::String(String::new())),
-            ("editor", serde_json::Value::String(String::new())),
-            ("initsystem", serde_json::Value::String(String::new())),
-            ("version", serde_json::Value::String(String::new())),
-            ("bios", serde_json::Value::String(String::new())),
-            ("board", serde_json::Value::String(String::new())),
-            ("chassis", serde_json::Value::String(String::new())),
-            ("brightness", serde_json::Value::String(String::new())),
-            ("tpm", serde_json::Value::String(String::new())),
-            ("localip", serde_json::Value::String(String::new())),
+        // Add structured placeholders for all catalog modules to avoid Tera
+        // "missing variable" errors when modules are not selected but
+        // referenced in template conditionals. The shape mirrors each
+        // module's real InfoValue so falsy checks behave identically.
+        let list_modules = ["gpu", "disk", "network", "colors", "custom"];
+        let map_modules = [
+            "locale",
+            "packages",
+            "terminal",
+            "wm",
+            "cpu",
+            "cpucache",
+            "memory",
+            "battery",
+            "temperature",
+            "wifi",
+            "git",
+            "project",
+            "context",
+            "health",
+            "container",
+            "wallpaper",
+            "weather",
+            "fsdeep",
+            "swap",
+            "bluetooth",
+            "media",
+            "dns",
         ];
-        for (module, placeholder) in all_modules {
-            if !info.entries.iter().any(|(k, _)| *k == module) {
-                ctx.insert(module, &placeholder);
+        for module in crate::MODULE_CATALOG.iter().map(|m| m.name) {
+            if info.entries.iter().any(|(k, _)| *k == module) {
+                continue;
             }
+            let placeholder = if list_modules.contains(&module) {
+                serde_json::Value::Array(vec![])
+            } else if map_modules.contains(&module) {
+                serde_json::Value::Object(serde_json::Map::new())
+            } else {
+                serde_json::Value::String(String::new())
+            };
+            ctx.insert(module, &placeholder);
         }
 
         ctx.insert("display_separator", &config.display.separator);
@@ -814,52 +760,8 @@ impl TeraEngine {
 
         // Dedup redundant collectors (Phase 6 visual overhaul): hide WM when it
         // equals DE, and hide Resolution when Display already reports it.
-        let de_value = info
-            .entries
-            .iter()
-            .find(|(n, _)| *n == "de")
-            .and_then(|(_, v)| match v {
-                InfoValue::Scalar(s) => Some(s.clone()),
-                _ => None,
-            })
-            .unwrap_or_default();
-        let wm_name = info
-            .entries
-            .iter()
-            .find(|(n, _)| *n == "wm")
-            .and_then(|(_, v)| match v {
-                InfoValue::Map(m) => m.get("name").cloned(),
-                _ => None,
-            })
-            .unwrap_or_default();
-        let show_wm = wm_name.is_empty()
-            || de_value.is_empty()
-            || de_value == "unknown"
-            || wm_name != de_value;
+        let (show_wm, show_resolution) = dedup_visible(info);
         ctx.insert("show_wm", &show_wm);
-
-        let display_val = info
-            .entries
-            .iter()
-            .find(|(n, _)| *n == "display")
-            .and_then(|(_, v)| match v {
-                InfoValue::Scalar(s) => Some(s.clone()),
-                _ => None,
-            })
-            .unwrap_or_default();
-        let resolution_val = info
-            .entries
-            .iter()
-            .find(|(n, _)| *n == "resolution")
-            .and_then(|(_, v)| match v {
-                InfoValue::Scalar(s) => Some(s.clone()),
-                _ => None,
-            })
-            .unwrap_or_default();
-        let show_resolution = resolution_val.is_empty()
-            || display_val.is_empty()
-            || display_val == "unknown"
-            || !display_val.contains(&resolution_val);
         ctx.insert("show_resolution", &show_resolution);
 
         // Compute gradient title if enabled
@@ -883,36 +785,8 @@ impl TeraEngine {
             ctx.insert("theme_title_gradient", &theme.title);
         }
 
-        // Add image logos to context
-        let modules = [
-            "title",
-            "os",
-            "host",
-            "kernel",
-            "uptime",
-            "locale",
-            "shell",
-            "terminal",
-            "de",
-            "wm",
-            "packages",
-            "cpu",
-            "cpucache",
-            "cpuusage",
-            "memory",
-            "disk",
-            "gpu",
-            "network",
-            "battery",
-            "processes",
-            "temperature",
-            "resolution",
-            "display",
-            "colors",
-            "custom",
-            "publicip",
-            "wifi",
-        ];
+        // Add image logos to context. Iterate the whole catalog;
+        // get_module_logo_path() filters to modules that actually have one.
         let mut image_logos = serde_json::Map::new();
         let protocol = ImageProtocol::detect();
         // Only render inline image logos when terminal supports image protocols
@@ -923,7 +797,7 @@ impl TeraEngine {
                 | ImageProtocol::Sixel
                 | ImageProtocol::Block
         ) {
-            for name in modules {
+            for name in crate::MODULE_CATALOG.iter().map(|m| m.name) {
                 if info.entries.iter().any(|(n, _)| *n == name) {
                     if let Some(path) = get_module_logo_path(name) {
                         if std::path::Path::new(&path).exists() {
@@ -942,18 +816,7 @@ impl TeraEngine {
         ctx.insert("image_logos", &serde_json::Value::Object(image_logos));
 
         // Add distro image logo
-        let os_id = info
-            .entries
-            .iter()
-            .find(|(n, _)| *n == "os")
-            .and_then(|(_, v)| {
-                if let InfoValue::Map(m) = v {
-                    m.get("id").cloned()
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_default();
+        let os_id = os_id_of(info);
 
         if matches!(
             protocol,
@@ -1598,42 +1461,6 @@ mod tests {
         let result = tera.render("default", &ctx).unwrap();
         assert!(result.contains("█"));
         assert!(result.contains("░"));
-    }
-
-    #[test]
-    fn group_sections_empty() {
-        let config = Config::default_for_testing();
-        let result = group_sections(&[], &config);
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn group_sections_groups_by_catalog_section() {
-        let config = Config::default_for_testing();
-        let entries = vec![
-            ("os".to_string(), InfoValue::scalar("Linux")),
-            ("cpu".to_string(), InfoValue::scalar("AMD")),
-            ("kernel".to_string(), InfoValue::scalar("6.1")),
-        ];
-        let result = group_sections(&entries, &config);
-        assert!(!result.is_empty());
-        for (_section, group) in &result {
-            assert!(!group.is_empty());
-        }
-    }
-
-    #[test]
-    fn group_sections_unknown_module_goes_to_empty_bucket() {
-        let config = Config::default_for_testing();
-        let entries = vec![
-            ("os".to_string(), InfoValue::scalar("Linux")),
-            ("custom_thing".to_string(), InfoValue::scalar("val")),
-        ];
-        let result = group_sections(&entries, &config);
-        let has_system = result.iter().any(|(s, _)| s == "System");
-        let has_empty = result.iter().any(|(s, _)| s.is_empty());
-        assert!(has_system);
-        assert!(has_empty);
     }
 
     #[test]

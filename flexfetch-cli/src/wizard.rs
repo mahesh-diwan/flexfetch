@@ -6,7 +6,7 @@
 //! Steps: 1) module checklist  2) theme picker (with preview)  3) layout
 //! (box style + frame)  4) summary + save.
 
-use flexfetch_core::Config;
+use flexfetch_core::{theme::preset_names, Config};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
@@ -17,83 +17,21 @@ use ratatui::{
 use std::io::IsTerminal;
 use std::time::Duration;
 
-/// All modules the wizard can toggle (matches `list_modules`).
-const MODULES: &[&str] = &[
-    "title",
-    "separator",
-    "os",
-    "host",
-    "kernel",
-    "uptime",
-    "locale",
-    "datetime",
-    "loadavg",
-    "keyboard",
-    "editor",
-    "initsystem",
-    "version",
-    "bios",
-    "board",
-    "chassis",
-    "brightness",
-    "tpm",
-    "cpu",
-    "cpucache",
-    "cpuusage",
-    "memory",
-    "swap",
-    "disk",
-    "gpu",
-    "network",
-    "localip",
-    "dns",
-    "display",
-    "bluetooth",
-    "media",
-    "battery",
-    "temperature",
-    "processes",
-    "packages",
-    "shell",
-    "terminal",
-    "de",
-    "wm",
-    "colors",
-    "custom",
-    "publicip",
-    "wifi",
-    "git",
-    "project",
-    "context",
-    "health",
-];
-
-/// Theme presets offered by the wizard (subset of theme.rs names).
-const THEMES: &[&str] = &[
-    "none",
-    "catppuccin",
-    "dracula",
-    "nord",
-    "gruvbox",
-    "tokyo-night",
-    "solarized-dark",
-    "solarized-light",
-    "rose-pine",
-    "rose-pine-dawn",
-    "everforest-dark",
-    "everforest-light",
-    "bamboo",
-    "oxocarbon-dark",
-    "one-dark",
-    "one-light",
-    "monokai",
-    "monokai-pro",
-    "ayu-dark",
-    "palenight",
-    "material-ocean",
-    "kanagawa",
-    "mellow-purple",
-];
+/// All modules the wizard can toggle: layout directives first, then every
+/// collected module from the catalog (matches `list_modules`).
+fn modules() -> &'static [&'static str] {
+    static MODULES: std::sync::OnceLock<Vec<&'static str>> = std::sync::OnceLock::new();
+    MODULES.get_or_init(|| {
+        let mut names = vec!["title", "separator"];
+        names.extend(
+            flexfetch_core::MODULE_CATALOG
+                .iter()
+                .map(|m| m.name)
+                .filter(|n| *n != "title"),
+        );
+        names
+    })
+}
 
 const BOX_STYLES: &[&str] = &["rounded", "double", "thick", "dotted", "ascii"];
 const FRAMES: &[&str] = &["none", "single", "double"];
@@ -116,10 +54,10 @@ struct Wizard {
 
 impl Wizard {
     fn new() -> Self {
-        let mut selected = vec![false; MODULES.len()];
+        let mut selected = vec![false; modules().len()];
         // Default on the most common modules (mirrors default preset).
         let defaults = Config::default_modules();
-        for (i, name) in MODULES.iter().enumerate() {
+        for (i, name) in modules().iter().enumerate() {
             if defaults.iter().any(|d| d == name) {
                 selected[i] = true;
             }
@@ -141,7 +79,7 @@ impl Wizard {
     }
 
     fn selected_modules(&self) -> Vec<String> {
-        MODULES
+        modules()
             .iter()
             .zip(&self.selected)
             .filter(|(_, &on)| on)
@@ -185,7 +123,7 @@ impl Wizard {
                     self.theme_idx = self.theme_idx.saturating_sub(1);
                 }
                 crossterm::event::KeyCode::Down | crossterm::event::KeyCode::Char('j') => {
-                    self.theme_idx = (self.theme_idx + 1).min(THEMES.len() - 1);
+                    self.theme_idx = (self.theme_idx + 1).min(preset_names().len() - 1);
                 }
                 crossterm::event::KeyCode::Enter | crossterm::event::KeyCode::Right => {
                     self.step = Step::Layout;
@@ -221,7 +159,7 @@ impl Wizard {
     }
 
     fn move_sel(&mut self, delta: isize) {
-        let len = MODULES.len() as isize;
+        let len = modules().len() as isize;
         let cur = self.list_state.selected().unwrap_or(0) as isize;
         self.list_state
             .select(Some(((cur + delta).rem_euclid(len)) as usize));
@@ -278,13 +216,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 fn save_config(wizard: &Wizard) -> Result<(), Box<dyn std::error::Error>> {
     let mut config = Config::default_for_testing();
     config.modules = wizard.selected_modules();
-    config.display.theme = Some(THEMES[wizard.theme_idx].to_string());
+    config.display.theme = Some(preset_names()[wizard.theme_idx].to_string());
     config.display.box_style = BOX_STYLES[wizard.box_idx].to_string();
     config.display.frame = FRAMES[wizard.frame_idx].to_string();
 
     let toml = toml::to_string_pretty(&config)?;
 
-    let config_dir = config_dir();
+    let config_dir = crate::tools::config_dir();
     std::fs::create_dir_all(&config_dir)?;
     let path = config_dir.join("config.toml");
     std::fs::write(&path, &toml)?;
@@ -299,10 +237,6 @@ fn save_config(wizard: &Wizard) -> Result<(), Box<dyn std::error::Error>> {
         config.display.box_style, config.display.frame
     );
     Ok(())
-}
-
-fn config_dir() -> std::path::PathBuf {
-    crate::tools::config_dir()
 }
 
 // ---------------------------------------------------------------------------
@@ -354,7 +288,7 @@ impl Wizard {
     }
 
     fn draw_modules(&mut self, frame: &mut Frame, area: Rect) {
-        let items: Vec<ListItem> = MODULES
+        let items: Vec<ListItem> = modules()
             .iter()
             .enumerate()
             .map(|(i, name)| {
@@ -377,7 +311,7 @@ impl Wizard {
         let count = self.module_count();
         let block = Block::bordered().title(format!(
             " Modules ({count}/{}) — space toggles ",
-            MODULES.len()
+            modules().len()
         ));
 
         let list = List::new(items)
@@ -400,7 +334,7 @@ impl Wizard {
             .constraints([Constraint::Percentage(45), Constraint::Percentage(55)])
             .split(area);
 
-        let items: Vec<ListItem> = THEMES
+        let items: Vec<ListItem> = preset_names()
             .iter()
             .enumerate()
             .map(|(i, name)| {
@@ -420,7 +354,7 @@ impl Wizard {
 
         // Preview: show a fake fetch line in the selected theme
         let mut preview_cfg = Config::default_for_testing();
-        let name = THEMES[self.theme_idx];
+        let name = preset_names()[self.theme_idx];
         if name != "none" {
             preview_cfg.display.theme = Some(name.to_string());
         }
@@ -501,7 +435,7 @@ impl Wizard {
         }
         all.push(Line::from(Span::raw("")));
         all.push(Line::from(Span::styled(
-            format!("  theme: {}", THEMES[self.theme_idx]),
+            format!("  theme: {}", preset_names()[self.theme_idx]),
             Style::default().fg(Color::Cyan),
         )));
         all.push(Line::from(Span::styled(
@@ -513,7 +447,10 @@ impl Wizard {
         )));
         all.push(Line::from(Span::raw("")));
         all.push(Line::from(Span::styled(
-            format!("  will write: {}/config.toml", config_dir().display()),
+            format!(
+                "  will write: {}/config.toml",
+                crate::tools::config_dir().display()
+            ),
             Style::default().fg(Color::DarkGray),
         )));
         all.push(Line::from(Span::raw("")));

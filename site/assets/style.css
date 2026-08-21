@@ -168,8 +168,7 @@ a:hover {
 .stat-num,
 .lat-ms,
 .mod-count,
-.hero-stats .hs,
-.secure-item b {
+.hero-stats .hs {
   font-variant-numeric: tabular-nums;
 }
 
@@ -703,22 +702,6 @@ h1 .accent {
   font: 500 9.5px var(--font-mono);
   letter-spacing: 0.02em;
   color: var(--muted);
-}
-
-/* blinking block cursor at the end of the fetch output */
-.hero-cur {
-  display: inline-block;
-  width: 7px;
-  height: 13px;
-  background: var(--accent);
-  vertical-align: -2px;
-  margin-left: 4px;
-  animation: curBlink 1.15s steps(1) infinite;
-}
-@keyframes curBlink {
-  50% {
-    opacity: 0;
-  }
 }
 
 .term-body {
@@ -1408,66 +1391,6 @@ h1 .accent {
   50% { opacity: 0; }
 }
 
-/* plugin chips (card G) */
-.plugin-row {
-  margin-top: 18px;
-  display: flex;
-  gap: 9px;
-}
-.plugin {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font: 11.5px var(--font-mono);
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  padding: 7px 12px;
-  color: var(--muted);
-}
-.plugin .lock {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: breathe 2.4s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * 0.3s);
-}
-
-/* supply chain strip (card H) */
-.secure-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  margin-top: 6px;
-}
-.secure-item {
-  display: flex;
-  gap: 14px;
-  padding: 18px 22px;
-  border-left: 1px solid var(--border);
-}
-.secure-item:first-child {
-  border-left: none;
-  padding-left: 0;
-}
-.secure-item svg {
-  flex-shrink: 0;
-  color: var(--accent);
-  margin-top: 2px;
-}
-.secure-item b {
-  display: block;
-  font-weight: 600;
-  font-size: 13.5px;
-  color: var(--text-strong);
-  margin-bottom: 3px;
-}
-.secure-item span {
-  font-size: 12.5px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
 /* ---------- modules ---------- */
 .mods-head {
   display: grid;
@@ -1906,19 +1829,68 @@ footer {
   border-color: rgba(232, 145, 58, 0.4);
 }
 
-/* ---------- reveal (stagger via --i; hidden only when JS is on) ---------- */
-/* specificity: .js .reveal (0,2,0) — .reveal.in later in source wins on equal specificity */
-.js .reveal:not(.gsap-ready) {
-  opacity: 0;
-  transform: translateY(26px);
-  transition:
-    opacity 0.7s var(--ease),
-    transform 0.7s var(--ease);
-  transition-delay: calc(var(--i, 0) * 70ms);
+/* ---------- reveal via CSS scroll-driven animations (progressive enhancement:
+   elements stay visible by default; animated only where supported) ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-up 0.7s var(--ease) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+    .inst-card {
+      animation-name: reveal-right;
+    }
+    .cta h2 {
+      animation-name: reveal-scale;
+    }
+    footer {
+      animation-name: reveal-fade;
+    }
+    /* hero parallax fade-out while the hero scrolls away */
+    .hero-text {
+      animation: hero-parallax linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    .term-wrap {
+      animation-name: term-parallax;
+    }
+  }
 }
-.reveal.in:not(.gsap-ready) {
-  opacity: 1;
-  transform: none;
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes hero-parallax {
+  to {
+    transform: translateY(-40px);
+    opacity: 0.3;
+  }
+}
+@keyframes term-parallax {
+  to {
+    transform: translateY(-20px) scale(0.97);
+  }
 }
 
 /* ---------- responsive ---------- */
@@ -1964,17 +1936,6 @@ footer {
   }
   .card:nth-child(7) {
     grid-column: span 2;
-  }
-  .secure-grid {
-    grid-template-columns: 1fr;
-  }
-  .secure-item {
-    border-left: none;
-    border-top: 1px solid var(--border);
-    padding: 18px 0;
-  }
-  .secure-item:first-child {
-    border-top: none;
   }
   .inst-grid {
     grid-template-columns: 1fr;
@@ -2078,10 +2039,6 @@ footer {
   .term-status {
     padding: 6px 12px;
     font-size: 8.5px;
-  }
-  .hero-cur {
-    width: 6px;
-    height: 11px;
   }
 }
 
@@ -2466,10 +2423,6 @@ footer {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-  .js .reveal {
-    opacity: 1;
-    transform: none;
   }
   .marquee-track,
   .chips {

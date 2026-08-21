@@ -70,9 +70,8 @@ pub fn run(ctx: Context, config_path: Option<PathBuf>) -> Result<(), Box<dyn std
     result
 }
 
-/// The render loop, shared by the plain and recording paths. Only the backend
-/// differs; everything else (sampler drain, key handling, frame budget) is
-/// identical.
+/// The render loop. Pulls the latest snapshot each frame, handles quit/space
+/// keys, and keeps frames inside the frame budget.
 fn app_loop<B: Backend>(
     terminal: &mut Terminal<B>,
     rx: &Receiver<SystemSnapshot>,
@@ -83,11 +82,15 @@ where
 {
     let mut app = App::new();
 
-    loop {
-        // Pull the newest snapshot (overwrite channel: only the latest).
+    // Pull the newest snapshot (overwrite channel: only the latest).
+    fn drain_latest(rx: &Receiver<SystemSnapshot>, slot: &mut SystemSnapshot) {
         while let Ok(snap) = rx.try_recv() {
-            app.snapshot = snap;
+            *slot = snap;
         }
+    }
+
+    loop {
+        drain_latest(rx, &mut app.snapshot);
 
         let frame_start = Instant::now();
         terminal.draw(|frame| app.draw(frame))?;
@@ -107,12 +110,8 @@ where
                             return Ok(());
                         }
                         crossterm::event::KeyCode::Char(' ') => {
-                            // Force a fresh sample: drain the channel, then
-                            // request one from the sampler by sending a
-                            // no-op tick is unnecessary — just re-pull.
-                            while let Ok(snap) = rx.try_recv() {
-                                app.snapshot = snap;
-                            }
+                            // Force a fresh sample: re-pull the latest.
+                            drain_latest(rx, &mut app.snapshot);
                         }
                         _ => {}
                     }

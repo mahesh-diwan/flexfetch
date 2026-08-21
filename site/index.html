@@ -17,8 +17,6 @@
   <link rel="preload" href="assets/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
@@ -154,22 +152,22 @@
         <span class="eyebrow" style="justify-content:center">// by the numbers</span>
       </div>
       <div class="stats-grid">
-        <div class="stat reveal gsap-ready" style="--i:0">
+        <div class="stat reveal" style="--i:0">
           <span class="stat-num" data-count="50">50</span>
           <span class="stat-label">Modules</span>
           <span class="stat-note">from os to weather</span>
         </div>
-        <div class="stat reveal gsap-ready" style="--i:1">
+        <div class="stat reveal" style="--i:1">
           <span class="stat-num" data-count="527">527</span>
           <span class="stat-label">Logos</span>
           <span class="stat-note">fastfetch-imported</span>
         </div>
-        <div class="stat reveal gsap-ready" style="--i:2">
+        <div class="stat reveal" style="--i:2">
           <span class="stat-num" data-count="1.1" data-decimals="1" data-suffix=" ms">1.1 ms</span>
           <span class="stat-label">Fastest module</span>
           <span class="stat-note">cpu, read via /proc</span>
         </div>
-        <div class="stat reveal gsap-ready" style="--i:3">
+        <div class="stat reveal" style="--i:3">
           <span class="stat-num" data-count="1.7" data-decimals="1" data-suffix=" MB">1.7 MB</span>
           <span class="stat-label">Minimal binary</span>
           <span class="stat-note">LTO, no default features</span>
@@ -181,7 +179,7 @@
   <!-- ============ FEATURES ============ -->
   <section class="section" id="features">
     <div class="container">
-      <div class="section-head reveal gsap-ready" style="--i:0">
+      <div class="section-head reveal" style="--i:0">
         <div>
           <span class="eyebrow">What it does</span>
           <h2>Everything a fetch should be. Nothing it shouldn't.</h2>
@@ -191,7 +189,7 @@
 
       <div class="bento">
         <!-- A · wide · reads the system directly -->
-        <article class="card wide spot reveal gsap-ready" style="--i:0">
+        <article class="card wide spot reveal" style="--i:0">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline></svg>
           </span>
@@ -218,7 +216,7 @@
         </article>
 
         <!-- B · themes -->
-        <article class="card spot reveal gsap-ready" style="--i:1">
+        <article class="card spot reveal" style="--i:1">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
           </span>
@@ -234,7 +232,7 @@
         </article>
 
         <!-- C · logos -->
-        <article class="card spot reveal gsap-ready" style="--i:2">
+        <article class="card spot reveal" style="--i:2">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg>
           </span>
@@ -265,7 +263,7 @@
         </article>
 
         <!-- D · live TUI -->
-        <article class="card spot reveal gsap-ready" style="--i:3">
+        <article class="card spot reveal" style="--i:3">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 18a8.5 8.5 0 1 1 17 0"></path><path d="M12 18l4.5-4.5"></path></svg>
           </span>
@@ -308,7 +306,7 @@
         </article>
 
         <!-- E · templates -->
-        <article class="card spot reveal gsap-ready" style="--i:4">
+        <article class="card spot reveal" style="--i:4">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
           </span>
@@ -322,7 +320,7 @@
         </article>
 
         <!-- F · wide · custom + context -->
-        <article class="card wide spot reveal gsap-ready" style="--i:5">
+        <article class="card wide spot reveal" style="--i:5">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M9 9h6v6H9z"></path></svg>
           </span>
@@ -336,7 +334,7 @@
         </article>
 
         <!-- G · share & compare -->
-        <article class="card spot reveal gsap-ready" style="--i:6">
+        <article class="card spot reveal" style="--i:6">
           <span class="card-icon" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
           </span>
@@ -379,7 +377,7 @@
   <!-- ============ MODULES ============ -->
   <section class="section" id="modules">
     <div class="container">
-      <div class="mods-head reveal gsap-ready" style="--i:0">
+      <div class="mods-head reveal" style="--i:0">
         <div>
           <span class="eyebrow">The surface area</span>
           <h2 style="margin-bottom:0">50 modules, one binary.</h2>
@@ -394,7 +392,7 @@
         </div>
       </div>
 
-      <div class="mods-grid reveal gsap-ready" id="mods-grid" style="--i:1">
+      <div class="mods-grid reveal" id="mods-grid" style="--i:1">
         <div class="mod" data-name="os" data-tag="system"><span class="mname">os</span><span class="mtag">system</span></div>
         <div class="mod" data-name="host" data-tag="system"><span class="mname">host</span><span class="mtag">system</span></div>
         <div class="mod" data-name="kernel" data-tag="system"><span class="mname">kernel</span><span class="mtag">system</span></div>
@@ -464,7 +462,7 @@
   <section class="section" id="install">
     <div class="container">
       <div class="inst-grid">
-        <div class="inst-copy reveal gsap-ready" style="--i:0">
+        <div class="inst-copy reveal" style="--i:0">
           <span class="eyebrow">Get it</span>
           <h2>On your machine in one command.</h2>
           <p>
@@ -489,7 +487,7 @@
           </ul>
         </div>
 
-        <div class="inst-stack reveal gsap-ready" style="--i:1">
+        <div class="inst-stack reveal" style="--i:1">
           <div class="inst-card">
             <div class="inst-top">
               <b>curl installer</b>
@@ -608,6 +606,5 @@
   </button>
 
   <script src="assets/main.js"></script>
-  <script src="assets/scroll.js" defer></script>
 </body>
 </html>

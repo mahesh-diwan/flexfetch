@@ -197,7 +197,7 @@ fn main() {
     // Pipe mode overrides
     apply_cli_overrides(&cli, &mut config, pipe_mode);
 
-    let registry = registry_resolve::registry();
+    let registry = flexfetch_core::ModuleRegistry::get();
     let template_content = TeraEngine::default_template_content();
 
     // --wizard: interactive config wizard (owns the terminal until done)

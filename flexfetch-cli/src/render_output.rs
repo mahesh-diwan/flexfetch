@@ -139,12 +139,7 @@ pub fn prompt(ctx: &Context, modules: &[String]) -> String {
 }
 
 /// Handle export to file (`--export svg|html|png|markdown`).
-pub fn export(
-    info: &SystemInfo,
-    config: &Config,
-    format: &str,
-    output: Option<&std::path::Path>,
-) -> bool {
+pub fn export(info: &SystemInfo, config: &Config, format: &str, output: Option<&std::path::Path>) {
     let path = output.unwrap_or_else(|| match format {
         "svg" => std::path::Path::new("flexfetch.svg"),
         "html" => std::path::Path::new("flexfetch.html"),
@@ -189,8 +184,6 @@ pub fn export(
         },
         _ => {
             eprintln!("unknown export format: {format} (use svg, html, png, markdown)");
-            return false;
         }
     }
-    true
 }

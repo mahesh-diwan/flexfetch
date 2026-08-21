@@ -6,7 +6,6 @@ pub enum Error {
     Parse(String),
     Config(String),
     Template(String),
-    Lua(String),
 }
 
 impl fmt::Display for Error {
@@ -16,7 +15,6 @@ impl fmt::Display for Error {
             Error::Parse(s) => write!(f, "parse: {s}"),
             Error::Config(s) => write!(f, "config: {s}"),
             Error::Template(s) => write!(f, "template: {s}"),
-            Error::Lua(s) => write!(f, "lua: {s}"),
         }
     }
 }

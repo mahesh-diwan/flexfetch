@@ -97,26 +97,6 @@
     termWrap.addEventListener("pointerleave", leave);
   }
 
-  /* ---------- reveal on scroll (stagger via --i, enhanced) ---------- */
-  /* Elements with .gsap-ready are handled by GSAP — skip adding .in */
-  const revealEls = document.querySelectorAll(".reveal:not(.gsap-ready)");
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.08, rootMargin: "0px 0px -60px 0px" }
-    );
-    revealEls.forEach((el) => io.observe(el));
-  } else {
-    revealEls.forEach((el) => el.classList.add("in"));
-  }
-
   /* ---------- parallax: move orbs with scroll ---------- */
   if (!prefersReduced) {
     const orbs = document.querySelectorAll(".hero-orb");

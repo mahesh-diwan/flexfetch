@@ -45,6 +45,26 @@ jobs:
             exit 1
           fi
 
+      # Cold-start regression gate (moved from deep-test.yml so it reuses this
+      # cached build instead of duplicating it).
+      - name: Install hyperfine
+        run: cargo install hyperfine --locked
+
+      - name: "Measure cold start (gate: mean < 10 ms)"
+        run: |
+          hyperfine --warmup 5 --runs 50 \
+            './target/release/flexfetch --minimal' \
+            --export-json /tmp/perf.json
+          python3 - <<'EOF'
+          import json
+          mean = json.load(open('/tmp/perf.json'))['results'][0]['mean']
+          limit = 0.010
+          print(f'cold start mean: {mean*1000:.2f} ms (gate: <{limit*1000:.0f} ms)')
+          if mean > limit:
+              print(f'::error::cold start {mean*1000:.2f} ms exceeds the {limit*1000:.0f} ms gate')
+              raise SystemExit(1)
+          EOF
+
       - name: Run criterion benchmarks
         run: cargo bench -p flexfetch-cli --bench cold_start -- --output-format bencher | tee output.txt
 
@@ -74,13 +94,13 @@ jobs:
         continue-on-error: true
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          tool: 'cargo'
+          tool: "cargo"
           output-file-path: output.txt
           # Attach the size tracker as an extra benchmark chart.
           extra-data: sizes.json
           benchmark-data-dir-path: dev/bench
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          alert-threshold: '150%' # alert (check-run) if >1.5x the previous best
+          alert-threshold: "150%" # alert (check-run) if >1.5x the previous best
           comment-on-alert: true
           fail-on-alert: false
