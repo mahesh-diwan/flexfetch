@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787334965350,
+  "lastUpdate": 1787335130872,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2627,6 +2627,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2713895,
             "range": "± 60259",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "13f9e82c5aaa9aecdd63542f79615cec3100ae70",
+          "message": "ci(release): build panic_abort crate too (profile uses panic=abort)",
+          "timestamp": "2026-08-21T23:25:33+05:30",
+          "tree_id": "c188c4762dafd4d571d25e8d5ecb988fd1a6afa9",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/13f9e82c5aaa9aecdd63542f79615cec3100ae70"
+        },
+        "date": 1787335129942,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2526575,
+            "range": "± 40856",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2527892,
+            "range": "± 21704",
             "unit": "ns/iter"
           }
         ]
