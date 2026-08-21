@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787335130872,
+  "lastUpdate": 1787335448451,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2663,6 +2663,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2527892,
             "range": "± 21704",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "2ad8c202919384ab2868333af5436727113a5505",
+          "message": "ci(release): build-std only on macOS jobs (zig musl lacks rcrt1.o for self-built std)",
+          "timestamp": "2026-08-21T23:31:01+05:30",
+          "tree_id": "7d2dc26c78ced3d3be75ee454a6a9105cfcb9d78",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/2ad8c202919384ab2868333af5436727113a5505"
+        },
+        "date": 1787335447426,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2608615,
+            "range": "± 54686",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2647988,
+            "range": "± 59274",
             "unit": "ns/iter"
           }
         ]
