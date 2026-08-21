@@ -70,6 +70,19 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # build-std: recompile std from source so LTO/strip can prune unused
+      # pieces (and drop location metadata). Nightly-only; the target-scoped
+      # RUSTFLAGS var name must be derived because GH Actions can't
+      # parameterize env names (dots/dashes -> underscores).
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
+
+      - name: Configure build-std flags
+        run: |
+          VAR=$(echo "CARGO_TARGET_${{ matrix.target }}_RUSTFLAGS" | tr 'a-z-' 'A-Z_')
+          echo "${VAR}=-Zlocation-detail=none" >> "$GITHUB_ENV"
+
       # Built with --no-default-features --features live,image-logos,completions,parallel:
       # the release excludes `lua` (mlua is dead code in flexfetch-core/cli — never
       # called, LTO strips it — and dropping it keeps the tree pure Rust, no C code to
@@ -106,11 +119,11 @@ jobs:
 
       - name: Build (musl via zigbuild)
         if: matrix.use_zig
-        run: cargo zigbuild --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
+        run: cargo +nightly zigbuild --release --target ${{ matrix.target }} -Z build-std=std -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
 
       - name: Build (native/cross via system clang)
         if: ${{ !matrix.use_zig }}
-        run: cargo build --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
+        run: cargo +nightly build --release --target ${{ matrix.target }} -Z build-std=std -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
 
       # Size gate (Linux only, uncompressed binary): regression guard, not a diet
       # target. After the tera/rayon gating (ROADMAP 0.2) the release build
