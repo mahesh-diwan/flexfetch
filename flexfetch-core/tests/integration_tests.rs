@@ -41,7 +41,7 @@ fn test_template_render() {
     let registry = ModuleRegistry::get();
     let modules = Config::default_modules();
     let template_content = TeraEngine::default_template_content();
-    let info = registry.run_selected(&modules, &ctx, template_content);
+    let info = registry.run_selected(&modules, &std::sync::Arc::new(ctx), template_content);
     let result = engine.render(&info, &config);
     assert!(result.is_ok());
     let output = result.unwrap();
@@ -102,7 +102,7 @@ fn test_template_with_box_style_double() {
     let registry = ModuleRegistry::get();
     let modules = Config::default_modules();
     let template_content = TeraEngine::default_template_content();
-    let info = registry.run_selected(&modules, &ctx, template_content);
+    let info = registry.run_selected(&modules, &std::sync::Arc::new(ctx), template_content);
     let result = engine.render(&info, &config);
     assert!(result.is_ok());
     let output = result.unwrap();
@@ -121,7 +121,7 @@ fn test_template_with_box_style_ascii() {
     let registry = ModuleRegistry::get();
     let modules = Config::default_modules();
     let template_content = TeraEngine::default_template_content();
-    let info = registry.run_selected(&modules, &ctx, template_content);
+    let info = registry.run_selected(&modules, &std::sync::Arc::new(ctx), template_content);
     let result = engine.render(&info, &config);
     assert!(result.is_ok());
     let output = result.unwrap();

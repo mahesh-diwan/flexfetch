@@ -31,6 +31,11 @@ pub struct Cli {
     #[arg(long)]
     pub debug: bool,
 
+    /// Print per-module collection timings (wall clock, slowest first) to
+    /// stderr after the fetch.
+    #[arg(long)]
+    pub stat: bool,
+
     #[arg(long)]
     pub gen_config: bool,
 

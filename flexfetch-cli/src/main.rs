@@ -115,7 +115,12 @@ fn main() {
     // path is the whole point).
     let loaded = config_load::load(config_path, cli.flash, cli.debug, cli.template.as_deref());
     let mut config = loaded.config;
-    let mut ctx = loaded.ctx;
+    let mut ctx = std::sync::Arc::new(loaded.ctx);
+    if cli.stat {
+        std::sync::Arc::get_mut(&mut ctx)
+            .expect("ctx is uniquely owned here")
+            .stat = true;
+    }
     let config_dir = loaded.config_dir;
     let cache_dir = loaded.cache_dir;
 
@@ -173,6 +178,11 @@ fn main() {
         #[cfg(feature = "live")]
         {
             let watch_path = config_file_path(&cli);
+            // No registry call has happened yet, so the Arc refcount is 1.
+            let ctx = match std::sync::Arc::try_unwrap(ctx) {
+                Ok(c) => c,
+                Err(_) => unreachable!("ctx is uniquely owned before collection"),
+            };
             if let Err(e) = live::run(ctx, watch_path) {
                 eprintln!("live dashboard error: {e}");
                 std::process::exit(1);
@@ -273,6 +283,18 @@ fn main() {
 
     let info = registry.run_selected(&modules, &ctx, template_content);
 
+    // --stat: per-module collection timings, slowest first.
+    if cli.stat {
+        let mut timings = ctx.timings.lock().map(|t| t.clone()).unwrap_or_default();
+        timings.sort_by_key(|(_, us)| std::cmp::Reverse(*us));
+        let total: u64 = timings.iter().map(|(_, us)| us).sum();
+        eprintln!("module timings (wall clock):");
+        for (name, us) in &timings {
+            eprintln!("  {name:<14} {:>8.2} ms", *us as f64 / 1000.0);
+        }
+        eprintln!("  {:<14} {:>8.2} ms", "total", total as f64 / 1000.0);
+    }
+
     // Handle --export flag
     if let Some(ref format) = cli.export {
         render_output::export(&info, &config, format, cli.output.as_deref());
@@ -309,12 +331,14 @@ fn main() {
                         config.template = t.to_string();
                     }
                     apply_cli_overrides(&cli, &mut config, pipe_mode);
-                    ctx = Context::new(
+                    let mut fresh_ctx = Context::new(
                         config_dir.clone(),
                         cache_dir.clone(),
                         cli.debug,
                         config.custom.clone(),
                     );
+                    fresh_ctx.stat = cli.stat;
+                    ctx = std::sync::Arc::new(fresh_ctx);
                     ctx.set_cache_ttl(config.cache_ttl);
                     modules = registry_resolve::resolve(&cli, &config);
                     snapshot.clear();
@@ -403,7 +427,7 @@ fn file_mtime(path: &std::path::Path) -> Option<std::time::SystemTime> {
 fn resolve_diff_target(
     target: &str,
     modules: &[String],
-    ctx: &Context,
+    ctx: &std::sync::Arc<flexfetch_core::Context>,
     registry: &'static ModuleRegistry,
     template_content: &str,
 ) -> Result<SystemInfo, String> {

@@ -457,6 +457,7 @@ pub fn find_module(name: &str) -> Option<&'static ModuleEntry> {
     MODULE_CATALOG.iter().find(|m| m.name == name)
 }
 
+#[derive(Clone)]
 pub struct SystemInfo {
     pub entries: Vec<(&'static str, InfoValue)>,
 }

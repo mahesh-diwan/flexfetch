@@ -1,6 +1,59 @@
 use crate::{Context, InfoValue, Module, SystemInfo, MODULE_CATALOG};
 use std::collections::HashSet;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
+#[cfg(not(feature = "parallel"))]
+use std::time::Duration;
+use std::time::Instant;
+
+/// Wall-clock budget for one module's collection on the sequential path.
+/// A hung sensor (DBus probe, HTTP fetch, custom shell command) degrades to
+/// a "timeout" value instead of stalling the fetch. The collection thread
+/// detaches on timeout and dies with the process. The parallel (rayon) path
+/// collects inline instead — blocking a rayon worker on a per-module thread
+/// serializes the whole batch and costs ~6x cold start; HTTP/DBus modules
+/// carry their own internal timeouts there.
+#[cfg(not(feature = "parallel"))]
+const MODULE_TIMEOUT: Duration = Duration::from_millis(2000);
+
+type SharedContext = Arc<Context>;
+
+/// Collect one module, recording `--stat` wall-clock timing when enabled.
+fn collect_one(
+    name: &str,
+    builder: fn() -> Box<dyn Module>,
+    ctx: &SharedContext,
+) -> crate::Result<InfoValue> {
+    let timed = ctx.stat;
+    let start = Instant::now();
+    #[cfg(feature = "parallel")]
+    let result = builder().collect(ctx);
+    #[cfg(not(feature = "parallel"))]
+    let result = collect_with_timeout(builder, ctx);
+    if timed {
+        if let Ok(mut t) = ctx.timings.lock() {
+            t.push((name.to_string(), start.elapsed().as_micros() as u64));
+        }
+    }
+    result
+}
+
+/// Sequential path: collect on a detached thread with a timeout so a single
+/// hung module can never stall the fetch.
+#[cfg(not(feature = "parallel"))]
+fn collect_with_timeout(
+    builder: fn() -> Box<dyn Module>,
+    ctx: &SharedContext,
+) -> crate::Result<InfoValue> {
+    let (tx, rx) = std::sync::mpsc::channel();
+    let ctx2 = Arc::clone(ctx);
+    std::thread::spawn(move || {
+        let _ = tx.send(builder().collect(&ctx2));
+    });
+    match rx.recv_timeout(MODULE_TIMEOUT) {
+        Ok(r) => r,
+        Err(_) => Ok(InfoValue::scalar("timeout")),
+    }
+}
 
 type ModuleBuilder = Box<dyn Module>;
 
@@ -40,7 +93,7 @@ impl ModuleRegistry {
     pub fn run_selected(
         &self,
         selected: &[String],
-        ctx: &Context,
+        ctx: &SharedContext,
         template_content: &str,
     ) -> SystemInfo {
         let mut info = SystemInfo::new();
@@ -56,13 +109,9 @@ impl ModuleRegistry {
             if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
                 return None;
             }
-            self.builders
-                .iter()
-                .find(|(n, _)| n == name)
-                .map(|(n, module)| {
-                    let result = module.collect(ctx);
-                    (*n, result)
-                })
+            crate::find_module(name)
+                .map(|m| (m.name, m.builder))
+                .map(|(n, builder)| (n, collect_one(n, builder, ctx)))
         };
 
         #[cfg(feature = "parallel")]
@@ -97,7 +146,7 @@ impl ModuleRegistry {
     pub fn run_selected_cached(
         &self,
         selected: &[String],
-        ctx: &Context,
+        ctx: &SharedContext,
         template_content: &str,
         cache: &mut std::collections::HashMap<String, InfoValue>,
     ) -> SystemInfo {
@@ -109,13 +158,9 @@ impl ModuleRegistry {
             if !template_modules.is_empty() && !template_modules.contains(name.as_str()) {
                 return None;
             }
-            self.builders
-                .iter()
-                .find(|(n, _)| n == name)
-                .map(|(n, module)| {
-                    let result = module.collect(ctx);
-                    (*n, result)
-                })
+            crate::find_module(name)
+                .map(|m| (m.name, m.builder))
+                .map(|(n, builder)| (n, collect_one(n, builder, ctx)))
         }; // Derive static/dynamic from catalog — no hardcoded list to keep in sync.
         let is_static = |name: &str| MODULE_CATALOG.iter().any(|m| m.name == name && m.is_static);
 

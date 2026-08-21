@@ -183,6 +183,87 @@ fn detect_osc8() -> bool {
     ])
 }
 
+/// Terminal size (cols, rows) via ioctl on stdout. None when not a TTY or on
+/// non-unix platforms.
+#[cfg(unix)]
+fn terminal_size() -> Option<(u16, u16)> {
+    if unsafe { libc::isatty(1) } != 1 {
+        return None;
+    }
+    let mut ws = libc::winsize {
+        ws_col: 0,
+        ws_row: 0,
+        ws_xpixel: 0,
+        ws_ypixel: 0,
+    };
+    // SAFETY: ws is a valid winsize for TIOCGWINSZ, which only writes to it.
+    if unsafe { libc::ioctl(1, libc::TIOCGWINSZ, &mut ws) } == 0 && ws.ws_row > 0 {
+        Some((ws.ws_col, ws.ws_row))
+    } else {
+        None
+    }
+}
+
+#[cfg(not(unix))]
+fn terminal_size() -> Option<(u16, u16)> {
+    None
+}
+
+/// Low-priority modules dropped first (in this order) when the terminal is
+/// too short for the full block. High-value identity rows (os/host/kernel/
+/// cpu/memory/…) are never dropped.
+const DROP_ORDER: &[&str] = &[
+    "locale",
+    "editor",
+    "keyboard",
+    "initsystem",
+    "version",
+    "bios",
+    "board",
+    "chassis",
+    "brightness",
+    "tpm",
+    "loadavg",
+    "datetime",
+];
+
+/// Responsive layout: shrink the fetch to fit the terminal instead of
+/// scrolling it off-screen (fastfetch's most-requested missing feature).
+/// Returns adjusted (info, config); no-op when not attached to a TTY.
+fn responsive_adjust(info: &SystemInfo, config: &crate::Config) -> (SystemInfo, crate::Config) {
+    let Some((cols, rows)) = terminal_size() else {
+        return (info.clone(), config.clone());
+    };
+    let mut info = info.clone();
+    let mut config = config.clone();
+
+    // Height: drop low-priority rows until max(logo, entries) fits.
+    let os_id = os_id_of(&info);
+    let logo_lines = crate::logo::detect(&os_id).lines.len();
+    let budget = rows.saturating_sub(1) as usize; // shell prompt row
+    loop {
+        if info.entries.len().max(logo_lines) <= budget {
+            break;
+        }
+        let Some(pos) = info
+            .entries
+            .iter()
+            .position(|(n, _)| DROP_ORDER.contains(n))
+        else {
+            break; // nothing left we're willing to drop
+        };
+        info.entries.remove(pos);
+    }
+
+    // Width: keep the key column under a third of the terminal.
+    let max_key_width = (cols as usize / 3).max(8);
+    if config.display.key_width > max_key_width {
+        config.display.key_width = max_key_width;
+    }
+
+    (info, config)
+}
+
 /// Pad a string to a fixed visible width (left-aligned, spaces appended).
 /// Used by the default template to align values: `{{ "OS" | pad(width=8) }}`.
 #[cfg(feature = "tera")]
@@ -494,26 +575,31 @@ impl TeraEngine {
     }
 
     pub fn render(&self, info: &SystemInfo, config: &crate::Config) -> crate::Result<String> {
+        // Responsive layout: when stdout is a TTY that's too short for the
+        // full block, drop low-priority rows until it fits; clamp the key
+        // column on narrow terminals. No-op when not a TTY (piped output).
+        let (info, config) = responsive_adjust(info, config);
+
         #[cfg(feature = "tera")]
         let raw = if config.template == "default" {
-            render_plain(info, config)
+            render_plain(&info, &config)
         } else {
-            self.render_tera(info, config)?
+            self.render_tera(&info, &config)?
         };
         #[cfg(not(feature = "tera"))]
-        let raw = render_plain(info, config);
+        let raw = render_plain(&info, &config);
 
         // Phase 7.6: per-line brand gradient on the ASCII logo (fastfetch's
         // signature vertical fade). Only when truecolor is supported and the
         // user hasn't disabled logo gradients in config.
         let logo_gradient = config.display.logo_gradient && crate::theme::supports_truecolor();
         let grad_stops = if logo_gradient {
-            crate::theme::resolve(config).gradient_colors.clone()
+            crate::theme::resolve(&config).gradient_colors.clone()
         } else {
             Vec::new()
         };
         let info_lines: Vec<&str> = raw.lines().collect();
-        let os_id = os_id_of(info);
+        let os_id = os_id_of(&info);
 
         let rendered = render_logo(&os_id, info_lines.len(), &grad_stops).unwrap_or_default();
         // ponytail: render_logo already returns None for narrow terminals,

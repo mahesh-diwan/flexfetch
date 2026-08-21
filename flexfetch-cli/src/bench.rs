@@ -13,7 +13,7 @@ use std::time::Instant;
 /// 3. N full-pipeline warm iterations reporting min/avg.
 pub fn run(
     modules: &[String],
-    ctx: &Context,
+    ctx: &std::sync::Arc<Context>,
     registry: &'static ModuleRegistry,
     template_content: &str,
     config: &Config,

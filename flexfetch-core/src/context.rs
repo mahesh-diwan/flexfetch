@@ -9,6 +9,11 @@ pub struct Context {
     pub config_dir: PathBuf,
     pub cache_dir: PathBuf,
     pub debug: bool,
+    /// `--stat`: record per-module collection timings into [`Context::timings`].
+    pub stat: bool,
+    /// Per-module collection timings in microseconds `(module, µs)`, recorded
+    /// when `stat` is on. Wall-clock per module, including any timeout wait.
+    pub timings: Mutex<Vec<(String, u64)>>,
     pub cache: Mutex<Cache>,
     pub custom_modules: HashMap<String, CustomModule>,
     fs: Box<dyn FileSystem>,
@@ -44,6 +49,8 @@ impl Context {
             config_dir,
             cache_dir,
             debug,
+            stat: false,
+            timings: Mutex::new(Vec::new()),
             cache: Mutex::new(cache),
             custom_modules,
             fs,
