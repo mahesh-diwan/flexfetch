@@ -71,14 +71,16 @@ jobs:
           targets: ${{ matrix.target }}
 
       # build-std: recompile std from source so LTO/strip can prune unused
-      # pieces (and drop location metadata). Nightly-only; the target-scoped
-      # RUSTFLAGS var name must be derived because GH Actions can't
-      # parameterize env names (dots/dashes -> underscores).
+      # pieces and drop location metadata. Nightly-only. Applied to the macOS
+      # native jobs; the musl/zigbuild jobs stay on stable because zig's musl
+      # lacks rcrt1.o for self-built std (build-std x zigbuild incompatibility).
       - uses: dtolnay/rust-toolchain@nightly
+        if: ${{ !matrix.use_zig }}
         with:
           components: rust-src
 
       - name: Configure build-std flags
+        if: ${{ !matrix.use_zig }}
         run: |
           VAR=$(echo "CARGO_TARGET_${{ matrix.target }}_RUSTFLAGS" | tr 'a-z-' 'A-Z_')
           echo "${VAR}=-Zlocation-detail=none" >> "$GITHUB_ENV"
@@ -119,7 +121,7 @@ jobs:
 
       - name: Build (musl via zigbuild)
         if: matrix.use_zig
-        run: cargo +nightly zigbuild --release --target ${{ matrix.target }} -Z build-std=std,panic_abort -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
+        run: cargo zigbuild --release --target ${{ matrix.target }} -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
 
       - name: Build (native/cross via system clang)
         if: ${{ !matrix.use_zig }}
