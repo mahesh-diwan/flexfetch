@@ -132,7 +132,7 @@ jobs:
       # Purely an optimization — never fails the release.
       - name: Compress with UPX
         if: matrix.use_zig
-        uses: svenstaro/upx-action@v2
+        uses: svenstaro/upx-action@v3
         with:
           file: target/${{ matrix.target }}/release/flexfetch
           args: --best --lzma
