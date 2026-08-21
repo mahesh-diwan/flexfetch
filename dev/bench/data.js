@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787308157853,
+  "lastUpdate": 1787311617881,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2519,6 +2519,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2561306,
             "range": "± 26197",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "07f3f98d5005707919b33113e9cd1ef2cfd4dbcd",
+          "message": "feat: v1.1 — --stat timings, per-module timeout, responsive layout, stability policy\n\n- --stat: per-module wall-clock collection timings to stderr, slowest first\n- sequential builds: 2s per-module collection timeout (hung DBus/HTTP/shell\n  sensors degrade to 'timeout' instead of stalling); parallel (rayon) path\n  stays inline — blocking rayon workers on threads serialized the batch (~6x)\n- responsive layout: auto-drops low-priority rows on short terminals and\n  clamps key column width on narrow ones (TTY-only, piped output untouched)\n- docs/STABILITY.md: flags/config/JSON schema never break; deprecation ladder",
+          "timestamp": "2026-08-21T16:53:33+05:30",
+          "tree_id": "3736c5bb480d7777400f58ccc798772eb509f03b",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/07f3f98d5005707919b33113e9cd1ef2cfd4dbcd"
+        },
+        "date": 1787311616767,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2675563,
+            "range": "± 82906",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2684301,
+            "range": "± 35664",
             "unit": "ns/iter"
           }
         ]
