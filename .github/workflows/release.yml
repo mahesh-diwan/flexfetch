@@ -119,11 +119,11 @@ jobs:
 
       - name: Build (musl via zigbuild)
         if: matrix.use_zig
-        run: cargo +nightly zigbuild --release --target ${{ matrix.target }} -Z build-std=std -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
+        run: cargo +nightly zigbuild --release --target ${{ matrix.target }} -Z build-std=std,panic_abort -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
 
       - name: Build (native/cross via system clang)
         if: ${{ !matrix.use_zig }}
-        run: cargo +nightly build --release --target ${{ matrix.target }} -Z build-std=std -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
+        run: cargo +nightly build --release --target ${{ matrix.target }} -Z build-std=std,panic_abort -p flexfetch-cli --no-default-features --features live,image-logos,completions,parallel
 
       # Size gate (Linux only, uncompressed binary): regression guard, not a diet
       # target. After the tera/rayon gating (ROADMAP 0.2) the release build
