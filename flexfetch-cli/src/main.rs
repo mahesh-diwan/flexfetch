@@ -17,6 +17,7 @@ mod render_output;
 mod live;
 #[cfg(feature = "qr")]
 mod qr;
+mod serve;
 mod ssh;
 pub(crate) mod tools;
 #[cfg(feature = "live")]
@@ -264,6 +265,27 @@ fn main() {
         match flexfetch_core::export::export_markdown(&info, &config) {
             Ok(md) => print!("{md}"),
             Err(e) => eprintln!("motd error: {e}"),
+        }
+        return;
+    }
+
+    // --serve: NDJSON daemon stream (one compact JSON object per tick).
+    if cli.serve {
+        let running = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+        let r = running.clone();
+        let _ = ctrlc::set_handler(move || {
+            r.store(false, std::sync::atomic::Ordering::SeqCst);
+        });
+        if let Err(e) = serve::run(
+            &modules,
+            &ctx,
+            registry,
+            template_content,
+            cli.watch_interval,
+            &running,
+        ) {
+            eprintln!("serve error: {e}");
+            std::process::exit(1);
         }
         return;
     }

@@ -52,6 +52,7 @@ flexfetch --theme catppuccin  # switch theme
 - **Health score** — 0–100 system health from disk, swap, load, battery
 - **Smart fetch** — context-aware info (git branch, project type, container, SSH)
 - **Watch mode** — periodic refresh for dashboards
+- **Daemon mode** — `flexfetch --serve` streams NDJSON for panels/scripts
 - **Config wizard** — interactive TUI setup with live preview
 
 ---

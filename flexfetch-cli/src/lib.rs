@@ -104,6 +104,12 @@ pub struct Cli {
     #[arg(long, default_value_t = 2)]
     pub watch_interval: u64,
 
+    /// Daemon mode: emit the fetch as one compact JSON object per tick
+    /// (NDJSON) on stdout. Tick interval follows `--watch-interval`; stop
+    /// with Ctrl-C. Pairs with panel scripts: `flexfetch --serve | jq -c`.
+    #[arg(long)]
+    pub serve: bool,
+
     /// Live dashboard: real-time CPU/memory gauges, top processes, network rates
     #[arg(long)]
     pub live: bool,

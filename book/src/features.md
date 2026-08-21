@@ -73,6 +73,20 @@ Press `Ctrl+C` to stop.
 Static modules (os/host/kernel/…) are collected once and reused. Dynamic
 modules (cpuusage/memory/disk/network/battery/…) are re-collected every tick.
 
+## Daemon Mode
+
+Stream the fetch as line-delimited JSON (NDJSON) for panels and scripts:
+
+```bash
+flexfetch --serve                          # one JSON object every 2 seconds
+flexfetch --serve --watch-interval 5       # every 5 seconds
+```
+
+Each tick is a single compact JSON object on stdout — pipe it to `jq -c`,
+a waybar script, or any consumer. Stops cleanly on `Ctrl+C` or when the
+reader closes the pipe. Static modules are cached between ticks, so only
+dynamic values re-collect.
+
 ## Smart Fetch
 
 Context-relevant info based on the current directory:
