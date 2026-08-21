@@ -68,8 +68,8 @@ tera = ["flexfetch-core/tera"]
 parallel = ["flexfetch-core/parallel"]
 # `completions <shell>` subcommand (clap_complete)
 completions = ["dep:clap_complete"]
-# QR config sharing (Phase 4.11): `--qr` / `--import-qr`. In the default set so
-# the advertised flag works out of the box; the musl release pipeline builds with
+# QR config sharing (Phase 4.11): `--qr` / `--import-qr`. Opt-in (~0.7 MB of
+# qrcode/rqrr/zstd deps out of the default build); the musl release pipeline builds with
 # explicit `--no-default-features --features live,image-logos,completions,parallel`
 # so zstd-sys never enters the release binary (see the dep comment above; `music`
 # is likewise opt-in).
