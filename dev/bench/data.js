@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787311617881,
+  "lastUpdate": 1787330388514,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2555,6 +2555,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2684301,
             "range": "± 35664",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "36a16fcc91c06d8e4b48a58d692c408383ffc362",
+          "message": "feat: v1.2 — image-logo disk cache + kitty-direct logo transmission\n\n- sixel/block renders cached under <cache>/flexfetch/image-logos/ keyed by\n  (path, mtime, size, protocol, mode) — repeat runs skip PNG decode entirely\n- kitty logos now transmit the file path directly (a=T,f=100,t=f,q=2) —\n  terminal reads the image itself; no base64 blob, no chunking\n- base64 encode made lazy (iterm2-only); 2 new unit tests",
+          "timestamp": "2026-08-21T22:06:20+05:30",
+          "tree_id": "f6c779d8b80373e579622613d689ab0eaa5143a6",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/36a16fcc91c06d8e4b48a58d692c408383ffc362"
+        },
+        "date": 1787330387726,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2788667,
+            "range": "± 34390",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2775784,
+            "range": "± 44247",
             "unit": "ns/iter"
           }
         ]
