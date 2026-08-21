@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786974778009,
+  "lastUpdate": 1787307210703,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2447,6 +2447,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2238986,
             "range": "± 22573",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "44a3e2e6db850a5e97d24d548e792071a24f0510",
+          "message": "refactor: over-engineering audit cuts (-1029 lines, -4 deps)\n\n- site: drop GSAP/ScrollTrigger + scroll.js for CSS scroll-driven animations;\n  remove duplicate IntersectionObserver reveal engine; delete dead CSS\n  (.plugin*, .secure-grid, .hero-cur)\n- docs: delete unreferenced doc/templates.md and completed plan doc\n- core: delete dead group_sections() + tests, dead DisplayConfig::logo_mode,\n  Error::Lua; derive template placeholders/image-logo names from\n  MODULE_CATALOG (fixes drift); reuse dedup_visible() in render_tera;\n  collapse detect_nerd_font/detect_osc8 into terminal_matches(); extract\n  os_id_of(); drop unreachable migrate_config arm\n- cli: derive wizard module/theme lists from core (fixes drift); delete\n  gen_man.rs example; drop unused clap_mangen/proptest dev-deps; inline\n  one-line wrappers; share live.rs snapshot drain\n- ci: merge perf-gate into bench.yml cached build",
+          "timestamp": "2026-08-21T15:40:06+05:30",
+          "tree_id": "83e826d008c14333f1ee2e16e6bdab4a2b4a1efa",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/44a3e2e6db850a5e97d24d548e792071a24f0510"
+        },
+        "date": 1787307210048,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2751872,
+            "range": "± 26359",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2762473,
+            "range": "± 34976",
             "unit": "ns/iter"
           }
         ]
