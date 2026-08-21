@@ -21,11 +21,13 @@ base64 = "0.21"
 # Unicode-width-aware padding (Phase 7.2): Nerd Font/CJK glyphs occupy 2 cells,
 # so key alignment must count display columns, not chars. Tiny, pure Rust, no deps.
 unicode-width = "0.2"
-# Only the PNG decoder/encoder is needed: all logos and the PNG export are PNG files.
-# Default features would pull in exr, avif, gif, webp, tiff, qoi, etc. (several MB of decoders).
-# Optional + gated behind the `image-logos` feature so `--no-default-features` builds drop
-# the whole crate (the image decode path is only used by sixel/block logos and PNG export).
-image = { version = "0.25", optional = true, default-features = false, features = ["png"] }
+# PNG decode for sixel/block logos + PNG export: the `png` crate directly —
+# all logos are PNG files, and the generic `image` reader monomorphizes every
+# decoder 11x (image-rs#2472). Optional, gated behind `image-logos`.
+png = { version = "0.17", optional = true }
+# Only used by `auto-theme` now (wallpapers are usually JPEG; image gives us
+# the jpeg decoder). Opt-in so default/minimal builds never link it.
+image = { version = "0.25", optional = true, default-features = false }
 # MPRIS via pure-Rust zbus (no dbus-send shell-out) behind the `music` feature.
 # Opt-in so the default/minimal builds stay lean; the dbus-send fallback
 # remains for builds without the feature. `blocking-api` gates zbus::blocking;
@@ -41,12 +43,11 @@ proptest = "1"
 default = ["tera", "parallel"]
 tera = ["dep:tera"]
 parallel = ["dep:rayon"]
-image-logos = ["dep:image"]
+image-logos = ["dep:png"]
 music = ["dep:zbus"]
-# Phase 5.4: wallpaper auto-theming (`--auto-theme`). Reuses the same optional
-# `image` dep as image-logos but additionally enables the jpeg decoder (wallpapers
-# are usually JPEG). When only this feature is on, image gets png (base) + jpeg;
-# feature unification adds both when image-logos is also enabled.
+# Phase 5.4: wallpaper auto-theming (`--auto-theme`). Owns the `image` dep
+# (jpeg decoder for wallpapers; png comes along via image's own defaults when
+# unified with other features). Opt-in.
 auto-theme = ["dep:image", "image/jpeg"]
 
 # Phase 8.9 — Windows Tier-2 collectors. Target-gated so Linux/macOS builds

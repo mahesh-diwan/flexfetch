@@ -286,12 +286,15 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
     let img_w = (max_chars as u32) * char_w + pad * 2;
     let img_h = (line_count as u32) * char_h + pad * 2;
 
+    // Flat RGBA8 buffer, encoded with the `png` crate directly.
     let bg_rgb = theme_bg_color(config);
-    let mut img = ::image::ImageBuffer::from_pixel(
-        img_w,
-        img_h,
-        ::image::Rgba([bg_rgb[0], bg_rgb[1], bg_rgb[2], 0xff]),
-    );
+    let mut rgba = vec![0u8; (img_w * img_h * 4) as usize];
+    for px in rgba.chunks_exact_mut(4) {
+        px[0] = bg_rgb[0];
+        px[1] = bg_rgb[1];
+        px[2] = bg_rgb[2];
+        px[3] = 0xff;
+    }
 
     let mut cy = pad;
     for line_spans in &lines {
@@ -299,13 +302,16 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
         for span in line_spans {
             for ch in span.text.chars() {
                 if ch != ' ' {
-                    let color = ::image::Rgba([span.color[0], span.color[1], span.color[2], 255]);
                     for dy in 4..char_h - 2 {
                         for dx in 1..char_w - 1 {
-                            let px = cx + dx;
-                            let py = cy + dy;
-                            if px < img_w && py < img_h {
-                                img.put_pixel(px, py, color);
+                            let px_i = cx + dx;
+                            let py_i = cy + dy;
+                            if px_i < img_w && py_i < img_h {
+                                let i = ((py_i * img_w + px_i) * 4) as usize;
+                                rgba[i] = span.color[0];
+                                rgba[i + 1] = span.color[1];
+                                rgba[i + 2] = span.color[2];
+                                rgba[i + 3] = 255;
                             }
                         }
                     }
@@ -316,14 +322,21 @@ pub fn export_png(info: &SystemInfo, config: &Config, path: &Path) -> crate::Res
         cy += char_h;
     }
 
-    // Pass the format explicitly: `save()` infers it from the file extension,
-    // so `--export png --output /tmp/out` (no .png) silently failed with
-    // "image format could not be determined".
-    img.save_with_format(path, ::image::ImageFormat::Png)
-        .map_err(|e| crate::Error::Template(format!("png save: {e}")))
+    let file = std::fs::File::create(path)
+        .map_err(|e| crate::Error::Template(format!("png create: {e}")))?;
+    let mut enc = png::Encoder::new(file, img_w, img_h);
+    enc.set_color(png::ColorType::Rgba);
+    enc.set_depth(png::BitDepth::Eight);
+    let mut writer = enc
+        .write_header()
+        .map_err(|e| crate::Error::Template(format!("png header: {e}")))?;
+    writer
+        .write_image_data(&rgba)
+        .map_err(|e| crate::Error::Template(format!("png write: {e}")))?;
+    Ok(())
 }
 
-// PNG export needs the `image` crate; the minimal `--no-default-features` build
+// PNG export needs the `png` crate; the minimal `--no-default-features` build
 // drops it, so export_png degrades to a clear error instead of a missing symbol.
 #[cfg(not(feature = "image-logos"))]
 pub fn export_png(_info: &SystemInfo, _config: &Config, _path: &Path) -> crate::Result<()> {

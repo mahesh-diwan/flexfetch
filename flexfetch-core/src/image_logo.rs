@@ -244,32 +244,79 @@ impl ImageLogo {
         format!("\x1b_G{};{}\x1b\\", payload, path)
     }
 
+    /// Decode a PNG into flat RGBA8 pixels. Returns None for non-PNG or
+    /// unreadable input — callers degrade to the ASCII logo fallback.
+    #[cfg(feature = "image-logos")]
+    pub fn decode_png(path: &str) -> Option<(Vec<u8>, u32, u32)> {
+        let file = fs::File::open(path).ok()?;
+        let decoder = png::Decoder::new(file);
+        let mut reader = decoder.read_info().ok()?;
+        let mut buf = vec![0u8; reader.output_buffer_size()];
+        let info = reader.next_frame(&mut buf).ok()?;
+        buf.truncate(info.buffer_size());
+        match info.color_type {
+            png::ColorType::Rgba => Some((buf, info.width, info.height)),
+            png::ColorType::Rgb => Some((
+                buf.chunks_exact(3)
+                    .flat_map(|c| [c[0], c[1], c[2], 255])
+                    .collect(),
+                info.width,
+                info.height,
+            )),
+            png::ColorType::Grayscale => Some((
+                buf.into_iter().flat_map(|g| [g, g, g, 255]).collect(),
+                info.width,
+                info.height,
+            )),
+            _ => None,
+        }
+    }
+
+    /// Bilinear resize of flat RGBA8 pixels to (tw, th).
+    #[cfg(feature = "image-logos")]
+    pub fn resize_bilinear(px: &[u8], w: u32, h: u32, tw: u32, th: u32) -> Vec<u8> {
+        if w == 0 || h == 0 || tw == 0 || th == 0 {
+            return Vec::new();
+        }
+        let mut out = vec![0u8; (tw * th * 4) as usize];
+        for y in 0..th {
+            let fy = y as f32 * (h - 1) as f32 / (th - 1).max(1) as f32;
+            let y0 = (fy.floor() as u32).min(h - 1);
+            let y1 = (y0 + 1).min(h - 1);
+            let dy = fy - y0 as f32;
+            for x in 0..tw {
+                let fx = x as f32 * (w - 1) as f32 / (tw - 1).max(1) as f32;
+                let x0 = (fx.floor() as u32).min(w - 1);
+                let x1 = (x0 + 1).min(w - 1);
+                let dx = fx - x0 as f32;
+                for c in 0..4 {
+                    let p = |xx: u32, yy: u32| px[((yy * w + xx) * 4 + c) as usize] as f32;
+                    let top = p(x0, y0) * (1.0 - dx) + p(x1, y0) * dx;
+                    let bot = p(x0, y1) * (1.0 - dx) + p(x1, y1) * dx;
+                    out[((y * tw + x) * 4 + c) as usize] =
+                        (top * (1.0 - dy) + bot * dy).round() as u8;
+                }
+            }
+        }
+        out
+    }
+
     #[cfg(feature = "image-logos")]
     fn render_sixel_protocol(path: &str, width: Option<u32>, height: Option<u32>) -> String {
         // Sixel: ESC P q <defs> <row data> ESC \
         // Each char = 6 vertical pixels (bit 0 = top), value = bits + 63
-        let img = match image::open(path) {
-            Ok(img) => img,
-            Err(_) => return String::new(),
+        let Some((raw, iw, ih)) = Self::decode_png(path) else {
+            return String::new();
         };
-
-        let img = match (width, height) {
-            (Some(w), Some(h)) => img.resize(w, h, image::imageops::FilterType::Lanczos3),
-            (Some(w), None) => {
-                let ratio = w as f64 / img.width() as f64;
-                let h = (img.height() as f64 * ratio) as u32;
-                img.resize(w, h, image::imageops::FilterType::Lanczos3)
-            }
-            (None, Some(h)) => {
-                let ratio = h as f64 / img.height() as f64;
-                let w = (img.width() as f64 * ratio) as u32;
-                img.resize(w, h, image::imageops::FilterType::Lanczos3)
-            }
-            (None, None) => img,
+        // Preserve aspect ratio exactly as before; resize via bilinear.
+        let (tw, th) = match (width, height) {
+            (Some(w), Some(h)) => (w, h),
+            (Some(w), None) => (w, ((ih as f64 * w as f64 / iw as f64) as u32).max(1)),
+            (None, Some(h)) => (((iw as f64 * h as f64 / ih as f64) as u32).max(1), h),
+            (None, None) => (iw, ih),
         };
-
-        let rgb = img.to_rgb8();
-        let (w, h) = rgb.dimensions();
+        let rgba = Self::resize_bilinear(&raw, iw, ih, tw, th);
+        let (w, h) = (tw, th);
 
         // 216-color cube palette (6×6×6)
         let quantize = |r: u8, g: u8, b: u8| -> u8 { (r / 51) * 36 + (g / 51) * 6 + (b / 51) };
@@ -280,9 +327,9 @@ impl ImageLogo {
 
         // Define 216-color palette
         for i in 0u16..216 {
-            let r = ((i / 36) % 6) as u8 * 51;
-            let g = ((i / 6) % 6) as u8 * 51;
-            let b = (i % 6) as u8 * 51;
+            let r = (i / 36) % 6 * 51;
+            let g = (i / 6) % 6 * 51;
+            let b = i % 6 * 51;
             output.push_str(&format!(
                 "2;{};{};{};{}",
                 i,
@@ -303,8 +350,9 @@ impl ImageLogo {
                     for bit in 0..6u32 {
                         let py = sixel_row + bit;
                         if py < h {
-                            let pixel = rgb.get_pixel(x, py);
-                            if quantize(pixel[0], pixel[1], pixel[2]) == color_idx as u8 {
+                            let px = ((py * w + x) * 4) as usize;
+                            let (r, g, b) = (rgba[px], rgba[px + 1], rgba[px + 2]);
+                            if quantize(r, g, b) == color_idx as u8 {
                                 sixel_bits |= 1 << bit;
                             }
                         }
@@ -342,21 +390,19 @@ impl ImageLogo {
     #[cfg(feature = "image-logos")]
     fn render_block_fallback(path: &str, width: Option<u32>, height: Option<u32>) -> String {
         // Unicode block art using ▀▄█ with ANSI truecolor
-        let img = match image::open(path) {
-            Ok(img) => img,
-            Err(_) => return String::new(),
+        let Some((raw, iw, ih)) = Self::decode_png(path) else {
+            return String::new();
         };
 
         // Resize: default 40 cols wide, half height in rows (2 pixels per row)
         let target_w = width.unwrap_or(40);
         let target_h = height.unwrap_or(20);
-        let img = img.resize(
-            target_w,
-            target_h * 2,
-            image::imageops::FilterType::Lanczos3,
-        );
-        let rgb = img.to_rgb8();
-        let (w, h) = rgb.dimensions();
+        let rgba = Self::resize_bilinear(&raw, iw, ih, target_w, target_h * 2);
+        let (w, h) = (target_w, target_h * 2);
+        let px = |x: u32, y: u32| -> [u8; 3] {
+            let i = ((y * w + x) * 4) as usize;
+            [rgba[i], rgba[i + 1], rgba[i + 2]]
+        };
 
         let mut lines: Vec<String> = Vec::new();
 
@@ -364,19 +410,12 @@ impl ImageLogo {
         for y in (0..h).step_by(2) {
             let mut line = String::new();
             for x in 0..w {
-                let top = rgb.get_pixel(x, y);
-                let bottom = if y + 1 < h {
-                    rgb.get_pixel(x, y + 1)
+                let [tr, tg, tb] = px(x, y);
+                let [br, bg, bb] = if y + 1 < h {
+                    px(x, y + 1)
                 } else {
-                    rgb.get_pixel(x, y)
+                    [tr, tg, tb]
                 };
-
-                let tr = top[0];
-                let tg = top[1];
-                let tb = top[2];
-                let br = bottom[0];
-                let bg = bottom[1];
-                let bb = bottom[2];
 
                 if tr == br && tg == bg && tb == bb {
                     // Same color: use space with background
@@ -533,9 +572,15 @@ mod tests {
         fs::write(&png, vec![0xffu8; 8192]).unwrap();
         let logo = ImageLogo::new(png.to_string_lossy().to_string()).with_size(15, 8);
         let out = logo.render(ImageProtocol::Kitty, LogoMode::Image);
-        assert!(out.starts_with("\x1b_Ga=T,f=100,t=f,q=2,s=15,v=8;"), "{out:?}");
+        assert!(
+            out.starts_with("\x1b_Ga=T,f=100,t=f,q=2,s=15,v=8;"),
+            "{out:?}"
+        );
         assert!(out.ends_with("\x1b\\"));
-        assert!(out.contains("t.png"), "payload must be the file path: {out:?}");
+        assert!(
+            out.contains("t.png"),
+            "payload must be the file path: {out:?}"
+        );
         assert!(!out.contains("////"), "no base64 blob expected: {out:?}");
         let _ = fs::remove_dir_all(&dir);
     }
@@ -546,10 +591,71 @@ mod tests {
         let rendered = ImageLogo::cached_ansi(&key, || "ANSI".to_string());
         assert_eq!(rendered, "ANSI");
         // Second call must hit the cache (producer panics if invoked).
-        let hit = std::panic::catch_unwind(|| {
-            ImageLogo::cached_ansi(&key, || panic!("cache miss"))
-        })
-        .unwrap();
+        let hit =
+            std::panic::catch_unwind(|| ImageLogo::cached_ansi(&key, || panic!("cache miss")))
+                .unwrap();
         assert_eq!(hit, "ANSI");
+    }
+}
+
+#[cfg(all(test, feature = "image-logos"))]
+mod png_tests {
+    use super::*;
+
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("ff-imglogo-{tag}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn write_test_png(path: &std::path::Path) {
+        let file = std::fs::File::create(path).unwrap();
+        let mut enc = png::Encoder::new(file, 2, 2);
+        enc.set_color(png::ColorType::Rgba);
+        enc.set_depth(png::BitDepth::Eight);
+        let mut w = enc.write_header().unwrap();
+        w.write_image_data(&[
+            255, 0, 0, 255, 0, 0, 255, 255, //
+            0, 0, 255, 255, 0, 255, 0, 255,
+        ])
+        .unwrap();
+        drop(w);
+    }
+
+    #[test]
+    fn decode_png_reads_rgba() {
+        let dir = temp_dir("decode");
+        let path = dir.join("px.png");
+        write_test_png(&path);
+        let (px, w, h) = ImageLogo::decode_png(path.to_str().unwrap()).unwrap();
+        assert_eq!((w, h), (2, 2));
+        assert_eq!(px.len(), 16);
+        assert_eq!(&px[0..4], &[255, 0, 0, 255]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn decode_png_missing_file_is_none() {
+        assert!(ImageLogo::decode_png("/nonexistent/px.png").is_none());
+    }
+
+    #[test]
+    fn resize_bilinear_scales_and_keeps_channels() {
+        let px = vec![10u8; 2 * 2 * 4];
+        let out = ImageLogo::resize_bilinear(&px, 2, 2, 4, 4);
+        assert_eq!(out.len(), 4 * 4 * 4);
+        assert!(out.iter().all(|&b| b == 10));
+    }
+
+    #[test]
+    fn sixel_render_uses_png_decode() {
+        let dir = temp_dir("sixel");
+        let path = dir.join("px.png");
+        write_test_png(&path);
+        let out = ImageLogo::render_sixel_protocol(path.to_str().unwrap(), Some(2), Some(1));
+        assert!(out.starts_with("\x1bPq"), "sixel header");
+        assert!(out.ends_with("\x1b\\"), "sixel terminator");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
