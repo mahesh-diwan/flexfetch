@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787330388514,
+  "lastUpdate": 1787334965350,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2591,6 +2591,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2775784,
             "range": "± 44247",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "ba6a74f35cbfa25cd0c572b8683ed27534225f2f",
+          "message": "ci(release): build-std=std + location-detail none on nightly for release artifacts",
+          "timestamp": "2026-08-21T23:23:00+05:30",
+          "tree_id": "bfb05eecadccf0704a0ec2dbb45fbc36ca8dd21b",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/ba6a74f35cbfa25cd0c572b8683ed27534225f2f"
+        },
+        "date": 1787334964343,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 2702758,
+            "range": "± 61788",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 2713895,
+            "range": "± 60259",
             "unit": "ns/iter"
           }
         ]
