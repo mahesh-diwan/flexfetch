@@ -249,9 +249,14 @@ impl ImageLogo {
     #[cfg(feature = "image-logos")]
     pub fn decode_png(path: &str) -> Option<(Vec<u8>, u32, u32)> {
         let file = fs::File::open(path).ok()?;
-        let decoder = png::Decoder::new(file);
+        // png 0.18 wants a BufRead.
+        let mut decoder = png::Decoder::new(std::io::BufReader::new(file));
+        // EXPAND: palette -> RGB(A), gray -> 8-bit, tRNS -> alpha. STRIP_16:
+        // 16-bit channels -> 8-bit. Without these, indexed/16-bit PNGs would
+        // decode as garbage bytes instead of pixels.
+        decoder.set_transformations(png::Transformations::EXPAND | png::Transformations::STRIP_16);
         let mut reader = decoder.read_info().ok()?;
-        let mut buf = vec![0u8; reader.output_buffer_size()];
+        let mut buf = vec![0u8; reader.output_buffer_size().unwrap_or_default()];
         let info = reader.next_frame(&mut buf).ok()?;
         buf.truncate(info.buffer_size());
         match info.color_type {
@@ -265,6 +270,13 @@ impl ImageLogo {
             )),
             png::ColorType::Grayscale => Some((
                 buf.into_iter().flat_map(|g| [g, g, g, 255]).collect(),
+                info.width,
+                info.height,
+            )),
+            png::ColorType::GrayscaleAlpha => Some((
+                buf.chunks_exact(2)
+                    .flat_map(|c| [c[0], c[0], c[0], c[1]])
+                    .collect(),
                 info.width,
                 info.height,
             )),
@@ -657,5 +669,71 @@ mod png_tests {
         assert!(out.starts_with("\x1bPq"), "sixel header");
         assert!(out.ends_with("\x1b\\"), "sixel terminator");
         let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(all(test, feature = "image-logos"))]
+mod decode_transform_tests {
+    use super::*;
+
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("ff-imglogo-{tag}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn decode_indexed_palette_png() {
+        let dir = temp_dir("indexed");
+        let path = dir.join("idx.png");
+        let file = fs::File::create(&path).unwrap();
+        let mut enc = png::Encoder::new(file, 2, 1);
+        enc.set_color(png::ColorType::Indexed);
+        enc.set_depth(png::BitDepth::Eight);
+        enc.set_palette(vec![255, 0, 0, 0, 255, 0]); // red, green
+        let mut w = enc.write_header().unwrap();
+        w.write_image_data(&[0, 1]).unwrap();
+        drop(w);
+
+        let (px, wd, ht) = ImageLogo::decode_png(path.to_str().unwrap()).unwrap();
+        assert_eq!((wd, ht), (2, 1));
+        assert_eq!(&px[0..8], &[255, 0, 0, 255, 0, 255, 0, 255]);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn decode_grayscale_alpha_png() {
+        let dir = temp_dir("ga");
+        let path = dir.join("ga.png");
+        let file = fs::File::create(&path).unwrap();
+        let mut enc = png::Encoder::new(file, 1, 1);
+        enc.set_color(png::ColorType::GrayscaleAlpha);
+        enc.set_depth(png::BitDepth::Eight);
+        let mut w = enc.write_header().unwrap();
+        w.write_image_data(&[128, 200]).unwrap();
+        drop(w);
+
+        let (px, _, _) = ImageLogo::decode_png(path.to_str().unwrap()).unwrap();
+        assert_eq!(px, vec![128, 128, 128, 200]);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn decode_16bit_rgb_png_strips_to_8bit() {
+        let dir = temp_dir("strip16");
+        let path = dir.join("deep.png");
+        let file = fs::File::create(&path).unwrap();
+        let mut enc = png::Encoder::new(file, 1, 1);
+        enc.set_color(png::ColorType::Rgb);
+        enc.set_depth(png::BitDepth::Sixteen);
+        let mut w = enc.write_header().unwrap();
+        // 65535 big-endian per channel -> strips to 255 each.
+        w.write_image_data(&[0xff, 0xff, 0xff, 0xff, 0xff, 0xff]).unwrap();
+        drop(w);
+
+        let (px, _, _) = ImageLogo::decode_png(path.to_str().unwrap()).unwrap();
+        assert_eq!(px, vec![255, 255, 255, 255]);
+        let _ = fs::remove_dir_all(&dir);
     }
 }

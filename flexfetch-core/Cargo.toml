@@ -24,10 +24,10 @@ unicode-width = "0.2"
 # PNG decode for sixel/block logos + PNG export: the `png` crate directly —
 # all logos are PNG files, and the generic `image` reader monomorphizes every
 # decoder 11x (image-rs#2472). Optional, gated behind `image-logos`.
-png = { version = "0.17", optional = true }
-# Only used by `auto-theme` now (wallpapers are usually JPEG; image gives us
-# the jpeg decoder). Opt-in so default/minimal builds never link it.
-image = { version = "0.25", optional = true, default-features = false }
+png = { version = "0.18", optional = true }
+# Only used by `auto-theme` now (wallpapers are usually JPEG or PNG; image
+# gives us both decoders). Opt-in so default/minimal builds never link it.
+image = { version = "0.25", optional = true, default-features = false, features = ["jpeg", "png"] }
 # MPRIS via pure-Rust zbus (no dbus-send shell-out) behind the `music` feature.
 # Opt-in so the default/minimal builds stay lean; the dbus-send fallback
 # remains for builds without the feature. `blocking-api` gates zbus::blocking;
@@ -46,9 +46,8 @@ parallel = ["dep:rayon"]
 image-logos = ["dep:png"]
 music = ["dep:zbus"]
 # Phase 5.4: wallpaper auto-theming (`--auto-theme`). Owns the `image` dep
-# (jpeg decoder for wallpapers; png comes along via image's own defaults when
-# unified with other features). Opt-in.
-auto-theme = ["dep:image", "image/jpeg"]
+# (jpeg + png decoders for wallpapers). Opt-in.
+auto-theme = ["dep:image"]
 
 # Phase 8.9 — Windows Tier-2 collectors. Target-gated so Linux/macOS builds
 # (including the musl cross-compile + minimal diet builds) never link it.
