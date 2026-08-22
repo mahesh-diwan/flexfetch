@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787335629715,
+  "lastUpdate": 1787378885135,
   "repoUrl": "https://github.com/mahesh-diwan/flexfetch",
   "entries": {
     "Benchmark": [
@@ -2735,6 +2735,42 @@ window.BENCHMARK_DATA = {
             "name": "cold_start_default_pipe",
             "value": 2742049,
             "range": "± 81168",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "committer": {
+            "email": "diwanmahesh11@gmail.com",
+            "name": "Mahesh Diwan",
+            "username": "mahesh-diwan"
+          },
+          "distinct": true,
+          "id": "ab7544183810e5d0601b5af83416bbcc98f2a620",
+          "message": "chore(release): v1.4.0 — panel daemon, size story complete",
+          "timestamp": "2026-08-22T11:35:33+05:30",
+          "tree_id": "ea89d39f09754fbaaf0ed655f3042bc8dfef8e3d",
+          "url": "https://github.com/mahesh-diwan/flexfetch/commit/ab7544183810e5d0601b5af83416bbcc98f2a620"
+        },
+        "date": 1787378884428,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cold_start_minimal",
+            "value": 1738160,
+            "range": "± 34349",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cold_start_default_pipe",
+            "value": 1754389,
+            "range": "± 46586",
             "unit": "ns/iter"
           }
         ]
